@@ -1,0 +1,91 @@
+{
+  "name": "WSB · Sub · Schedule Patch (GitHub commit)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a2000000-0001-4000-8000-000000000001",
+      "name": "When Executed By Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/Serhiog/Work-Schedule-Bot/contents/web/schedule.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $credentials.githubApi.accessToken }}" },
+            { "name": "Accept", "value": "application/vnd.github+json" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2000000-0001-4000-8000-000000000002",
+      "name": "GitHub GET",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300],
+      "credentials": {
+        "githubApi": { "id": "5f692631-413a-40", "name": "WSB · GitHub PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Apply mutation to schedule.json.\n// Input: action = { type, taskId, field?, value?, date?, days?, reason?, name? }\n// author = string\n\nconst raw = $input.first().json;\nconst contentB64 = raw.content;\nconst sha = raw.sha;\nconst schedule = JSON.parse(Buffer.from(contentB64, 'base64').toString('utf8'));\n\nconst action = $('When Executed By Another Workflow').first().json.action || {};\nconst author = $('When Executed By Another Workflow').first().json.author || 'Bot';\n\nlet summary = '';\n\nif (action.type === 'mark_complete') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const date = action.date || new Date().toISOString().slice(0, 10);\n  t.actualEnd = date;\n  if (!t.actualStart) t.actualStart = t.planStart || date;\n  t.progress = 1;\n  summary = `mark_complete: «${t.name}» actualEnd=${date}`;\n} else if (action.type === 'mark_started') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const date = action.date || new Date().toISOString().slice(0, 10);\n  t.actualStart = date;\n  if (typeof t.progress !== 'number' || t.progress === 0) t.progress = 0.01;\n  summary = `mark_started: «${t.name}» actualStart=${date}`;\n} else if (action.type === 'set_progress') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  t.progress = Math.max(0, Math.min(1, Number(action.value)));\n  summary = `set_progress: «${t.name}» progress=${Math.round(t.progress*100)}%`;\n} else if (action.type === 'shift_dates') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const days = Number(action.days);\n  const shift = (iso) => {\n    const d = new Date(iso);\n    d.setUTCDate(d.getUTCDate() + days);\n    return d.toISOString().slice(0, 10);\n  };\n  t.planStart = shift(t.planStart || t.start);\n  t.planEnd = shift(t.planEnd || t.end);\n  summary = `shift_dates: «${t.name}» ±${days}d → ${t.planStart}..${t.planEnd}`;\n} else if (action.type === 'add_delay') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const delays = t.delays || [];\n  delays.push({\n    date: new Date().toISOString().slice(0,10),\n    days: Number(action.days) || 0,\n    reason: String(action.reason || '')\n  });\n  t.delays = delays;\n  summary = `add_delay: «${t.name}» +${action.days || 0}d ${action.reason || ''}`;\n} else if (action.type === 'add_milestone') {\n  const ms = schedule.milestones || [];\n  const id = 'M' + (ms.length + 1);\n  ms.push({\n    id, date: action.date, name: action.name, stage: action.stage || 'ST4'\n  });\n  schedule.milestones = ms;\n  summary = `add_milestone: ${action.name} on ${action.date}`;\n} else {\n  throw new Error(`Unknown action type: ${action.type}`);\n}\n\n// Update lastUpdated\nschedule.project.lastUpdated = new Date().toISOString();\nschedule.project.lastUpdatedBy = author;\n\nconst newContent = Buffer.from(JSON.stringify(schedule, null, 2), 'utf8').toString('base64');\n\nreturn [{ json: {\n  sha,\n  content: newContent,\n  message: `bot: ${summary}`,\n  committerName: author,\n  committerEmail: 'bot@cyfr.ae',\n  summary\n} }];"
+      },
+      "id": "a2000000-0001-4000-8000-000000000003",
+      "name": "Apply Mutation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.github.com/repos/Serhiog/Work-Schedule-Bot/contents/web/schedule.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $credentials.githubApi.accessToken }}" },
+            { "name": "Accept", "value": "application/vnd.github+json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.message, content: $json.content, sha: $json.sha, committer: { name: $json.committerName, email: $json.committerEmail } }) }}",
+        "options": {}
+      },
+      "id": "a2000000-0001-4000-8000-000000000004",
+      "name": "GitHub PUT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 300],
+      "credentials": {
+        "githubApi": { "id": "5f692631-413a-40", "name": "WSB · GitHub PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return structured result.\nconst r = $input.first().json;\nconst summary = $('Apply Mutation').first().json.summary;\nreturn [{ json: {\n  ok: true,\n  commitSha: r.commit?.sha || null,\n  commitUrl: r.commit?.html_url || null,\n  summary\n} }];"
+      },
+      "id": "a2000000-0001-4000-8000-000000000005",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    }
+  ],
+  "connections": {
+    "When Executed By Another Workflow": { "main": [[{ "node": "GitHub GET", "type": "main", "index": 0 }]] },
+    "GitHub GET": { "main": [[{ "node": "Apply Mutation", "type": "main", "index": 0 }]] },
+    "Apply Mutation": { "main": [[{ "node": "GitHub PUT", "type": "main", "index": 0 }]] },
+    "GitHub PUT": { "main": [[{ "node": "Result", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "versionId": "v1"
+}

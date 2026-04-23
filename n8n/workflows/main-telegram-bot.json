@@ -7,82 +7,58 @@
         "additionalFields": {}
       },
       "id": "b1000000-0001-4000-8000-000000000001",
-      "name": "Telegram Trigger",
+      "name": "TelegramTrigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
-      "position": [200, 400],
+      "position": [100, 400],
       "credentials": {
-        "telegramApi": {
-          "id": "54054404-0389-4a",
-          "name": "WSB · Telegram Bot"
-        }
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Normalize Telegram update → unified shape.\n// Handles text messages, voice, photos, and callback_query (inline buttons).\n\nconst raw = $input.first().json;\nconst msg = raw.message || raw.callback_query?.message || {};\nconst from = raw.message?.from || raw.callback_query?.from || {};\nconst cb = raw.callback_query;\n\nconst userId = String(from.id || '');\nconst chatId = String(msg.chat?.id || from.id || '');\nconst username = from.username || '';\nconst firstName = from.first_name || '';\n\nlet type = 'unknown';\nlet text = '';\nif (cb) {\n  type = 'callback';\n  text = cb.data || '';\n} else if (msg.voice) {\n  type = 'voice';\n  text = '';\n} else if (msg.photo) {\n  type = 'photo';\n  text = msg.caption || '';\n} else if (msg.text) {\n  type = 'text';\n  text = msg.text;\n}\n\nreturn [{ json: {\n  userId,\n  chatId,\n  username,\n  firstName,\n  type,\n  text,\n  messageId: msg.message_id || null,\n  callbackQueryId: cb?.id || null,\n  voiceFileId: msg.voice?.file_id || null,\n  photoFileId: msg.photo ? msg.photo[msg.photo.length - 1].file_id : null,\n  raw,\n} }];"
+        "jsCode": "const raw = $input.first().json;\nconst msg = raw.message || raw.callback_query?.message || {};\nconst from = raw.message?.from || raw.callback_query?.from || {};\nconst cb = raw.callback_query;\n\nconst userId = String(from.id || '');\nconst chatId = String(msg.chat?.id || from.id || '');\nconst username = from.username || '';\nconst firstName = from.first_name || '';\n\nlet type = 'unknown';\nlet text = '';\nif (cb) { type = 'callback'; text = cb.data || ''; }\nelse if (msg.voice) { type = 'voice'; text = ''; }\nelse if (msg.photo) { type = 'photo'; text = msg.caption || ''; }\nelse if (msg.document) { type = 'document'; text = msg.caption || ''; }\nelse if (msg.text) { type = 'text'; text = msg.text; }\n\nreturn [{ json: {\n  userId, chatId, username, firstName, type, text,\n  messageId: msg.message_id || null,\n  callbackQueryId: cb?.id || null,\n  callbackMessageId: cb?.message?.message_id || null,\n  voiceFileId: msg.voice?.file_id || null,\n  voiceDurationSec: msg.voice?.duration || null,\n  photoFileId: msg.photo ? msg.photo[msg.photo.length - 1].file_id : null,\n  documentFileId: msg.document?.file_id || null,\n  documentName: msg.document?.file_name || null,\n  raw,\n} }];"
       },
       "id": "b1000000-0001-4000-8000-000000000002",
       "name": "Normalize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 400]
+      "position": [300, 400]
     },
     {
       "parameters": {
         "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "apph1Z1U3OU2gBvnL",
-          "mode": "id"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblDxfO0Fue11EQmp",
-          "mode": "id"
-        },
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblDxfO0Fue11EQmp", "mode": "id" },
         "returnAll": true,
         "filterByFormula": "={{ \"{TelegramUserId}='\" + $json.userId + \"'\" }}",
         "options": {}
       },
       "id": "b1000000-0001-4000-8000-000000000003",
-      "name": "Lookup User",
+      "name": "LookupUser",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [680, 400],
+      "position": [500, 400],
       "credentials": {
-        "airtableTokenApi": {
-          "id": "d7bb546a-a890-48",
-          "name": "WSB · Airtable PAT"
-        }
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Merge incoming normalized message + user lookup result.\n// If user not found or not active → set authorized=false and stop.\n// Else route by intent.\n\nconst msg = $('Normalize').first().json;\nconst users = $input.all().map((i) => i.json);\n\n// Airtable search returns records with fields\nconst user = users[0]?.fields ? users[0] : (users[0]?.records?.[0]) || null;\n\nif (!user || !user.fields || user.fields.Active !== true) {\n  return [{ json: { ...msg, authorized: false, intent: 'unauthorized' } }];\n}\n\nconst userFields = user.fields;\nconst text = (msg.text || '').trim();\nconst lower = text.toLowerCase();\n\n// Naive intent classifier (Phase A — no GPT yet)\nlet intent = 'unknown';\nif (msg.type === 'voice') intent = 'voice_not_supported_yet';\nelse if (msg.type === 'photo') intent = 'photo_not_supported_yet';\nelse if (msg.type === 'callback') intent = 'callback_not_supported_yet';\nelse if (lower === '/start' || lower.startsWith('/start ')) intent = 'start';\nelse if (lower === '/help' || lower === '/помощь' || lower === 'помощь' || lower === 'что ты умеешь') intent = 'help';\nelse if (lower === '/график' || lower === '/gantt' || lower.includes('ссылк')) intent = 'gantt';\nelse if (lower === '/статус' || lower === '/status' || lower === 'статус' || lower === 'как дела') intent = 'status';\nelse if (lower === '/отмена' || lower === 'отмена' || lower === '/cancel') intent = 'cancel';\n\nreturn [{ json: { ...msg, authorized: true, userFields, intent } }];"
+        "jsCode": "const msg = $('Normalize').first().json;\nconst users = $input.all().map((i) => i.json);\nconst user = users.find((u) => u.fields?.Active === true) || null;\nif (!user) return [{ json: { ...msg, authorized: false } }];\nreturn [{ json: { ...msg, authorized: true, userFields: user.fields } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000004",
-      "name": "Auth & Classify",
+      "name": "Auth",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [920, 400]
+      "position": [700, 400]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
+          "options": { "typeValidation": "loose", "version": 2 },
           "conditions": [
-            {
-              "id": "auth-check",
-              "leftValue": "={{ $json.authorized }}",
-              "rightValue": true,
-              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
-            }
+            { "id": "c1", "leftValue": "={{ $json.authorized }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
           ],
           "combinator": "and"
         },
@@ -92,17 +68,279 @@
       "name": "IF authorized",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1160, 400]
+      "position": [900, 400]
     },
     {
       "parameters": {
-        "jsCode": "// Build response text based on intent.\n\nconst msg = $input.first().json;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT_URL = 'https://cyfr-schedule-app.vercel.app/';\n\nconst responses = {\n  start: `👋 Привет, ${name}!\\n\\nЯ — бот графика работ CYFR по проекту *Orange Group Office 3.0*.\\n\\nСейчас доступно:\\n• /help — список команд\\n• /график — ссылка на витрину\\n• /статус — сводка по проекту _(в разработке)_\\n\\nСкоро: голосовые команды, отметка прогресса, сдвиг задач.`,\n  help: `📋 *Команды:*\\n\\n📊 /статус — сводка проекта\\n🗓 /график — ссылка на витрину\\n❓ /help — эта справка\\n❌ /отмена — отменить текущий диалог\\n\\n*В разработке:*\\n🎤 Голос: _«отметь электрику готовой»_\\n✅ Подтверждение действий кнопками\\n📸 Фото объекта с привязкой к задаче\\n⚠️ Отчёты о задержках с причиной`,\n  gantt: `🔗 Витрина графика:\\n${GANTT_URL}\\n\\nТам видно план/факт по 30 задачам, milestone, прогресс, субподрядчиков.`,\n  status: `🔄 *Короткий статус:*\\n\\n⏳ Полный текстовый отчёт в разработке (следующая итерация).\\n\\nТем временем: ${GANTT_URL} — всё визуально, с % по каждой задаче.`,\n  cancel: `❎ Нечего отменять — активных диалогов нет.`,\n  voice_not_supported_yet: `🎤 Голосовые сообщения пока в разработке. Отправь текстом — например: /help или /график.`,\n  photo_not_supported_yet: `📸 Фото пока не умею обрабатывать. Скоро добавлю — будет привязка фото к задаче.`,\n  callback_not_supported_yet: `⏳ Кнопки пока не подключены. Используй команды: /help.`,\n  unknown: `🤔 Не распознал команду.\\n\\nПопробуй /help чтобы посмотреть что я умею.`,\n};\n\nconst responseText = responses[msg.intent] || responses.unknown;\n\nreturn [{ json: { ...msg, responseText, parseMode: 'Markdown' } }];"
+        "dataType": "string",
+        "value1": "={{ $json.type }}",
+        "rules": {
+          "rules": [
+            { "value2": "voice", "output": 0 },
+            { "value2": "callback", "output": 1 }
+          ]
+        },
+        "fallbackOutput": 2
       },
       "id": "b1000000-0001-4000-8000-000000000006",
-      "name": "Build Response",
+      "name": "Route Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [1100, 380]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/bot{{ $credentials.telegramApi.accessToken }}/getFile",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [ { "name": "file_id", "value": "={{ $json.voiceFileId }}" } ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000010",
+      "name": "TG GetFile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 100],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/file/bot{{ $credentials.telegramApi.accessToken }}/{{ $json.result.file_path }}",
+        "options": { "response": { "response": { "responseFormat": "file" } } }
+      },
+      "id": "b1000000-0001-4000-8000-000000000011",
+      "name": "TG DownloadVoice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 100],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $credentials.openAiApi.apiKey }}" } ]
+        },
+        "contentType": "multipart-form-data",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "parameterType": "formBinaryData", "name": "file", "inputDataFieldName": "data" },
+            { "name": "model", "value": "whisper-1" },
+            { "name": "language", "value": "ru" },
+            { "name": "prompt", "value": "Строительный проект Orange Group Office Дубай. Термины: демонтаж, ГКЛ, гипсокартон, стяжка, наливной пол, электрика, сантехника, пожаробезопасность, ОВиК, вентиляция, фанкоилы, воздуховоды, шпатлёвка, штукатурка, покраска, малярка, плитка, ковролин, стеклянные перегородки, мебель, декор. Команды: отметь готово, закончили, стартовали, сдвинь на дней позже, задержка по причине, статус, прогресс, просрочено." }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000012",
+      "name": "OpenAI Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1700, 100],
+      "credentials": {
+        "openAiApi": { "id": "963f25ea-a99b-4a", "name": "WSB · OpenAI" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $('Auth').first().json;\nconst transcript = ($input.first().json.text || '').trim();\nreturn [{ json: { ...msg, text: transcript, type: 'text', fromVoice: true } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000013",
+      "name": "VoiceToText",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1400, 320]
+      "position": [1900, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://raw.githubusercontent.com/Serhiog/Work-Schedule-Bot/main/web/schedule.json",
+        "options": { "response": { "response": { "responseFormat": "json" } } }
+      },
+      "id": "b1000000-0001-4000-8000-000000000020",
+      "name": "ReadSchedule",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2100, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide routing: command (handled locally) or natural (send to GPT)\nlet msg;\ntry {\n  const vt = $('VoiceToText').first();\n  msg = (vt && vt.json && vt.json.fromVoice) ? vt.json : $('Auth').first().json;\n} catch (e) {\n  msg = $('Auth').first().json;\n}\nconst schedule = $input.first().json;\nconst text = (msg.text || '').trim();\nconst lower = text.toLowerCase();\n\n// Commands that don't need GPT\nconst isStart = (lower === '/start' || lower.startsWith('/start '));\nconst isHelp = (lower === '/help' || lower === '/помощь');\nconst isGantt = (lower === '/график' || lower === '/gantt');\nconst isStatus = (lower === '/статус' || lower === '/status');\nconst isCancel = (lower === '/отмена' || lower === '/cancel');\n\n// Unsupported types\nconst unsupported = (msg.type === 'photo' || msg.type === 'document');\n\nconst needsGPT = !isStart && !isHelp && !isGantt && !isStatus && !isCancel && !unsupported && text.length > 1;\n\nreturn [{ json: { ...msg, schedule, needsGPT, commandType: isStart?'start':isHelp?'help':isGantt?'gantt':isStatus?'status':isCancel?'cancel':unsupported?'unsupported':null } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000021",
+      "name": "PreClassify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.needsGPT }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000022",
+      "name": "IF needsGPT",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2500, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $credentials.openAiApi.apiKey }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'gpt-4o-mini',\n  temperature: 0.1,\n  response_format: {\n    type: 'json_schema',\n    json_schema: {\n      name: 'intent',\n      strict: true,\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['intent', 'confidence', 'task_query', 'task_id', 'date', 'days', 'value', 'reason', 'new_name', 'new_section', 'clarify_question'],\n        properties: {\n          intent: { type: 'string', enum: ['mark_complete','mark_started','set_progress','shift_dates','add_delay','add_note','add_task','query_status','query_today','query_overdue','query_period','query_section','greeting','smalltalk','unknown'] },\n          confidence: { type: 'number' },\n          task_query: { type: ['string','null'] },\n          task_id: { type: ['string','null'] },\n          date: { type: ['string','null'] },\n          days: { type: ['number','null'] },\n          value: { type: ['number','null'] },\n          reason: { type: ['string','null'] },\n          new_name: { type: ['string','null'] },\n          new_section: { type: ['string','null'] },\n          clarify_question: { type: ['string','null'] }\n        }\n      }\n    }\n  },\n  messages: [\n    {\n      role: 'system',\n      content: `Ты — интент-классификатор для русского Telegram-бота по графику стройки. Извлекай структурированный JSON.\n\nВозможные intent'ы:\n• mark_complete — «X готово», «закончили», «сделали X»\n• mark_started — «X начали», «стартовали»\n• set_progress — «X на N%», «X процентов выполнено»\n• shift_dates — «сдвинь X на N дней», «перенеси X на дату»\n• add_delay — «задержка по X, причина», «стоим по X»\n• add_note — «к X заметка:»\n• add_task — «добавь задачу X»\n• query_status — «как дела», «статус», «прогресс»\n• query_today — «что сегодня», «что завтра»\n• query_overdue — «что просрочено», «отставание»\n• query_period — «на неделю», «задачи на май»\n• query_section — «как электрика», «по сантехнике»\n• greeting — приветствие\n• smalltalk — болталка\n• unknown — не понял\n\nПравила:\n• task_query — свободное описание работы если упомянута\n• task_id — если удалось однозначно сопоставить с ID из списка\n• days — ±целое число для shift/delay\n• value — 0..1 для set_progress (из процентов)\n• date — ISO YYYY-MM-DD (если «вчера»/«завтра»/«в среду» — посчитай от сегодня)\n• confidence 0..1 — как уверен\n• confidence < 0.75 → обязательно заполни clarify_question\n• По умолчанию НЕ ставь task_id, если неоднозначно — верни task_query и оставь task_id null\n• Всё выходит в JSON, даже при unknown`\n    },\n    {\n      role: 'user',\n      content: `Сегодня: ${new Date().toISOString().slice(0,10)}\\n\\nСписок задач:\\n${$json.schedule.tasks.map(t => `[${t.id}] ${t.name} (секция: ${t.section}, план: ${t.planStart}..${t.planEnd}${t.actualEnd ? ', факт: завершена '+t.actualEnd : t.actualStart ? ', в работе с '+t.actualStart : ', не начата'})`).join('\\n')}\\n\\nСекции: ${$json.schedule.sections.map(s => s.id + '=' + s.name).join(', ')}\\n\\nПользователь написал: «${$json.text}»`\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000023",
+      "name": "GPT Classify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2700, 200],
+      "credentials": {
+        "openAiApi": { "id": "963f25ea-a99b-4a", "name": "WSB · OpenAI" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge GPT output into msg context.\nconst msg = $('PreClassify').first().json;\nconst gpt = $input.first().json;\nlet parsed = null;\ntry {\n  parsed = JSON.parse(gpt.choices[0].message.content);\n} catch (e) {\n  parsed = { intent: 'unknown', confidence: 0, clarify_question: 'Не смог разобрать твой запрос. Переформулируй?' };\n}\nreturn [{ json: { ...msg, gpt: parsed } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000024",
+      "name": "ParseGPT",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final response based on PreClassify or GPT output.\n// Returns: responseText, pendingAction (null or object), useKeyboard (bool), intent.\n\nconst msg = $input.first().json;\nconst schedule = msg.schedule;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\nconst TODAY = new Date();\nconst today = TODAY.toISOString().slice(0, 10);\n\nfunction fmtDate(iso) {\n  const d = new Date(iso);\n  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });\n}\nfunction findTask(q) {\n  if (!q) return null;\n  const needle = q.toLowerCase();\n  // Exact id match\n  let t = schedule.tasks.find(x => x.id === q);\n  if (t) return [t];\n  // Substring in name\n  let matches = schedule.tasks.filter(x => x.name.toLowerCase().includes(needle));\n  if (matches.length) return matches;\n  // Section id match → all tasks in section\n  const sec = schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n  if (sec) return schedule.tasks.filter(x => x.section === sec.id);\n  return [];\n}\n\nfunction statusText() {\n  const p = schedule.project;\n  const tasks = schedule.tasks;\n  const start = new Date(p.startDate);\n  const end = new Date(p.endDate);\n  let pctTime = 0;\n  if (TODAY < start) pctTime = 0;\n  else if (TODAY > end) pctTime = 100;\n  else pctTime = Math.round(((TODAY - start) / (end - start)) * 100);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const notStarted = tasks.filter(t => !t.actualStart).length;\n  const overdue = tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  const pctTasks = Math.round((done / tasks.length) * 100);\n  const overdueList = overdue.slice(0,5).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `• _${t.name}_ — ${dd} дн.`;\n  }).join('\\n');\n  let updLine = '';\n  if (p.lastUpdated) updLine = `\\n🕐 Обновлено: ${fmtDate(p.lastUpdated)}${p.lastUpdatedBy ? ' · '+p.lastUpdatedBy : ''}`;\n  return `📊 *${p.name}*\\n\\n⏱ По времени: *${pctTime}%*\\n✅ По задачам: *${pctTasks}%* (${done} из ${tasks.length})\\n\\n🟡 В работе: ${running}\\n⚪️ Не начато: ${notStarted}\\n🔴 Просрочено: ${overdue.length}${overdue.length ? '\\n\\n*Топ просрочек:*\\n'+overdueList : ''}${updLine}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction todayText() {\n  const tasks = schedule.tasks.filter(t => {\n    const ps = new Date(t.planStart || t.start);\n    const pe = new Date(t.planEnd || t.end);\n    return ps <= TODAY && TODAY <= pe;\n  });\n  if (!tasks.length) return `📅 На сегодня нет активных задач по плану.\\n\\n🔗 ${GANTT}`;\n  const lines = tasks.map(t => {\n    const pe = new Date(t.planEnd || t.end);\n    const dd = Math.round((pe - TODAY) / 86400000);\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} _${t.name}_ · до ${fmtDate(t.planEnd)} (${dd} дн.)`;\n  }).join('\\n');\n  return `📅 *Сегодня по плану:*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction overdueText() {\n  const overdue = schedule.tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  if (!overdue.length) return `🎉 Нет просроченных задач!`;\n  const lines = overdue.slice(0,10).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `🔴 _${t.name}_ · план до ${fmtDate(t.planEnd)} · просрочено на *${dd} дн.*`;\n  }).join('\\n');\n  return `⚠️ *Просрочено: ${overdue.length}*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction sectionText(secQuery) {\n  const sec = schedule.sections.find(s => s.id === secQuery || s.name.toLowerCase().includes((secQuery || '').toLowerCase()));\n  if (!sec) return `🤔 Не нашёл секцию «${secQuery}». Список: ${schedule.sections.map(s=>s.name).join(', ')}.`;\n  const tasks = schedule.tasks.filter(t => t.section === sec.id);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const pct = Math.round((done / tasks.length) * 100);\n  const lines = tasks.map(t => {\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} [${t.id}] _${t.name}_ · ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n  }).join('\\n');\n  return `🎨 *${sec.name}* — ${pct}% (${done}/${tasks.length})\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction startText() {\n  return `👋 Привет, ${name}!\\n\\nЯ помогаю вести график работ. Можно писать *текстом* или диктовать *голосом* — пойму.\\n\\n━━━━━━━━━━━━━━━\\n📊 *Узнать что происходит:*\\n• _«как дела»_, _«статус»_, _«что сегодня»_\\n• _«что просрочено?»_, _«как электрика»_\\n\\n✏️ *Отметить прогресс:*\\n• _«электрика готова»_\\n• _«ГКЛ закончили вчера»_\\n• _«малярка на 60%»_\\n\\n📅 *Подвинуть сроки:*\\n• _«сдвинь потолки на 3 дня позже»_\\n• _«старт покраски перенеси на понедельник»_\\n\\n⚠️ *Задержка:*\\n• _«шпатлёвка стоит — ждём материал»_\\n\\n📸 *Файлы (скоро):*\\n• PDF/Word со сметой → создам новый проект\\n• Фото с объекта → прикреплю к задаче\\n\\n━━━━━━━━━━━━━━━\\n🔗 *График онлайн:* ${GANTT}\\n\\n💡 *Советую закрепить это сообщение* — пригодится как справочник.`;\n}\n\nfunction helpText() {\n  return `📋 *Как со мной разговаривать:*\\n\\nМожно *голосом* или *текстом* — без строгих команд. Примеры:\\n\\n📊 _«как дела»_ · _«статус»_ · _«что сегодня»_\\n✏️ _«электрика готова»_ · _«стяжку закрыли вчера»_\\n📅 _«перенеси потолки на 3 дня»_\\n⚠️ _«задержка по малярке, ждём цвет»_\\n\\n*Явные команды:*\\n• /статус — сводка проекта\\n• /график — ссылка на витрину\\n• /отмена — отменить текущий диалог\\n\\n🔗 ${GANTT}`;\n}\n\n// ─── Main logic ───\nlet responseText = '';\nlet intent = msg.commandType || 'unknown';\nlet pendingAction = null;\nlet useKeyboard = false;\n\nif (msg.commandType === 'start') {\n  responseText = startText();\n} else if (msg.commandType === 'help') {\n  responseText = helpText();\n} else if (msg.commandType === 'gantt') {\n  responseText = `🔗 Витрина графика:\\n${GANTT}\\n\\nПлан/факт по ${schedule.tasks.length} задачам, milestone, прогресс, субподрядчики.`;\n} else if (msg.commandType === 'status') {\n  responseText = statusText();\n} else if (msg.commandType === 'cancel') {\n  responseText = `❎ Нечего отменять — активных диалогов нет.`;\n} else if (msg.commandType === 'unsupported') {\n  if (msg.type === 'photo') responseText = `📸 Фото — скоро. Будет привязка к задаче.`;\n  else responseText = `📄 Документы — скоро. PDF/Word со сметой → создание нового проекта.`;\n} else if (msg.gpt) {\n  // GPT classification\n  const g = msg.gpt;\n  intent = g.intent;\n\n  if (g.clarify_question) {\n    responseText = `🤔 ${g.clarify_question}`;\n    intent = 'clarify';\n  } else if (g.intent === 'query_status') {\n    responseText = statusText();\n  } else if (g.intent === 'query_today') {\n    responseText = todayText();\n  } else if (g.intent === 'query_overdue') {\n    responseText = overdueText();\n  } else if (g.intent === 'query_section') {\n    responseText = sectionText(g.task_query);\n  } else if (g.intent === 'greeting') {\n    responseText = `👋 Привет! Напиши _«статус»_ или диктуй что произошло.`;\n  } else if (g.intent === 'mark_complete' || g.intent === 'mark_started' || g.intent === 'set_progress' || g.intent === 'shift_dates' || g.intent === 'add_delay') {\n    // Write intents → resolve task, stage confirmation\n    const candidates = findTask(g.task_id || g.task_query);\n    if (!candidates || candidates.length === 0) {\n      responseText = `🤔 Не нашёл задачу «${g.task_query || g.task_id}».\\n\\nПопробуй назвать точнее или /график.`;\n      intent = 'task_not_found';\n    } else if (candidates.length > 1) {\n      const list = candidates.slice(0,5).map(t => `• [${t.id}] _${t.name}_`).join('\\n');\n      responseText = `🔍 Нашёл несколько задач, уточни:\\n\\n${list}\\n\\nНапиши ID (например _«закрой 3»_) или уточни название.`;\n      intent = 'task_ambiguous';\n    } else {\n      const t = candidates[0];\n      const datePart = g.date ? fmtDate(g.date) : fmtDate(today);\n      let confirmText = '';\n      if (g.intent === 'mark_complete') confirmText = `✅ Отметить «${t.name}» завершённой ${datePart}?`;\n      else if (g.intent === 'mark_started') confirmText = `🟡 Отметить «${t.name}» стартовавшей ${datePart}?`;\n      else if (g.intent === 'set_progress') confirmText = `📊 Поставить прогресс «${t.name}» = ${Math.round((g.value||0)*100)}%?`;\n      else if (g.intent === 'shift_dates') confirmText = `📅 Сдвинуть «${t.name}» на ${g.days > 0 ? '+' : ''}${g.days} дней?`;\n      else if (g.intent === 'add_delay') confirmText = `⚠️ Задержка по «${t.name}» ${g.days ? '(+'+g.days+' дней) ' : ''}· причина: «${g.reason || '—'}»?`;\n\n      pendingAction = {\n        type: g.intent,\n        taskId: t.id,\n        taskName: t.name,\n        date: g.date || today,\n        days: g.days,\n        value: g.value,\n        reason: g.reason\n      };\n      const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n      responseText = `${transcriptPrefix}${confirmText}`;\n      useKeyboard = true;\n    }\n  } else if (g.intent === 'add_task' || g.intent === 'add_note' || g.intent === 'query_period') {\n    responseText = `⏳ _«${g.intent}»_ в разработке. Пока можно: отметить готово, сдвинуть, задержку.`;\n    intent = 'not_implemented';\n  } else {\n    responseText = `🤔 Не понял. Попробуй _«статус»_, _«что просрочено»_ или _«электрика готова»_.`;\n    intent = 'unknown';\n  }\n} else {\n  responseText = `🤔 Не распознал. /help`;\n}\n\nreturn [{ json: { ...msg, intent, responseText, pendingAction, useKeyboard } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000025",
+      "name": "BuildResponse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.useKeyboard }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000026",
+      "name": "IF useKeyboard",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Stage pending confirmation: generate id, insert to Airtable.\nconst msg = $input.first().json;\nconst confirmId = 'c' + Math.random().toString(36).slice(2,10);\nconst expiresAt = new Date(Date.now() + 15*60000).toISOString();\nreturn [{ json: {\n  ...msg,\n  confirmId,\n  expiresAt,\n  actionJson: JSON.stringify(msg.pendingAction)\n} }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000027",
+      "name": "StageConfirm",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3500, 200]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ConfirmId": "={{ $json.confirmId }}",
+            "TelegramUserId": "={{ $json.userId }}",
+            "ProjectId": "orange",
+            "Action": "={{ $json.actionJson }}",
+            "CreatedAt": "={{ $now.toISO() }}",
+            "ExpiresAt": "={{ $json.expiresAt }}",
+            "Resolution": "pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "ConfirmId", "displayName": "ConfirmId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "Action", "displayName": "Action", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "CreatedAt", "displayName": "CreatedAt", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
+            { "id": "ExpiresAt", "displayName": "ExpiresAt", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
+            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "b1000000-0001-4000-8000-000000000028",
+      "name": "InsertPending",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [3700, 200],
+      "credentials": {
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('StageConfirm').item.json.chatId }}",
+        "text": "={{ $('StageConfirm').item.json.responseText }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  { "text": "✅ Да, применить", "additionalFields": { "callback_data": "={{ 'confirm:' + $('StageConfirm').item.json.confirmId }}" } },
+                  { "text": "❌ Отмена", "additionalFields": { "callback_data": "={{ 'cancel:' + $('StageConfirm').item.json.confirmId }}" } }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true,
+          "appendAttribution": false
+        }
+      },
+      "id": "b1000000-0001-4000-8000-000000000029",
+      "name": "SendWithKeyboard",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [3900, 200],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+      }
     },
     {
       "parameters": {
@@ -110,98 +348,298 @@
         "text": "={{ $json.responseText }}",
         "additionalFields": {
           "parse_mode": "Markdown",
-          "disable_web_page_preview": true
+          "disable_web_page_preview": true,
+          "appendAttribution": false
         }
       },
-      "id": "b1000000-0001-4000-8000-000000000007",
-      "name": "Send Telegram Reply",
+      "id": "b1000000-0001-4000-8000-000000000030",
+      "name": "SendPlain",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1640, 320],
+      "position": [3500, 440],
       "credentials": {
-        "telegramApi": {
-          "id": "54054404-0389-4a",
-          "name": "WSB · Telegram Bot"
-        }
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
       }
     },
     {
       "parameters": {
         "operation": "create",
-        "base": {
-          "__rl": true,
-          "value": "apph1Z1U3OU2gBvnL",
-          "mode": "id"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblWkS72GumLM0Npm",
-          "mode": "id"
-        },
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblWkS72GumLM0Npm", "mode": "id" },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "Timestamp": "={{ $now.toISO() }}",
-            "TelegramUserId": "={{ $json.userId }}",
+            "TelegramUserId": "={{ $('BuildResponse').item.json.userId }}",
             "ProjectId": "orange",
-            "Intent": "={{ $json.intent }}",
-            "MessageText": "={{ $json.text }}",
-            "ParsedPayload": "={{ JSON.stringify({ type: $json.type, intent: $json.intent }) }}",
-            "Status": "ok",
-            "ResultMessage": "={{ $json.responseText.slice(0, 200) }}"
+            "Intent": "={{ $('BuildResponse').item.json.intent }}",
+            "MessageText": "={{ $('BuildResponse').item.json.text }}",
+            "ParsedPayload": "={{ JSON.stringify({ type: $('BuildResponse').item.json.type, fromVoice: !!$('BuildResponse').item.json.fromVoice, pendingAction: $('BuildResponse').item.json.pendingAction, gpt: $('BuildResponse').item.json.gpt }) }}",
+            "Status": "={{ $('BuildResponse').item.json.useKeyboard ? 'pending_confirm' : 'ok' }}",
+            "ResultMessage": "={{ ($('BuildResponse').item.json.responseText || '').slice(0, 400) }}"
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "Timestamp", "displayName": "Timestamp", "required": false, "defaultMatch": false, "display": true, "type": "dateTime", "canBeUsedToMatch": true },
-            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
-            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
-            { "id": "Intent", "displayName": "Intent", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
-            { "id": "MessageText", "displayName": "MessageText", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
-            { "id": "ParsedPayload", "displayName": "ParsedPayload", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
-            { "id": "Status", "displayName": "Status", "required": false, "defaultMatch": false, "display": true, "type": "options", "canBeUsedToMatch": true, "options": [{"name":"ok","value":"ok"},{"name":"pending_confirm","value":"pending_confirm"},{"name":"rejected","value":"rejected"},{"name":"error","value":"error"}] },
-            { "id": "ResultMessage", "displayName": "ResultMessage", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+            { "id": "Timestamp", "displayName": "Timestamp", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
+            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "Intent", "displayName": "Intent", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "MessageText", "displayName": "MessageText", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "ParsedPayload", "displayName": "ParsedPayload", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "Status", "displayName": "Status", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"ok","value":"ok"},{"name":"pending_confirm","value":"pending_confirm"},{"name":"rejected","value":"rejected"},{"name":"error","value":"error"}] },
+            { "id": "ResultMessage", "displayName": "ResultMessage", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true }
           ]
         },
         "options": { "typecast": true }
       },
-      "id": "b1000000-0001-4000-8000-000000000008",
-      "name": "Log to AuditLog",
+      "id": "b1000000-0001-4000-8000-000000000031",
+      "name": "LogAudit",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [1880, 320],
+      "position": [4100, 300],
       "credentials": {
-        "airtableTokenApi": {
-          "id": "d7bb546a-a890-48",
-          "name": "WSB · Airtable PAT"
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+      }
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// Parse callback_data: 'confirm:<id>' or 'cancel:<id>'\nconst msg = $('Auth').first().json;\nconst parts = (msg.text || '').split(':');\nconst action = parts[0]; // confirm or cancel\nconst confirmId = parts[1] || '';\nreturn [{ json: { ...msg, cbAction: action, cbConfirmId: confirmId } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000040",
+      "name": "ParseCallback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 580]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "returnAll": false,
+        "limit": 1,
+        "filterByFormula": "={{ \"AND({ConfirmId}='\" + $json.cbConfirmId + \"',{Resolution}='pending')\" }}",
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000041",
+      "name": "LookupPending",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [1500, 580],
+      "credentials": {
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge callback context + pending record.\nconst msg = $('ParseCallback').first().json;\nconst recs = $input.all().map(i => i.json);\nif (!recs.length) {\n  return [{ json: { ...msg, pendingFound: false } }];\n}\nconst rec = recs[0];\nlet action = {};\ntry { action = JSON.parse(rec.fields?.Action || '{}'); } catch(e) {}\nreturn [{ json: {\n  ...msg,\n  pendingFound: true,\n  pendingRecordId: rec.id,\n  pendingAction: action,\n  pendingExpired: new Date(rec.fields?.ExpiresAt || 0) < new Date()\n} }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000042",
+      "name": "PendingCtx",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 580]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.pendingFound && !$json.pendingExpired ? $json.cbAction : 'missing' }}",
+        "rules": {
+          "rules": [
+            { "value2": "confirm", "output": 0 },
+            { "value2": "cancel", "output": 1 }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "b1000000-0001-4000-8000-000000000043",
+      "name": "Route Callback",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [1900, 580]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "value": "2a8758b3-5407-431f-9f44-79020db3a5ba", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "={{ $json.pendingAction }}",
+            "author": "={{ $json.userFields?.Name || $json.username || 'Bot' }}"
+          },
+          "schema": [
+            { "id": "action", "displayName": "action", "required": false, "type": "object" },
+            { "id": "author", "displayName": "author", "required": false, "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000044",
+      "name": "ExecutePatch",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [2100, 460]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": ["id"],
+          "value": {
+            "id": "={{ $('PendingCtx').item.json.pendingRecordId }}",
+            "Resolution": "confirmed"
+          },
+          "schema": [
+            { "id": "id", "displayName": "id", "required": true, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "b1000000-0001-4000-8000-000000000045",
+      "name": "MarkConfirmed",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [2300, 460],
+      "credentials": {
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('PendingCtx').item.json.chatId }}",
+        "text": "={{ '✅ Готово! _'+($('ExecutePatch').item.json.summary || 'Записано')+'_\\n\\n🔄 График обновится через ~30 сек: https://cyfr-schedule-app.vercel.app/' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true,
+          "appendAttribution": false
         }
+      },
+      "id": "b1000000-0001-4000-8000-000000000046",
+      "name": "SendDone",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2500, 460],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
+        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": ["id"],
+          "value": {
+            "id": "={{ $('PendingCtx').item.json.pendingRecordId }}",
+            "Resolution": "cancelled"
+          },
+          "schema": [
+            { "id": "id", "displayName": "id", "required": true, "type": "string", "display": true, "canBeUsedToMatch": true },
+            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "b1000000-0001-4000-8000-000000000047",
+      "name": "MarkCancelled",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [2100, 620],
+      "credentials": {
+        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('PendingCtx').item.json.chatId }}",
+        "text": "❎ Отменено. Ничего не записано.",
+        "additionalFields": { "parse_mode": "Markdown", "appendAttribution": false }
+      },
+      "id": "b1000000-0001-4000-8000-000000000048",
+      "name": "SendCancel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2300, 620],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('ParseCallback').item.json.chatId }}",
+        "text": "⏱ Это подтверждение устарело или уже было обработано. Повтори команду.",
+        "additionalFields": { "parse_mode": "Markdown", "appendAttribution": false }
+      },
+      "id": "b1000000-0001-4000-8000-000000000049",
+      "name": "SendExpired",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 780],
+      "credentials": {
+        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
       }
     }
   ],
   "connections": {
-    "Telegram Trigger": {
-      "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]]
-    },
-    "Normalize": {
-      "main": [[{ "node": "Lookup User", "type": "main", "index": 0 }]]
-    },
-    "Lookup User": {
-      "main": [[{ "node": "Auth & Classify", "type": "main", "index": 0 }]]
-    },
-    "Auth & Classify": {
-      "main": [[{ "node": "IF authorized", "type": "main", "index": 0 }]]
-    },
-    "IF authorized": {
+    "TelegramTrigger": { "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]] },
+    "Normalize": { "main": [[{ "node": "LookupUser", "type": "main", "index": 0 }]] },
+    "LookupUser": { "main": [[{ "node": "Auth", "type": "main", "index": 0 }]] },
+    "Auth": { "main": [[{ "node": "IF authorized", "type": "main", "index": 0 }]] },
+    "IF authorized": { "main": [[{ "node": "Route Type", "type": "main", "index": 0 }], []] },
+    "Route Type": {
       "main": [
-        [{ "node": "Build Response", "type": "main", "index": 0 }],
-        []
+        [{ "node": "TG GetFile", "type": "main", "index": 0 }],
+        [{ "node": "ParseCallback", "type": "main", "index": 0 }],
+        [{ "node": "ReadSchedule", "type": "main", "index": 0 }]
       ]
     },
-    "Build Response": {
-      "main": [[{ "node": "Send Telegram Reply", "type": "main", "index": 0 }]]
+    "TG GetFile": { "main": [[{ "node": "TG DownloadVoice", "type": "main", "index": 0 }]] },
+    "TG DownloadVoice": { "main": [[{ "node": "OpenAI Whisper", "type": "main", "index": 0 }]] },
+    "OpenAI Whisper": { "main": [[{ "node": "VoiceToText", "type": "main", "index": 0 }]] },
+    "VoiceToText": { "main": [[{ "node": "ReadSchedule", "type": "main", "index": 0 }]] },
+    "ReadSchedule": { "main": [[{ "node": "PreClassify", "type": "main", "index": 0 }]] },
+    "PreClassify": { "main": [[{ "node": "IF needsGPT", "type": "main", "index": 0 }]] },
+    "IF needsGPT": {
+      "main": [
+        [{ "node": "GPT Classify", "type": "main", "index": 0 }],
+        [{ "node": "BuildResponse", "type": "main", "index": 0 }]
+      ]
     },
-    "Send Telegram Reply": {
-      "main": [[{ "node": "Log to AuditLog", "type": "main", "index": 0 }]]
-    }
+    "GPT Classify": { "main": [[{ "node": "ParseGPT", "type": "main", "index": 0 }]] },
+    "ParseGPT": { "main": [[{ "node": "BuildResponse", "type": "main", "index": 0 }]] },
+    "BuildResponse": { "main": [[{ "node": "IF useKeyboard", "type": "main", "index": 0 }]] },
+    "IF useKeyboard": {
+      "main": [
+        [{ "node": "StageConfirm", "type": "main", "index": 0 }],
+        [{ "node": "SendPlain", "type": "main", "index": 0 }]
+      ]
+    },
+    "StageConfirm": { "main": [[{ "node": "InsertPending", "type": "main", "index": 0 }]] },
+    "InsertPending": { "main": [[{ "node": "SendWithKeyboard", "type": "main", "index": 0 }]] },
+    "SendWithKeyboard": { "main": [[{ "node": "LogAudit", "type": "main", "index": 0 }]] },
+    "SendPlain": { "main": [[{ "node": "LogAudit", "type": "main", "index": 0 }]] },
+
+    "ParseCallback": { "main": [[{ "node": "LookupPending", "type": "main", "index": 0 }]] },
+    "LookupPending": { "main": [[{ "node": "PendingCtx", "type": "main", "index": 0 }]] },
+    "PendingCtx": { "main": [[{ "node": "Route Callback", "type": "main", "index": 0 }]] },
+    "Route Callback": {
+      "main": [
+        [{ "node": "ExecutePatch", "type": "main", "index": 0 }],
+        [{ "node": "MarkCancelled", "type": "main", "index": 0 }],
+        [{ "node": "SendExpired", "type": "main", "index": 0 }]
+      ]
+    },
+    "ExecutePatch": { "main": [[{ "node": "MarkConfirmed", "type": "main", "index": 0 }]] },
+    "MarkConfirmed": { "main": [[{ "node": "SendDone", "type": "main", "index": 0 }]] },
+    "MarkCancelled": { "main": [[{ "node": "SendCancel", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "staticData": null,

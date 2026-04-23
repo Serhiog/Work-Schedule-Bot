@@ -97,4 +97,16 @@ if (!shared) {
   console.log(`  + linked to project ${PROJECT_ID} (workflow:owner)`);
 }
 
+// Ensure workflow_history row exists for this versionId (required for activation)
+const historyExists = runSql(
+  `SELECT versionId FROM workflow_history WHERE versionId='${versionId}';`
+);
+if (!historyExists) {
+  runSql(
+    `INSERT INTO workflow_history (versionId, workflowId, authors, nodes, connections, name, autosaved)
+     VALUES ('${versionId}', '${wfId}', 'Sergei Gri', '${q(nodesJson)}', '${q(connectionsJson)}', '${q(name)}', 0);`
+  );
+  console.log(`  + workflow_history version row created`);
+}
+
 console.log(existing ? `✓ Updated '${name}' (id=${wfId})` : `✓ Inserted '${name}' (id=${wfId})`);
