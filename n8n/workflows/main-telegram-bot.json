@@ -1,0 +1,211 @@
+{
+  "name": "WSB · Main · Telegram Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message", "callback_query"],
+        "additionalFields": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000001",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Telegram update → unified shape.\n// Handles text messages, voice, photos, and callback_query (inline buttons).\n\nconst raw = $input.first().json;\nconst msg = raw.message || raw.callback_query?.message || {};\nconst from = raw.message?.from || raw.callback_query?.from || {};\nconst cb = raw.callback_query;\n\nconst userId = String(from.id || '');\nconst chatId = String(msg.chat?.id || from.id || '');\nconst username = from.username || '';\nconst firstName = from.first_name || '';\n\nlet type = 'unknown';\nlet text = '';\nif (cb) {\n  type = 'callback';\n  text = cb.data || '';\n} else if (msg.voice) {\n  type = 'voice';\n  text = '';\n} else if (msg.photo) {\n  type = 'photo';\n  text = msg.caption || '';\n} else if (msg.text) {\n  type = 'text';\n  text = msg.text;\n}\n\nreturn [{ json: {\n  userId,\n  chatId,\n  username,\n  firstName,\n  type,\n  text,\n  messageId: msg.message_id || null,\n  callbackQueryId: cb?.id || null,\n  voiceFileId: msg.voice?.file_id || null,\n  photoFileId: msg.photo ? msg.photo[msg.photo.length - 1].file_id : null,\n  raw,\n} }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000002",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblDxfO0Fue11EQmp",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "filterByFormula": "={{ \"{TelegramUserId}='\" + $json.userId + \"'\" }}",
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000003",
+      "name": "Lookup User",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [680, 400],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge incoming normalized message + user lookup result.\n// If user not found or not active → set authorized=false and stop.\n// Else route by intent.\n\nconst msg = $('Normalize').first().json;\nconst users = $input.all().map((i) => i.json);\n\n// Airtable search returns records with fields\nconst user = users[0]?.fields ? users[0] : (users[0]?.records?.[0]) || null;\n\nif (!user || !user.fields || user.fields.Active !== true) {\n  return [{ json: { ...msg, authorized: false, intent: 'unauthorized' } }];\n}\n\nconst userFields = user.fields;\nconst text = (msg.text || '').trim();\nconst lower = text.toLowerCase();\n\n// Naive intent classifier (Phase A — no GPT yet)\nlet intent = 'unknown';\nif (msg.type === 'voice') intent = 'voice_not_supported_yet';\nelse if (msg.type === 'photo') intent = 'photo_not_supported_yet';\nelse if (msg.type === 'callback') intent = 'callback_not_supported_yet';\nelse if (lower === '/start' || lower.startsWith('/start ')) intent = 'start';\nelse if (lower === '/help' || lower === '/помощь' || lower === 'помощь' || lower === 'что ты умеешь') intent = 'help';\nelse if (lower === '/график' || lower === '/gantt' || lower.includes('ссылк')) intent = 'gantt';\nelse if (lower === '/статус' || lower === '/status' || lower === 'статус' || lower === 'как дела') intent = 'status';\nelse if (lower === '/отмена' || lower === 'отмена' || lower === '/cancel') intent = 'cancel';\n\nreturn [{ json: { ...msg, authorized: true, userFields, intent } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000004",
+      "name": "Auth & Classify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check",
+              "leftValue": "={{ $json.authorized }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000005",
+      "name": "IF authorized",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1160, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build response text based on intent.\n\nconst msg = $input.first().json;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT_URL = 'https://cyfr-schedule-app.vercel.app/';\n\nconst responses = {\n  start: `👋 Привет, ${name}!\\n\\nЯ — бот графика работ CYFR по проекту *Orange Group Office 3.0*.\\n\\nСейчас доступно:\\n• /help — список команд\\n• /график — ссылка на витрину\\n• /статус — сводка по проекту _(в разработке)_\\n\\nСкоро: голосовые команды, отметка прогресса, сдвиг задач.`,\n  help: `📋 *Команды:*\\n\\n📊 /статус — сводка проекта\\n🗓 /график — ссылка на витрину\\n❓ /help — эта справка\\n❌ /отмена — отменить текущий диалог\\n\\n*В разработке:*\\n🎤 Голос: _«отметь электрику готовой»_\\n✅ Подтверждение действий кнопками\\n📸 Фото объекта с привязкой к задаче\\n⚠️ Отчёты о задержках с причиной`,\n  gantt: `🔗 Витрина графика:\\n${GANTT_URL}\\n\\nТам видно план/факт по 30 задачам, milestone, прогресс, субподрядчиков.`,\n  status: `🔄 *Короткий статус:*\\n\\n⏳ Полный текстовый отчёт в разработке (следующая итерация).\\n\\nТем временем: ${GANTT_URL} — всё визуально, с % по каждой задаче.`,\n  cancel: `❎ Нечего отменять — активных диалогов нет.`,\n  voice_not_supported_yet: `🎤 Голосовые сообщения пока в разработке. Отправь текстом — например: /help или /график.`,\n  photo_not_supported_yet: `📸 Фото пока не умею обрабатывать. Скоро добавлю — будет привязка фото к задаче.`,\n  callback_not_supported_yet: `⏳ Кнопки пока не подключены. Используй команды: /help.`,\n  unknown: `🤔 Не распознал команду.\\n\\nПопробуй /help чтобы посмотреть что я умею.`,\n};\n\nconst responseText = responses[msg.intent] || responses.unknown;\n\nreturn [{ json: { ...msg, responseText, parseMode: 'Markdown' } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000006",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 320]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.responseText }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "b1000000-0001-4000-8000-000000000007",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1640, 320],
+      "credentials": {
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblWkS72GumLM0Npm",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "TelegramUserId": "={{ $json.userId }}",
+            "ProjectId": "orange",
+            "Intent": "={{ $json.intent }}",
+            "MessageText": "={{ $json.text }}",
+            "ParsedPayload": "={{ JSON.stringify({ type: $json.type, intent: $json.intent }) }}",
+            "Status": "ok",
+            "ResultMessage": "={{ $json.responseText.slice(0, 200) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "Timestamp", "displayName": "Timestamp", "required": false, "defaultMatch": false, "display": true, "type": "dateTime", "canBeUsedToMatch": true },
+            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Intent", "displayName": "Intent", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "MessageText", "displayName": "MessageText", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "ParsedPayload", "displayName": "ParsedPayload", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Status", "displayName": "Status", "required": false, "defaultMatch": false, "display": true, "type": "options", "canBeUsedToMatch": true, "options": [{"name":"ok","value":"ok"},{"name":"pending_confirm","value":"pending_confirm"},{"name":"rejected","value":"rejected"},{"name":"error","value":"error"}] },
+            { "id": "ResultMessage", "displayName": "ResultMessage", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "b1000000-0001-4000-8000-000000000008",
+      "name": "Log to AuditLog",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [1880, 320],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]]
+    },
+    "Normalize": {
+      "main": [[{ "node": "Lookup User", "type": "main", "index": 0 }]]
+    },
+    "Lookup User": {
+      "main": [[{ "node": "Auth & Classify", "type": "main", "index": 0 }]]
+    },
+    "Auth & Classify": {
+      "main": [[{ "node": "IF authorized", "type": "main", "index": 0 }]]
+    },
+    "IF authorized": {
+      "main": [
+        [{ "node": "Build Response", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Build Response": {
+      "main": [[{ "node": "Send Telegram Reply", "type": "main", "index": 0 }]]
+    },
+    "Send Telegram Reply": {
+      "main": [[{ "node": "Log to AuditLog", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "versionId": "v1"
+}
