@@ -15,7 +15,7 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-23T01:05:00+04:00",
+    "lastUpdated": "2026-04-23T17:52:34.696Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -226,8 +226,8 @@
       "qty": null,
       "unit": "",
       "costIncVat": 0,
-      "planStart": "2026-03-02",
-      "planEnd": "2026-04-18",
+      "planStart": "2026-03-09",
+      "planEnd": "2026-04-25",
       "actualStart": "2026-03-02",
       "actualEnd": "2026-04-18",
       "subtasks": [
@@ -612,8 +612,8 @@
       "qty": null,
       "unit": "",
       "costIncVat": 0,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-05-23",
+      "planStart": "2026-05-25",
+      "planEnd": "2026-05-30",
       "actualStart": null,
       "actualEnd": null,
       "subtasks": [
