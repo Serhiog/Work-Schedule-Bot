@@ -15,7 +15,7 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-23T20:47:12.650Z",
+    "lastUpdated": "2026-04-23T20:48:46.995Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -409,7 +409,7 @@
       "id": "11",
       "section": "hvac",
       "stage": "ST1",
-      "name": "Монтаж х/с",
+      "name": "монтаж хорошей системы",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
