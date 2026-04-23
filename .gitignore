@@ -1,0 +1,25 @@
+context/ids.md
+.env
+.env.*
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+
+# Node / Vercel
+web/node_modules/
+node_modules/
+.vercel/
+
+# Local n8n state
+*.sqlite
+*.sqlite-*
+
+# Local photos cache (uploaded separately to blob storage)
+photos/
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db

@@ -1,0 +1,56 @@
+{
+  "name": "Work Schedule Bot · Schedule JSON Updater",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "schedule-update",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a5b-8c9d-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "schedule-update-wb"
+    },
+    {
+      "parameters": {
+        "jsCode": "// MVP echo + validation.\n// TODO: заменить на реальную мутацию schedule.json + git commit.\n\nconst body = $input.first().json.body || {};\n\n// Поддерживаемые поля задачи\nconst TASK_FIELDS = ['progress', 'actualStart', 'actualEnd', 'planStart', 'planEnd'];\n// Поддерживаемые спец-операции\nconst OPS = ['addMilestone', 'addPhoto', 'addDelay'];\n\nlet kind = null;\nlet errors = [];\n\nif (body.op) {\n  if (!OPS.includes(body.op)) errors.push(`Unknown op: ${body.op}. Valid: ${OPS.join(', ')}`);\n  else kind = 'op';\n} else if (body.taskId && body.field) {\n  if (!TASK_FIELDS.includes(body.field)) errors.push(`Unknown field: ${body.field}. Valid: ${TASK_FIELDS.join(', ')}`);\n  else if (body.value === undefined) errors.push('Missing value');\n  else kind = 'taskUpdate';\n} else {\n  errors.push('Payload must contain either {taskId, field, value} or {op, ...}');\n}\n\nconst receivedAt = new Date().toISOString();\n\nreturn [{\n  json: {\n    ok: errors.length === 0,\n    kind,\n    errors,\n    receivedAt,\n    echo: body,\n    note: 'MVP skeleton — mutation/git not wired yet. See n8n/README.md roadmap.'\n  }\n}];"
+      },
+      "id": "a1b2c3d4-e5f6-4a5b-8c9d-000000000002",
+      "name": "Validate & Echo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a5b-8c9d-000000000003",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Validate & Echo", "type": "main", "index": 0 }]]
+    },
+    "Validate & Echo": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "v1"
+}

@@ -1,0 +1,231 @@
+{
+  "id": "apph1Z1U3OU2gBvnL",
+  "tables": [
+    {
+      "id": "tblvLBhmfevWkywus",
+      "name": "Tasks",
+      "description": "Work schedule tasks for Orange Group Office 3.0 fit-out",
+      "primaryFieldId": "fldC0G6EMKLKZlmX3",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldC0G6EMKLKZlmX3",
+          "name": "Name"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldq8IXAORn1DKJC1",
+          "name": "External ID"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selILnceF8TspCVsa",
+                "name": "demolition",
+                "color": "grayBright"
+              },
+              {
+                "id": "selZlF63sZg9aCydc",
+                "name": "electrical",
+                "color": "yellowBright"
+              },
+              {
+                "id": "selJQeV7xxMNgxxTF",
+                "name": "plumbing",
+                "color": "blueBright"
+              },
+              {
+                "id": "selciX0D9xYvWFex8",
+                "name": "fire_safety",
+                "color": "redBright"
+              },
+              {
+                "id": "selw451vSIbMnct8a",
+                "name": "hvac",
+                "color": "cyanBright"
+              },
+              {
+                "id": "selm8A1ZBqkodCN4J",
+                "name": "flooring",
+                "color": "orangeBright"
+              },
+              {
+                "id": "selVhVRZQ9z2iT2em",
+                "name": "drywall",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selzdIB4nSBdKMd4B",
+                "name": "finishing",
+                "color": "purpleBright"
+              },
+              {
+                "id": "selUM0NAvl9OEG1Ts",
+                "name": "glass",
+                "color": "tealBright"
+              },
+              {
+                "id": "selWfAjZDZ8FdbEcA",
+                "name": "paint",
+                "color": "greenBright"
+              },
+              {
+                "id": "selhpmWiHtwq9j0ny",
+                "name": "furniture",
+                "color": "grayDark1"
+              },
+              {
+                "id": "seltSUbW5j98gj7Rd",
+                "name": "cleaning",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selukaT3WsY6HuQCu",
+                "name": "materials",
+                "color": "yellowLight2"
+              }
+            ]
+          },
+          "id": "fldK1QUBzz932i5lu",
+          "name": "Category"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldBDtR6ymeAaNyh2",
+          "name": "Duration (days)"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "european",
+              "format": "D/M/YYYY"
+            }
+          },
+          "id": "fldBYDVaIQu5RCVim",
+          "name": "Start"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "european",
+              "format": "D/M/YYYY"
+            }
+          },
+          "id": "fldQL3wLXeTzkgel5",
+          "name": "Finish"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel0qhJdtDmjjUuyK",
+                "name": "not_started",
+                "color": "grayBright"
+              },
+              {
+                "id": "selmryYmIQlvhx1C4",
+                "name": "in_progress",
+                "color": "yellowBright"
+              },
+              {
+                "id": "selxC2YFNOnJd3i5Q",
+                "name": "done",
+                "color": "greenBright"
+              },
+              {
+                "id": "selJqnh6GEfH30eFP",
+                "name": "delayed",
+                "color": "orangeBright"
+              },
+              {
+                "id": "sel9MTkxJSBEeVqD1",
+                "name": "blocked",
+                "color": "redBright"
+              }
+            ]
+          },
+          "id": "fldN84yIPHK9xFDEE",
+          "name": "Status"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld1eAiPIlwVXL0ik",
+          "name": "Contractor"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldOtDw8uMP9X9Euc",
+          "name": "Notes"
+        },
+        {
+          "type": "percent",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldj1rVRqVw3xFNJu",
+          "name": "Progress"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwkwAu3iEaNYMgr1",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblOBZOihkYm89yJn",
+      "name": "Holidays",
+      "description": "Non-working days (public holidays, site closures)",
+      "primaryFieldId": "fld638SrGlR6vDUyt",
+      "fields": [
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "european",
+              "format": "D/M/YYYY"
+            }
+          },
+          "id": "fld638SrGlR6vDUyt",
+          "name": "Date"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "european",
+              "format": "D/M/YYYY"
+            }
+          },
+          "id": "fld7OFZh4k2j6KSlZ",
+          "name": "End Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldQ6EAAURvGmz7aq",
+          "name": "Reason"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwLrWCCDAvSqJCBN",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    }
+  ]
+}

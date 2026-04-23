@@ -1,0 +1,444 @@
+{
+  "tasks": [
+    {
+      "excel_row": 3,
+      "external_id": 1,
+      "name": "демонтажные работы",
+      "duration_days": 12,
+      "start": "2026-02-24",
+      "finish": "2026-03-11",
+      "parent": null
+    },
+    {
+      "excel_row": 5,
+      "external_id": 2,
+      "name": "вывоз мусора",
+      "duration_days": null,
+      "start": "2026-02-26",
+      "finish": null,
+      "parent": null
+    },
+    {
+      "excel_row": 7,
+      "external_id": 3,
+      "name": "электромонтажные работы",
+      "duration_days": 30,
+      "start": "2026-03-03",
+      "finish": "2026-04-08",
+      "parent": null
+    },
+    {
+      "excel_row": 9,
+      "external_id": null,
+      "name": "Напольные розетки",
+      "duration_days": 17,
+      "start": "2026-03-01",
+      "finish": "2026-03-17",
+      "parent": "электромонтажные работы"
+    },
+    {
+      "excel_row": 10,
+      "external_id": null,
+      "name": "Закладные детали подсветка",
+      "duration_days": 28,
+      "start": "2026-03-01",
+      "finish": "2026-03-28",
+      "parent": "электромонтажные работы"
+    },
+    {
+      "excel_row": 11,
+      "external_id": 4,
+      "name": "установка чистовых электроприборов",
+      "duration_days": 13,
+      "start": "2026-03-18",
+      "finish": "2026-06-05",
+      "parent": null
+    },
+    {
+      "excel_row": 13,
+      "external_id": null,
+      "name": "Электроприборы",
+      "duration_days": 77,
+      "start": "2026-03-02",
+      "finish": "2026-05-17",
+      "parent": "установка чистовых электроприборов"
+    },
+    {
+      "excel_row": 14,
+      "external_id": 5,
+      "name": "сантехнические работы",
+      "duration_days": 15,
+      "start": "2026-03-02",
+      "finish": "2026-04-18",
+      "parent": null
+    },
+    {
+      "excel_row": 16,
+      "external_id": null,
+      "name": "Закладные сантехнических приборов",
+      "duration_days": 9,
+      "start": "2026-03-01",
+      "finish": "2026-03-09",
+      "parent": "сантехнические работы"
+    },
+    {
+      "excel_row": 17,
+      "external_id": 6,
+      "name": "работы по системам пожаробезопасности",
+      "duration_days": null,
+      "start": null,
+      "finish": null,
+      "parent": null
+    },
+    {
+      "excel_row": 19,
+      "external_id": null,
+      "name": "FAS укладка кабелей",
+      "duration_days": 2,
+      "start": "2026-03-30",
+      "finish": "2026-03-31",
+      "parent": "работы по системам пожаробезопасности"
+    },
+    {
+      "excel_row": 21,
+      "external_id": 7,
+      "name": "работы по вентиляционным системам Frost",
+      "duration_days": 38,
+      "start": "2026-03-06",
+      "finish": "2026-04-22",
+      "parent": null
+    },
+    {
+      "excel_row": 23,
+      "external_id": 8,
+      "name": "закуп фанкоилов",
+      "duration_days": 3,
+      "start": "2026-03-06",
+      "finish": "2026-03-10",
+      "parent": null
+    },
+    {
+      "excel_row": 25,
+      "external_id": 9,
+      "name": "закупка воздуховодов и фасонных изделий",
+      "duration_days": 4,
+      "start": "2026-03-06",
+      "finish": "2026-03-15",
+      "parent": null
+    },
+    {
+      "excel_row": 27,
+      "external_id": 10,
+      "name": "установка фанкоилов",
+      "duration_days": 7,
+      "start": "2026-03-11",
+      "finish": "2026-03-18",
+      "parent": null
+    },
+    {
+      "excel_row": 29,
+      "external_id": 11,
+      "name": "монтаж х/с",
+      "duration_days": 10,
+      "start": "2026-03-19",
+      "finish": "2026-04-11",
+      "parent": null
+    },
+    {
+      "excel_row": 31,
+      "external_id": 12,
+      "name": "монтаж узлов обвязки фанкоилов",
+      "duration_days": 4,
+      "start": "2026-03-30",
+      "finish": "2026-04-02",
+      "parent": null
+    },
+    {
+      "excel_row": 33,
+      "external_id": 13,
+      "name": "опрессовка, промывка и хим обработка труб хладоснабжения",
+      "duration_days": 2,
+      "start": "2026-04-03",
+      "finish": "2026-04-15",
+      "parent": null
+    },
+    {
+      "excel_row": 35,
+      "external_id": 14,
+      "name": "сборка и монтаж воздуховодов",
+      "duration_days": 30,
+      "start": "2026-03-09",
+      "finish": "2026-04-17",
+      "parent": null
+    },
+    {
+      "excel_row": 37,
+      "external_id": 15,
+      "name": "подключение слаботочной электрики и установка термостатов",
+      "duration_days": 8,
+      "start": "2026-04-08",
+      "finish": "2026-04-18",
+      "parent": null
+    },
+    {
+      "excel_row": 39,
+      "external_id": null,
+      "name": "Изоляция воздуховодов",
+      "duration_days": null,
+      "start": null,
+      "finish": "2026-04-20",
+      "parent": "подключение слаботочной электрики и установка термостатов"
+    },
+    {
+      "excel_row": 41,
+      "external_id": 16,
+      "name": "пусконаладочные работы, акты приемки",
+      "duration_days": 4,
+      "start": "2026-04-16",
+      "finish": "2026-04-22",
+      "parent": null
+    },
+    {
+      "excel_row": 43,
+      "external_id": null,
+      "name": "Терморегуляторы, решетки радиаторов",
+      "duration_days": 14,
+      "start": "2026-03-01",
+      "finish": "2026-03-14",
+      "parent": "пусконаладочные работы, акты приемки"
+    },
+    {
+      "excel_row": 44,
+      "external_id": 17,
+      "name": "демонтаж старой стяжки пола",
+      "duration_days": 6,
+      "start": "2026-03-09",
+      "finish": "2026-03-14",
+      "parent": null
+    },
+    {
+      "excel_row": 46,
+      "external_id": 18,
+      "name": "устройство наливного пола",
+      "duration_days": 12,
+      "start": "2026-03-16",
+      "finish": "2026-03-28",
+      "parent": null
+    },
+    {
+      "excel_row": 48,
+      "external_id": 19,
+      "name": "монтаж гипсокартоновых стен и перегородок",
+      "duration_days": 30,
+      "start": "2026-03-06",
+      "finish": "2026-04-11",
+      "parent": null
+    },
+    {
+      "excel_row": 50,
+      "external_id": 20,
+      "name": "монтаж гипсокартоновых потолков",
+      "duration_days": 12,
+      "start": "2026-03-30",
+      "finish": "2026-04-13",
+      "parent": null
+    },
+    {
+      "excel_row": 52,
+      "external_id": 21,
+      "name": "штукатурно-малярные работы",
+      "duration_days": 38,
+      "start": "2026-03-17",
+      "finish": "2026-04-01",
+      "parent": null
+    },
+    {
+      "excel_row": 54,
+      "external_id": 22,
+      "name": "укладка плитки",
+      "duration_days": 29,
+      "start": "2026-04-23",
+      "finish": "2026-04-24",
+      "parent": null
+    },
+    {
+      "excel_row": 56,
+      "external_id": null,
+      "name": "Плитка фоновая для санузлов",
+      "duration_days": 12,
+      "start": "2026-02-26",
+      "finish": "2026-03-09",
+      "parent": "укладка плитки"
+    },
+    {
+      "excel_row": 57,
+      "external_id": null,
+      "name": "Плитка акцентная для санузлов",
+      "duration_days": 106,
+      "start": "2026-02-26",
+      "finish": "2026-06-11",
+      "parent": "укладка плитки"
+    },
+    {
+      "excel_row": 58,
+      "external_id": null,
+      "name": "Плитка акцентная для кухни",
+      "duration_days": null,
+      "start": null,
+      "finish": null,
+      "parent": "укладка плитки"
+    },
+    {
+      "excel_row": 59,
+      "external_id": 23,
+      "name": "монтаж стеклянных перегородок",
+      "duration_days": 18,
+      "start": "2026-04-21",
+      "finish": "2026-05-11",
+      "parent": null
+    },
+    {
+      "excel_row": 61,
+      "external_id": null,
+      "name": "Стеклянные перегородки",
+      "duration_days": 84,
+      "start": "2026-03-05",
+      "finish": "2026-05-27",
+      "parent": "монтаж стеклянных перегородок"
+    },
+    {
+      "excel_row": 62,
+      "external_id": 24,
+      "name": "покрасочные работы",
+      "duration_days": 43,
+      "start": "2026-03-31",
+      "finish": "2026-05-19",
+      "parent": null
+    },
+    {
+      "excel_row": 64,
+      "external_id": null,
+      "name": "Краска",
+      "duration_days": 11,
+      "start": "2026-03-09",
+      "finish": "2026-03-19",
+      "parent": "покрасочные работы"
+    },
+    {
+      "excel_row": 65,
+      "external_id": null,
+      "name": "Декоративная штукатурка",
+      "duration_days": 28,
+      "start": "2026-03-09",
+      "finish": "2026-04-05",
+      "parent": "покрасочные работы"
+    },
+    {
+      "excel_row": 66,
+      "external_id": 25,
+      "name": "монтаж сантехнического оборудования",
+      "duration_days": 11,
+      "start": "2026-05-18",
+      "finish": "2026-05-23",
+      "parent": null
+    },
+    {
+      "excel_row": 68,
+      "external_id": null,
+      "name": "Сантехническое оборудование",
+      "duration_days": 61,
+      "start": "2026-03-05",
+      "finish": "2026-05-04",
+      "parent": "монтаж сантехнического оборудования"
+    },
+    {
+      "excel_row": 69,
+      "external_id": 26,
+      "name": "укладка ковролина",
+      "duration_days": 12,
+      "start": "2026-05-05",
+      "finish": "2026-05-18",
+      "parent": null
+    },
+    {
+      "excel_row": 71,
+      "external_id": null,
+      "name": "Ковролин",
+      "duration_days": 62,
+      "start": "2026-03-01",
+      "finish": "2026-05-01",
+      "parent": "укладка ковролина"
+    },
+    {
+      "excel_row": 72,
+      "external_id": 27,
+      "name": "уборка",
+      "duration_days": null,
+      "start": null,
+      "finish": null,
+      "parent": null
+    },
+    {
+      "excel_row": 74,
+      "external_id": null,
+      "name": "Мебель из наличия",
+      "duration_days": 41,
+      "start": "2026-05-04",
+      "finish": "2026-06-13",
+      "parent": "уборка"
+    },
+    {
+      "excel_row": 75,
+      "external_id": null,
+      "name": "Мебель заказная отдельностоящая",
+      "duration_days": 105,
+      "start": "2026-03-01",
+      "finish": "2026-06-13",
+      "parent": "уборка"
+    },
+    {
+      "excel_row": 76,
+      "external_id": null,
+      "name": "Мебель заказная встраиваемая",
+      "duration_days": 101,
+      "start": "2026-03-01",
+      "finish": "2026-06-09",
+      "parent": "уборка"
+    },
+    {
+      "excel_row": 77,
+      "external_id": null,
+      "name": "Изделия на заказ (металл, стекло, панели, зеркала и т.п.)",
+      "duration_days": 77,
+      "start": "2026-03-15",
+      "finish": "2026-05-30",
+      "parent": "уборка"
+    },
+    {
+      "excel_row": 78,
+      "external_id": null,
+      "name": "Декор",
+      "duration_days": 42,
+      "start": "2026-05-13",
+      "finish": "2026-06-23",
+      "parent": "уборка"
+    }
+  ],
+  "holidays": [
+    {
+      "start": "2026-03-20",
+      "end": "2026-03-22",
+      "reason": "Праздничные дни"
+    },
+    {
+      "start": "2026-05-26",
+      "end": "2026-05-29",
+      "reason": "Праздничные дни"
+    },
+    {
+      "start": "2026-06-16",
+      "end": "2026-06-16",
+      "reason": "Праздничный день"
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orange Group Office · График работ · CYFR</title>
+  <meta name="description" content="График отделочных работ Orange Group Office — CYFR FITOUT L.L.C" />
+  <link rel="icon" type="image/svg+xml" href="/assets/cyfr-logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <!-- Top bar -->
+    <header class="top-bar">
+      <div class="brand">
+        <img src="/assets/cyfr-logo.svg" alt="CYFR" class="brand-mark" />
+        <div class="brand-text">
+          <div class="brand-name">CYFR</div>
+          <div class="brand-tag">Отделочные работы · Дубай</div>
+        </div>
+      </div>
+      <nav class="top-nav">
+        <a class="top-nav-link active" href="#">График</a>
+        <a class="top-nav-link" href="https://cyfr.ae" target="_blank" rel="noopener">cyfr.ae →</a>
+      </nav>
+    </header>
+
+    <!-- Project header -->
+    <section class="hero">
+      <div class="hero-meta">
+        <span class="hero-chip">Контракт № 10-F</span>
+        <h1 class="hero-title">Orange Group Office</h1>
+        <p class="hero-sub">Отделочные работы · <strong>ORANGE GROUP BUYING AND SELLING OF REAL ESTATE CO. L.L.C</strong></p>
+        <div class="hero-updated" id="hero-updated" aria-live="polite"></div>
+      </div>
+      <div class="hero-stats">
+        <button type="button" class="stat" data-stat="total" aria-label="Детали по стоимости">
+          <div class="stat-label">Стоимость контракта</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-meta">с НДС 5% · детали →</div>
+        </button>
+        <button type="button" class="stat" data-stat="duration" aria-label="Детали по сроку">
+          <div class="stat-label">Срок</div>
+          <div class="stat-value" id="stat-duration">—</div>
+          <div class="stat-meta" id="stat-dates">—</div>
+        </button>
+        <button type="button" class="stat" data-stat="progress" aria-label="Детали по прогрессу">
+          <div class="stat-label">Прогресс</div>
+          <div class="stat-value"><span id="stat-progress">0</span>%</div>
+          <div class="stat-meta" id="stat-today">—</div>
+        </button>
+        <button type="button" class="stat" data-stat="tasks" aria-label="Детали по объёму">
+          <div class="stat-label">Объём работ</div>
+          <div class="stat-value"><span id="stat-tasks">0</span></div>
+          <div class="stat-meta" id="stat-tasks-meta">видов работ</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Stages ribbon -->
+    <section class="stages-ribbon" id="stages-ribbon"></section>
+
+    <!-- Legend -->
+    <section class="legend">
+      <div class="legend-group" id="legend-stages"></div>
+      <div class="legend-group">
+        <div class="legend-item"><span class="chip chip-plan"></span>План</div>
+        <div class="legend-item"><span class="chip chip-fact"></span>Факт</div>
+        <div class="legend-item"><span class="chip chip-weekend"></span>Выходные (пт–сб)</div>
+        <div class="legend-item"><span class="chip chip-holiday"></span>Праздник ОАЭ</div>
+        <div class="legend-item"><span class="chip chip-today"></span>Сегодня</div>
+        <div class="legend-item"><span class="chip chip-sub"></span>Субподрядчик</div>
+      </div>
+    </section>
+
+    <!-- Toolbar: filter + actions -->
+    <section class="gantt-toolbar">
+      <div class="gantt-toolbar-group">
+        <label class="toolbar-label" for="section-filter">Показать:</label>
+        <select id="section-filter" class="toolbar-select" aria-label="Фильтр по секции"></select>
+        <button type="button" class="toolbar-chip" id="filter-only-sub" data-active="false" title="Показать только работы субподрядчика">Только субподрядчик</button>
+      </div>
+      <div class="gantt-toolbar-group">
+        <button type="button" class="toolbar-btn" id="btn-print" title="Сохранить как PDF или распечатать">
+          <span aria-hidden="true">⎙</span> PDF / Печать
+        </button>
+      </div>
+    </section>
+
+    <!-- Gantt -->
+    <section class="gantt-wrap">
+      <div class="gantt" id="gantt">
+        <div class="gantt-overlays" id="gantt-overlays" aria-hidden="true">
+          <div class="col-hover" id="col-hover"></div>
+          <div class="col-pinned" id="col-pinned"></div>
+          <div class="row-hover" id="row-hover"></div>
+          <div class="row-pinned" id="row-pinned"></div>
+          <div class="intersection" id="intersection"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="/assets/cyfr-logo.svg" alt="" class="footer-mark" />
+        <div>
+          <div><strong>CYFR FITOUT L.L.C</strong></div>
+          <div class="footer-muted">BN Complex, офис M2-124, Al Muteena, Дубай, ОАЭ · +971 52 150 7953 · info@cyfr.ae</div>
+        </div>
+      </div>
+      <div class="footer-right">
+        <div class="footer-muted">Лицензия № 1499696 · TRN 105018319100003</div>
+        <div class="footer-muted">График сформирован по Дополнительному соглашению № 2</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Detail drawer (shared: tasks + stats) -->
+  <div class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-backdrop" data-close></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true">
+      <button class="drawer-close" data-close aria-label="Закрыть">×</button>
+      <div class="drawer-tag" id="drawer-tag">—</div>
+      <h2 class="drawer-title" id="drawer-title">—</h2>
+      <div class="drawer-body" id="drawer-body"></div>
+    </aside>
+  </div>
+
+  <!-- Mobile tasks sheet (slide-in from left) -->
+  <button type="button" class="tasks-fab" id="tasks-fab" aria-label="Список работ">
+    <span class="tasks-fab-icon" aria-hidden="true">☰</span>
+    <span class="tasks-fab-label">Работы</span>
+  </button>
+  <div class="tasks-sheet" id="tasks-sheet" aria-hidden="true">
+    <div class="tasks-sheet-backdrop" data-tasks-close></div>
+    <aside class="tasks-sheet-panel" role="dialog" aria-modal="true" aria-label="Все виды работ">
+      <div class="tasks-sheet-head">
+        <div class="tasks-sheet-title">Виды работ</div>
+        <button class="tasks-sheet-close" data-tasks-close aria-label="Закрыть">×</button>
+      </div>
+      <div class="tasks-sheet-body" id="tasks-sheet-body"></div>
+    </aside>
+  </div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
