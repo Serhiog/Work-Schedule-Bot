@@ -43,7 +43,7 @@ html, body {
 .page {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 18px 28px 48px;
+  padding: 18px 28px 0;
 }
 
 /* ───── Top bar ───── */
@@ -401,18 +401,30 @@ button.stat { -webkit-appearance: none; appearance: none; }
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
-  position: relative;
+  /* Sticky + 100dvh: при небольшом скролле таблица фиксируется к верху и
+     занимает весь экран, ниже таблицы — пустоты нет. */
+  position: sticky;
+  top: 0;
+  height: 100vh; /* fallback */
+  height: 100dvh; /* preferred — handles iOS Safari dynamic toolbars */
   margin-left: -28px;
   margin-right: -28px;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
 }
 .gantt {
   display: grid;
   grid-template-columns: var(--label-col-w, 260px) 1fr;
-  max-height: 90vh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
   position: relative;
+  /* Allow 1-finger pan, capture 2-finger pinch for zoom (no native browser zoom) */
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
 }
 .gantt::-webkit-scrollbar { width: 10px; height: 10px; }
 .gantt::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
@@ -1342,7 +1354,7 @@ button.stat { -webkit-appearance: none; appearance: none; }
 }
 @media (max-width: 720px) {
   .gantt-wrap { margin-left: -12px; margin-right: -12px; }
-  .page { padding: 14px 12px 100px; }
+  .page { padding: 14px 12px 0; }
   .top-bar { padding: 2px 0 10px; margin-bottom: 12px; }
   .brand-tag { display: none; }
   .hero { padding: 2px 0 12px; margin-bottom: 10px; gap: 12px; }
@@ -1362,7 +1374,7 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .chip { width: 10px; height: 10px; }
 
   /* Hide left sticky column on mobile — use sheet instead */
-  .gantt { grid-template-columns: 0 1fr; max-height: 68vh; }
+  .gantt { grid-template-columns: 0 1fr; max-height: none; }
   .corner, .task-label, .section-label { display: none; }
   .dates-header { grid-column: 1 / -1; }
   .task-grid { grid-column: 1 / -1; height: 44px; }
@@ -1398,38 +1410,74 @@ button.stat { -webkit-appearance: none; appearance: none; }
 @media print {
   @page {
     size: A3 landscape;
-    margin: 12mm;
+    margin: 10mm;
+  }
+  /* CRITICAL: force print to keep all backgrounds/gradients/colors.
+     Without this, weekend stripes, cell borders, bar colors all vanish. */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
   html, body { background: #fff !important; font-size: 9pt; }
   .page { max-width: none; padding: 0 !important; }
   .top-bar, .footer, .gantt-toolbar, .tasks-fab, .tasks-sheet, .drawer { display: none !important; }
-  .hero { padding: 0 0 10px; border: none; margin: 0 0 10px; }
-  .hero-title { font-size: 20pt; }
-  .hero-sub { font-size: 10pt; }
+  .hero { padding: 0 0 8px; border: none; margin: 0 0 8px; }
+  .hero-title { font-size: 18pt; }
+  .hero-sub { font-size: 9pt; }
   .hero-updated { display: none; }
   .hero-stats { gap: 6px; }
-  .stat { padding: 8px 10px; box-shadow: none; break-inside: avoid; }
-  .stat-value { font-size: 14pt; }
-  .stages-ribbon { break-inside: avoid; margin-bottom: 8px; height: 28px; }
-  .stage-bar { font-size: 8pt; padding: 4px 8px; }
-  .legend { font-size: 8pt; margin-bottom: 8px; }
-  .legend-item { font-size: 8pt; }
+  .stat { padding: 6px 8px; box-shadow: none; break-inside: avoid; }
+  .stat-value { font-size: 12pt; }
+  .stages-ribbon { break-inside: avoid; margin-bottom: 6px; height: 24px; }
+  .stage-bar { font-size: 7pt; padding: 3px 6px; }
+  .legend { font-size: 7pt; margin-bottom: 6px; }
+  .legend-item { font-size: 7pt; }
   .gantt-wrap {
     margin: 0 !important;
     border-radius: 0;
     box-shadow: none;
-    border: 1px solid #ccc;
+    border: 1px solid #888;
     break-inside: auto;
+    overflow: visible !important;
   }
   .gantt {
     max-height: none !important;
     overflow: visible !important;
+    width: 100% !important;
   }
-  .task-grid { break-inside: avoid; }
-  .bar-plan, .bar-fact { animation: none !important; transition: none !important; }
+  /* Sticky → static in print so columns lay out linearly */
+  .corner, .dates-header, .section-label, .task-label {
+    position: static !important;
+  }
+  .dates-header { z-index: auto !important; }
+  .day-cell {
+    /* Explicit cell borders as belt-and-braces: even if backgrounds get stripped,
+       the grid still reads as cells. */
+    border-right: 1px solid #d0d4db !important;
+    height: 26px !important;
+  }
+  .day-cell .dow { font-size: 6pt !important; }
+  .day-cell .dnum { font-size: 7pt !important; }
+  .month-cell { font-size: 8pt !important; height: 20px !important; }
+  .task-grid { break-inside: avoid; min-height: 26px !important; }
+  .task-label { font-size: 8pt !important; padding: 2px 6px !important; min-height: 26px !important; }
+  .section-label { font-size: 8pt !important; padding: 3px 8px !important; }
+  .bar-plan, .bar-fact {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: 0 0 0 0.5pt rgba(0,0,0,0.15) !important;
+    font-size: 7pt !important;
+  }
+  .bar-plan-text { font-size: 7pt !important; }
   .zoom-btns, .task-open-btn, .gantt-overlays { display: none !important; }
-  .corner { padding: 8px 10px; }
+  .corner { padding: 6px 8px; font-size: 8pt; }
   .day-cell.today { animation: none !important; }
-  .milestone-label { opacity: 1 !important; position: static; transform: none; margin-top: 2px; }
+  .day-cell.today { background: rgba(253, 230, 138, 0.55) !important; }
+  .day-cell.weekend { background: rgba(240, 238, 233, 0.7) !important; }
+  .day-cell.holiday { background: rgba(251, 230, 217, 0.75) !important; }
+  .milestone-label { opacity: 1 !important; position: static; transform: none; margin-top: 2px; font-size: 6pt !important; }
   .milestone-mark { flex-direction: row; }
+  /* Print mode set by JS during beforeprint — enables explicit print tuning */
+  body.is-printing .gantt-wrap { page-break-inside: auto; }
 }

@@ -3,33 +3,53 @@
   "nodes": [
     {
       "parameters": {
-        "updates": ["message", "callback_query"],
+        "updates": [
+          "message",
+          "callback_query"
+        ],
         "additionalFields": {}
       },
       "id": "b1000000-0001-4000-8000-000000000001",
       "name": "TelegramTrigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
-      "position": [100, 400],
+      "position": [
+        100,
+        400
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json;\nconst msg = raw.message || raw.callback_query?.message || {};\nconst from = raw.message?.from || raw.callback_query?.from || {};\nconst cb = raw.callback_query;\n\nconst userId = String(from.id || '');\nconst chatId = String(msg.chat?.id || from.id || '');\nconst username = from.username || '';\nconst firstName = from.first_name || '';\n\nlet type = 'unknown';\nlet text = '';\nif (cb) { type = 'callback'; text = cb.data || ''; }\nelse if (msg.voice) { type = 'voice'; text = ''; }\nelse if (msg.photo) { type = 'photo'; text = msg.caption || ''; }\nelse if (msg.document) { type = 'document'; text = msg.caption || ''; }\nelse if (msg.text) { type = 'text'; text = msg.text; }\n\nreturn [{ json: {\n  userId, chatId, username, firstName, type, text,\n  messageId: msg.message_id || null,\n  callbackQueryId: cb?.id || null,\n  callbackMessageId: cb?.message?.message_id || null,\n  voiceFileId: msg.voice?.file_id || null,\n  voiceDurationSec: msg.voice?.duration || null,\n  photoFileId: msg.photo ? msg.photo[msg.photo.length - 1].file_id : null,\n  documentFileId: msg.document?.file_id || null,\n  documentName: msg.document?.file_name || null,\n  raw,\n} }];"
+        "jsCode": "const raw = $input.first().json;\nconst msg = raw.message || raw.callback_query?.message || {};\nconst from = raw.message?.from || raw.callback_query?.from || {};\nconst cb = raw.callback_query;\n\nconst userId = String(from.id || '');\nconst chatId = String(msg.chat?.id || from.id || '');\nconst username = from.username || '';\nconst firstName = from.first_name || '';\n\nlet type = 'unknown';\nlet text = '';\nif (cb) { type = 'callback'; text = cb.data || ''; }\nelse if (msg.voice) { type = 'voice'; text = ''; }\nelse if (msg.photo) { type = 'photo'; text = msg.caption || ''; }\nelse if (msg.document) { type = 'document'; text = msg.caption || ''; }\nelse if (msg.text) { type = 'text'; text = msg.text; }\n\nconst startTs = Date.now();\n\nreturn [{ json: {\n  startTs,\n  userId, chatId, username, firstName, type, text,\n  messageId: msg.message_id || null,\n  callbackQueryId: cb?.id || null,\n  callbackMessageId: cb?.message?.message_id || null,\n  voiceFileId: msg.voice?.file_id || null,\n  voiceDurationSec: msg.voice?.duration || null,\n  photoFileId: msg.photo ? msg.photo[msg.photo.length - 1].file_id : null,\n  documentFileId: msg.document?.file_id || null,\n  documentName: msg.document?.file_name || null,\n  raw,\n} }];"
       },
       "id": "b1000000-0001-4000-8000-000000000002",
       "name": "Normalize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [300, 400]
+      "position": [
+        300,
+        400
+      ]
     },
     {
       "parameters": {
         "operation": "search",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblDxfO0Fue11EQmp", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblDxfO0Fue11EQmp",
+          "mode": "id"
+        },
         "returnAll": true,
         "filterByFormula": "={{ \"{TelegramUserId}='\" + $json.userId + \"'\" }}",
         "options": {}
@@ -38,9 +58,15 @@
       "name": "LookupUser",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [500, 400],
+      "position": [
+        500,
+        400
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
     {
@@ -51,14 +77,29 @@
       "name": "Auth",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 400]
+      "position": [
+        700,
+        400
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "typeValidation": "loose", "version": 2 },
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c1", "leftValue": "={{ $json.authorized }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.authorized }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -68,7 +109,10 @@
       "name": "IF authorized",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [900, 400]
+      "position": [
+        900,
+        400
+      ]
     },
     {
       "parameters": {
@@ -76,8 +120,26 @@
         "value1": "={{ $json.type }}",
         "rules": {
           "rules": [
-            { "value2": "voice", "output": 0 },
-            { "value2": "callback", "output": 1 }
+            {
+              "value2": "voice",
+              "output": 0
+            },
+            {
+              "value2": "callback",
+              "output": 1
+            },
+            {
+              "value2": "text",
+              "output": 2
+            },
+            {
+              "value2": "photo",
+              "output": 2
+            },
+            {
+              "value2": "document",
+              "output": 2
+            }
           ]
         },
         "fallbackOutput": 2
@@ -86,58 +148,63 @@
       "name": "Route Type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 2,
-      "position": [1100, 380]
+      "position": [
+        1100,
+        380
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "=https://api.telegram.org/bot{{ $credentials.telegramApi.accessToken }}/getFile",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [ { "name": "file_id", "value": "={{ $json.voiceFileId }}" } ]
-        },
-        "options": {}
+        "resource": "file",
+        "fileId": "={{ $json.voiceFileId }}",
+        "download": true
       },
       "id": "b1000000-0001-4000-8000-000000000010",
-      "name": "TG GetFile",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1300, 100],
-      "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
-      }
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "=https://api.telegram.org/file/bot{{ $credentials.telegramApi.accessToken }}/{{ $json.result.file_path }}",
-        "options": { "response": { "response": { "responseFormat": "file" } } }
-      },
-      "id": "b1000000-0001-4000-8000-000000000011",
       "name": "TG DownloadVoice",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1500, 100],
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        100
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://api.openai.com/v1/audio/transcriptions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $credentials.openAiApi.apiKey }}" } ]
-        },
-        "contentType": "multipart-form-data",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
         "sendBody": true,
+        "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
-            { "parameterType": "formBinaryData", "name": "file", "inputDataFieldName": "data" },
-            { "name": "model", "value": "whisper-1" },
-            { "name": "language", "value": "ru" },
-            { "name": "prompt", "value": "Строительный проект Orange Group Office Дубай. Термины: демонтаж, ГКЛ, гипсокартон, стяжка, наливной пол, электрика, сантехника, пожаробезопасность, ОВиК, вентиляция, фанкоилы, воздуховоды, шпатлёвка, штукатурка, покраска, малярка, плитка, ковролин, стеклянные перегородки, мебель, декор. Команды: отметь готово, закончили, стартовали, сдвинь на дней позже, задержка по причине, статус, прогресс, просрочено." }
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "language",
+              "value": "ru"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            },
+            {
+              "name": "prompt",
+              "value": "Строительный проект Orange Group Office Дубай. Термины: демонтаж, ГКЛ, гипсокартон, стяжка, наливной пол, электрика, сантехника, пожаробезопасность, ОВиК, вентиляция, фанкоилы, воздуховоды, шпатлёвка, штукатурка, покраска, малярка, плитка, ковролин, стеклянные перегородки, мебель, декор. Команды: отметь готово, закончили, стартовали, сдвинь на дней позже, задержка по причине, статус, прогресс, просрочено."
+            }
           ]
         },
         "options": {}
@@ -146,32 +213,50 @@
       "name": "OpenAI Whisper",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1700, 100],
+      "position": [
+        1700,
+        100
+      ],
       "credentials": {
-        "openAiApi": { "id": "963f25ea-a99b-4a", "name": "WSB · OpenAI" }
+        "openAiApi": {
+          "id": "963f25ea-a99b-4a",
+          "name": "WSB · OpenAI"
+        }
       }
     },
     {
       "parameters": {
-        "jsCode": "const msg = $('Auth').first().json;\nconst transcript = ($input.first().json.text || '').trim();\nreturn [{ json: { ...msg, text: transcript, type: 'text', fromVoice: true } }];"
+        "jsCode": "const msg = $('Auth').first().json;\n// OpenAI node returns transcription either in .text or .transcription\nconst out = $input.first().json;\nconst transcript = (out.text || out.transcription || '').trim();\nreturn [{ json: { ...msg, text: transcript, type: 'text', fromVoice: true } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000013",
       "name": "VoiceToText",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1900, 100]
+      "position": [
+        1900,
+        100
+      ]
     },
     {
       "parameters": {
         "method": "GET",
         "url": "https://raw.githubusercontent.com/Serhiog/Work-Schedule-Bot/main/web/schedule.json",
-        "options": { "response": { "response": { "responseFormat": "json" } } }
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000020",
       "name": "ReadSchedule",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2100, 300]
+      "position": [
+        2100,
+        300
+      ]
     },
     {
       "parameters": {
@@ -181,14 +266,29 @@
       "name": "PreClassify",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2300, 300]
+      "position": [
+        2300,
+        300
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "typeValidation": "loose", "version": 2 },
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c1", "leftValue": "={{ $json.needsGPT }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.needsGPT }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -198,31 +298,48 @@
       "name": "IF needsGPT",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [2500, 300]
+      "position": [
+        2500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build OpenAI chat completion request body with structured output.\n// msg is from PreClassify (through $('PreClassify'))\nconst msg = $('PreClassify').first().json;\nconst schedule = msg.schedule;\n\n// Conversation context from FetchConversation node (last 5 AuditLog entries for this user)\nconst history = $input.all().map(i => i.json).filter(r => r && r.fields).map(r => r.fields);\nconst contextLines = history\n  .slice(0, 5)\n  .reverse()\n  .map(h => {\n    const ts = h.Timestamp ? new Date(h.Timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';\n    const userMsg = (h.MessageText || '').slice(0, 120);\n    const botResp = (h.ResultMessage || '').slice(0, 120).replace(/\\n/g, ' ');\n    const intent = h.Intent || '?';\n    return `  [${ts}] user: \"${userMsg}\" → bot(${intent}): \"${botResp}\"`;\n  })\n  .join('\\n');\nconst contextBlock = contextLines\n  ? `\\n\\nКонтекст последних сообщений этого пользователя (для оценки непрерывности диалога):\\n${contextLines}\\n\\nЕсли пользователь повторяет вопрос в других словах — предыдущий ответ был НЕ тот. Пересмотри интент.`\n  : '';\n\n\nconst INTENTS = [\n  { id: 'mark_complete',  desc: 'отметить задачу завершённой (готово, закончили, сделали, закрыли)' },\n  { id: 'mark_started',   desc: 'отметить старт задачи (начали, стартовали, запустили, приступили)' },\n  { id: 'set_progress',   desc: 'поставить процент выполнения (N%, процентов, половина, треть, почти готово)' },\n  { id: 'shift_dates',    desc: 'сдвинуть сроки задачи на N дней или на конкретную дату (перенеси, сдвинь, отложи, раньше)' },\n  { id: 'add_delay',      desc: 'зафиксировать задержку с причиной (задержка, стоим, ждём материал/согласование)' },\n  { id: 'add_note',       desc: 'добавить текстовую заметку к задаче (заметка, запиши, примечание)' },\n  { id: 'add_task',       desc: 'добавить новую задачу в график' },\n  { id: 'query_status',   desc: 'общая сводка по проекту (как дела, статус, прогресс, отчёт)' },\n  { id: 'query_today',    desc: 'задачи активные сегодня или завтра (что сегодня, что на завтра)' },\n  { id: 'query_overdue',  desc: 'просроченные задачи (что просрочено, отставание, где тормозим)' },\n  { id: 'query_period',   desc: 'задачи на период (неделя/месяц/май — конкретный промежуток)' },\n  { id: 'query_section',  desc: 'прогресс по секции (как электрика, по сантехнике, стены)' },\n  { id: 'greeting',       desc: 'приветствие (привет, здорово)' },\n  { id: 'smalltalk',      desc: 'болталка вне темы проекта' },\n  { id: 'unknown',        desc: 'не удалось понять — присвой только если ВООБЩЕ не похоже ни на одну задачу' }\n];\n\nconst systemPrompt = `Ты — интент-классификатор для русского Telegram-бота по графику стройки Orange Group Office в Дубае. Извлекай структурированный JSON строго по схеме.\n\nВозможные intent'ы:\n${INTENTS.map(i => `• ${i.id} — ${i.desc}`).join('\\n')}\n\nКак работать:\n1. Прочитай сообщение пользователя (оно на русском, возможно с неформальным стилем, ошибками транскрипции, размытой формулировкой).\n2. Сопоставь с наиболее подходящим intent. Не бойся уверенно присваивать даже если фраза не точная — цель максимум покрытия. unknown ТОЛЬКО если это болталка вне темы проекта или оскорбления.\n3. Если упомянута задача — извлеки task_query (любой фрагмент имени) и попробуй сопоставить с task_id из списка.\n4. Если есть два-три равновероятных варианта → заполни suggested_intents списком из 2-4 наиболее вероятных intent'ов в порядке убывания.\n5. Если уверен ≥ 0.8 — suggested_intents оставь null.\n\nПравила полей:\n• task_query — свободное описание упомянутой работы (пример: «малярка», «электрика», «стяжка»)\n• task_id — строковый ID из списка задач если смог однозначно сопоставить (не гадай — лучше null)\n• days — целое ±N для shift_dates/add_delay, null иначе\n• value — число 0..1 для set_progress (30% = 0.3). null иначе\n• date — ISO YYYY-MM-DD. Относительные («вчера»/«завтра»/«в среду») посчитай от сегодня\n• reason — текст причины задержки, null иначе\n• confidence — 0..1, честная оценка уверенности\n• clarify_question — если confidence < 0.75 или нужна доп. информация от пользователя. На русском, с естественным тоном, без канцелярита. null если уверен.\n• suggested_intents — массив 2-4 intent-id для unknown или confidence < 0.6. null если уверен.\n\nОсобые случаи:\n• Вопросы как дела / как свои дела / как там / ну чё / что нового / как успехи / всё ли в порядке — ВСЕГДА query_status (спрашивают про проект). Не smalltalk, не greeting.\n• Вопросы что сегодня / что сейчас идёт / чем заняты / что завтра → query_today.\n• Где отстаём / что просрочено / проблемы / где тормозим → query_overdue.\n• Короткие реплики без контекста (ок, да, пойдёт) — smalltalk с clarify_question.\n• Приветствия привет / здорово / салам — greeting, в clarify_question предложи команды.\n• Ругательства без дела — smalltalk, clarify_question=Чем помочь по проекту?\n• Ты обслуживаешь ТОЛЬКО стройбота. Любое сообщение с упоминанием работ/сроков/секций — про проект, не болталка.`;\n\nconst today = new Date().toISOString().slice(0,10);\nconst tasksList = schedule.tasks.map(t => `[${t.id}] ${t.name} (секция: ${t.section}, план: ${t.planStart}..${t.planEnd}${t.actualEnd ? ', факт: завершена '+t.actualEnd : t.actualStart ? ', в работе с '+t.actualStart : ', не начата'})`).join('\\n');\nconst sectionsList = schedule.sections.map(s => s.id + '=' + s.name).join(', ');\nconst userContent = `Сегодня: ${today}\\n\\nСписок задач проекта:\\n${tasksList}\\n\\nСекции: ${sectionsList}${contextBlock}\\n\\nТекущее сообщение пользователя: «${msg.text}»`;\n\nconst body = {\n  model: 'gpt-5',\n  response_format: {\n    type: 'json_schema',\n    json_schema: {\n      name: 'intent',\n      strict: true,\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['intent','confidence','task_query','task_id','date','days','value','reason','new_name','new_section','clarify_question','suggested_intents'],\n        properties: {\n          intent: { type: 'string', enum: INTENTS.map(i => i.id) },\n          confidence: { type: 'number' },\n          task_query: { type: ['string','null'] },\n          task_id: { type: ['string','null'] },\n          date: { type: ['string','null'] },\n          days: { type: ['number','null'] },\n          value: { type: ['number','null'] },\n          reason: { type: ['string','null'] },\n          new_name: { type: ['string','null'] },\n          new_section: { type: ['string','null'] },\n          clarify_question: { type: ['string','null'] },\n          suggested_intents: {\n            type: ['array','null'],\n            items: { type: 'string', enum: INTENTS.map(i => i.id) }\n          }\n        }\n      }\n    }\n  },\n  messages: [\n    { role: 'system', content: systemPrompt },\n    { role: 'user', content: userContent }\n  ]\n};\n\nreturn [{ json: { ...msg, openaiBody: body } }];"
+      },
+      "id": "b1000000-0001-4000-8000-000000000022b",
+      "name": "BuildGPTBody",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        200
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://api.openai.com/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $credentials.openAiApi.apiKey }}" },
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
         "sendBody": true,
-        "contentType": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: 'gpt-4o-mini',\n  temperature: 0.1,\n  response_format: {\n    type: 'json_schema',\n    json_schema: {\n      name: 'intent',\n      strict: true,\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['intent', 'confidence', 'task_query', 'task_id', 'date', 'days', 'value', 'reason', 'new_name', 'new_section', 'clarify_question'],\n        properties: {\n          intent: { type: 'string', enum: ['mark_complete','mark_started','set_progress','shift_dates','add_delay','add_note','add_task','query_status','query_today','query_overdue','query_period','query_section','greeting','smalltalk','unknown'] },\n          confidence: { type: 'number' },\n          task_query: { type: ['string','null'] },\n          task_id: { type: ['string','null'] },\n          date: { type: ['string','null'] },\n          days: { type: ['number','null'] },\n          value: { type: ['number','null'] },\n          reason: { type: ['string','null'] },\n          new_name: { type: ['string','null'] },\n          new_section: { type: ['string','null'] },\n          clarify_question: { type: ['string','null'] }\n        }\n      }\n    }\n  },\n  messages: [\n    {\n      role: 'system',\n      content: `Ты — интент-классификатор для русского Telegram-бота по графику стройки. Извлекай структурированный JSON.\n\nВозможные intent'ы:\n• mark_complete — «X готово», «закончили», «сделали X»\n• mark_started — «X начали», «стартовали»\n• set_progress — «X на N%», «X процентов выполнено»\n• shift_dates — «сдвинь X на N дней», «перенеси X на дату»\n• add_delay — «задержка по X, причина», «стоим по X»\n• add_note — «к X заметка:»\n• add_task — «добавь задачу X»\n• query_status — «как дела», «статус», «прогресс»\n• query_today — «что сегодня», «что завтра»\n• query_overdue — «что просрочено», «отставание»\n• query_period — «на неделю», «задачи на май»\n• query_section — «как электрика», «по сантехнике»\n• greeting — приветствие\n• smalltalk — болталка\n• unknown — не понял\n\nПравила:\n• task_query — свободное описание работы если упомянута\n• task_id — если удалось однозначно сопоставить с ID из списка\n• days — ±целое число для shift/delay\n• value — 0..1 для set_progress (из процентов)\n• date — ISO YYYY-MM-DD (если «вчера»/«завтра»/«в среду» — посчитай от сегодня)\n• confidence 0..1 — как уверен\n• confidence < 0.75 → обязательно заполни clarify_question\n• По умолчанию НЕ ставь task_id, если неоднозначно — верни task_query и оставь task_id null\n• Всё выходит в JSON, даже при unknown`\n    },\n    {\n      role: 'user',\n      content: `Сегодня: ${new Date().toISOString().slice(0,10)}\\n\\nСписок задач:\\n${$json.schedule.tasks.map(t => `[${t.id}] ${t.name} (секция: ${t.section}, план: ${t.planStart}..${t.planEnd}${t.actualEnd ? ', факт: завершена '+t.actualEnd : t.actualStart ? ', в работе с '+t.actualStart : ', не начата'})`).join('\\n')}\\n\\nСекции: ${$json.schedule.sections.map(s => s.id + '=' + s.name).join(', ')}\\n\\nПользователь написал: «${$json.text}»`\n    }\n  ]\n}) }}",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.openaiBody) }}",
         "options": {}
       },
       "id": "b1000000-0001-4000-8000-000000000023",
       "name": "GPT Classify",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2700, 200],
+      "position": [
+        2800,
+        200
+      ],
       "credentials": {
-        "openAiApi": { "id": "963f25ea-a99b-4a", "name": "WSB · OpenAI" }
+        "openAiApi": {
+          "id": "963f25ea-a99b-4a",
+          "name": "WSB · OpenAI"
+        }
       }
     },
     {
@@ -233,24 +350,42 @@
       "name": "ParseGPT",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2900, 200]
+      "position": [
+        2900,
+        200
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Build final response based on PreClassify or GPT output.\n// Returns: responseText, pendingAction (null or object), useKeyboard (bool), intent.\n\nconst msg = $input.first().json;\nconst schedule = msg.schedule;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\nconst TODAY = new Date();\nconst today = TODAY.toISOString().slice(0, 10);\n\nfunction fmtDate(iso) {\n  const d = new Date(iso);\n  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });\n}\nfunction findTask(q) {\n  if (!q) return null;\n  const needle = q.toLowerCase();\n  // Exact id match\n  let t = schedule.tasks.find(x => x.id === q);\n  if (t) return [t];\n  // Substring in name\n  let matches = schedule.tasks.filter(x => x.name.toLowerCase().includes(needle));\n  if (matches.length) return matches;\n  // Section id match → all tasks in section\n  const sec = schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n  if (sec) return schedule.tasks.filter(x => x.section === sec.id);\n  return [];\n}\n\nfunction statusText() {\n  const p = schedule.project;\n  const tasks = schedule.tasks;\n  const start = new Date(p.startDate);\n  const end = new Date(p.endDate);\n  let pctTime = 0;\n  if (TODAY < start) pctTime = 0;\n  else if (TODAY > end) pctTime = 100;\n  else pctTime = Math.round(((TODAY - start) / (end - start)) * 100);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const notStarted = tasks.filter(t => !t.actualStart).length;\n  const overdue = tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  const pctTasks = Math.round((done / tasks.length) * 100);\n  const overdueList = overdue.slice(0,5).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `• _${t.name}_ — ${dd} дн.`;\n  }).join('\\n');\n  let updLine = '';\n  if (p.lastUpdated) updLine = `\\n🕐 Обновлено: ${fmtDate(p.lastUpdated)}${p.lastUpdatedBy ? ' · '+p.lastUpdatedBy : ''}`;\n  return `📊 *${p.name}*\\n\\n⏱ По времени: *${pctTime}%*\\n✅ По задачам: *${pctTasks}%* (${done} из ${tasks.length})\\n\\n🟡 В работе: ${running}\\n⚪️ Не начато: ${notStarted}\\n🔴 Просрочено: ${overdue.length}${overdue.length ? '\\n\\n*Топ просрочек:*\\n'+overdueList : ''}${updLine}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction todayText() {\n  const tasks = schedule.tasks.filter(t => {\n    const ps = new Date(t.planStart || t.start);\n    const pe = new Date(t.planEnd || t.end);\n    return ps <= TODAY && TODAY <= pe;\n  });\n  if (!tasks.length) return `📅 На сегодня нет активных задач по плану.\\n\\n🔗 ${GANTT}`;\n  const lines = tasks.map(t => {\n    const pe = new Date(t.planEnd || t.end);\n    const dd = Math.round((pe - TODAY) / 86400000);\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} _${t.name}_ · до ${fmtDate(t.planEnd)} (${dd} дн.)`;\n  }).join('\\n');\n  return `📅 *Сегодня по плану:*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction overdueText() {\n  const overdue = schedule.tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  if (!overdue.length) return `🎉 Нет просроченных задач!`;\n  const lines = overdue.slice(0,10).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `🔴 _${t.name}_ · план до ${fmtDate(t.planEnd)} · просрочено на *${dd} дн.*`;\n  }).join('\\n');\n  return `⚠️ *Просрочено: ${overdue.length}*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction sectionText(secQuery) {\n  const sec = schedule.sections.find(s => s.id === secQuery || s.name.toLowerCase().includes((secQuery || '').toLowerCase()));\n  if (!sec) return `🤔 Не нашёл секцию «${secQuery}». Список: ${schedule.sections.map(s=>s.name).join(', ')}.`;\n  const tasks = schedule.tasks.filter(t => t.section === sec.id);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const pct = Math.round((done / tasks.length) * 100);\n  const lines = tasks.map(t => {\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} [${t.id}] _${t.name}_ · ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n  }).join('\\n');\n  return `🎨 *${sec.name}* — ${pct}% (${done}/${tasks.length})\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction startText() {\n  return `👋 Привет, ${name}!\\n\\nЯ помогаю вести график работ. Можно писать *текстом* или диктовать *голосом* — пойму.\\n\\n━━━━━━━━━━━━━━━\\n📊 *Узнать что происходит:*\\n• _«как дела»_, _«статус»_, _«что сегодня»_\\n• _«что просрочено?»_, _«как электрика»_\\n\\n✏️ *Отметить прогресс:*\\n• _«электрика готова»_\\n• _«ГКЛ закончили вчера»_\\n• _«малярка на 60%»_\\n\\n📅 *Подвинуть сроки:*\\n• _«сдвинь потолки на 3 дня позже»_\\n• _«старт покраски перенеси на понедельник»_\\n\\n⚠️ *Задержка:*\\n• _«шпатлёвка стоит — ждём материал»_\\n\\n📸 *Файлы (скоро):*\\n• PDF/Word со сметой → создам новый проект\\n• Фото с объекта → прикреплю к задаче\\n\\n━━━━━━━━━━━━━━━\\n🔗 *График онлайн:* ${GANTT}\\n\\n💡 *Советую закрепить это сообщение* — пригодится как справочник.`;\n}\n\nfunction helpText() {\n  return `📋 *Как со мной разговаривать:*\\n\\nМожно *голосом* или *текстом* — без строгих команд. Примеры:\\n\\n📊 _«как дела»_ · _«статус»_ · _«что сегодня»_\\n✏️ _«электрика готова»_ · _«стяжку закрыли вчера»_\\n📅 _«перенеси потолки на 3 дня»_\\n⚠️ _«задержка по малярке, ждём цвет»_\\n\\n*Явные команды:*\\n• /статус — сводка проекта\\n• /график — ссылка на витрину\\n• /отмена — отменить текущий диалог\\n\\n🔗 ${GANTT}`;\n}\n\n// ─── Main logic ───\nlet responseText = '';\nlet intent = msg.commandType || 'unknown';\nlet pendingAction = null;\nlet useKeyboard = false;\n\nif (msg.commandType === 'start') {\n  responseText = startText();\n} else if (msg.commandType === 'help') {\n  responseText = helpText();\n} else if (msg.commandType === 'gantt') {\n  responseText = `🔗 Витрина графика:\\n${GANTT}\\n\\nПлан/факт по ${schedule.tasks.length} задачам, milestone, прогресс, субподрядчики.`;\n} else if (msg.commandType === 'status') {\n  responseText = statusText();\n} else if (msg.commandType === 'cancel') {\n  responseText = `❎ Нечего отменять — активных диалогов нет.`;\n} else if (msg.commandType === 'unsupported') {\n  if (msg.type === 'photo') responseText = `📸 Фото — скоро. Будет привязка к задаче.`;\n  else responseText = `📄 Документы — скоро. PDF/Word со сметой → создание нового проекта.`;\n} else if (msg.gpt) {\n  // GPT classification\n  const g = msg.gpt;\n  intent = g.intent;\n\n  if (g.clarify_question) {\n    responseText = `🤔 ${g.clarify_question}`;\n    intent = 'clarify';\n  } else if (g.intent === 'query_status') {\n    responseText = statusText();\n  } else if (g.intent === 'query_today') {\n    responseText = todayText();\n  } else if (g.intent === 'query_overdue') {\n    responseText = overdueText();\n  } else if (g.intent === 'query_section') {\n    responseText = sectionText(g.task_query);\n  } else if (g.intent === 'greeting') {\n    responseText = `👋 Привет! Напиши _«статус»_ или диктуй что произошло.`;\n  } else if (g.intent === 'mark_complete' || g.intent === 'mark_started' || g.intent === 'set_progress' || g.intent === 'shift_dates' || g.intent === 'add_delay') {\n    // Write intents → resolve task, stage confirmation\n    const candidates = findTask(g.task_id || g.task_query);\n    if (!candidates || candidates.length === 0) {\n      responseText = `🤔 Не нашёл задачу «${g.task_query || g.task_id}».\\n\\nПопробуй назвать точнее или /график.`;\n      intent = 'task_not_found';\n    } else if (candidates.length > 1) {\n      const list = candidates.slice(0,5).map(t => `• [${t.id}] _${t.name}_`).join('\\n');\n      responseText = `🔍 Нашёл несколько задач, уточни:\\n\\n${list}\\n\\nНапиши ID (например _«закрой 3»_) или уточни название.`;\n      intent = 'task_ambiguous';\n    } else {\n      const t = candidates[0];\n      const datePart = g.date ? fmtDate(g.date) : fmtDate(today);\n      let confirmText = '';\n      if (g.intent === 'mark_complete') confirmText = `✅ Отметить «${t.name}» завершённой ${datePart}?`;\n      else if (g.intent === 'mark_started') confirmText = `🟡 Отметить «${t.name}» стартовавшей ${datePart}?`;\n      else if (g.intent === 'set_progress') confirmText = `📊 Поставить прогресс «${t.name}» = ${Math.round((g.value||0)*100)}%?`;\n      else if (g.intent === 'shift_dates') confirmText = `📅 Сдвинуть «${t.name}» на ${g.days > 0 ? '+' : ''}${g.days} дней?`;\n      else if (g.intent === 'add_delay') confirmText = `⚠️ Задержка по «${t.name}» ${g.days ? '(+'+g.days+' дней) ' : ''}· причина: «${g.reason || '—'}»?`;\n\n      pendingAction = {\n        type: g.intent,\n        taskId: t.id,\n        taskName: t.name,\n        date: g.date || today,\n        days: g.days,\n        value: g.value,\n        reason: g.reason\n      };\n      const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n      responseText = `${transcriptPrefix}${confirmText}`;\n      useKeyboard = true;\n    }\n  } else if (g.intent === 'add_task' || g.intent === 'add_note' || g.intent === 'query_period') {\n    responseText = `⏳ _«${g.intent}»_ в разработке. Пока можно: отметить готово, сдвинуть, задержку.`;\n    intent = 'not_implemented';\n  } else {\n    responseText = `🤔 Не понял. Попробуй _«статус»_, _«что просрочено»_ или _«электрика готова»_.`;\n    intent = 'unknown';\n  }\n} else {\n  responseText = `🤔 Не распознал. /help`;\n}\n\nreturn [{ json: { ...msg, intent, responseText, pendingAction, useKeyboard } }];"
+        "jsCode": "// Build final response based on PreClassify or GPT output.\n// Returns: responseText, pendingAction (null or object), useKeyboard (bool), intent.\n\nconst msg = $input.first().json;\nconst schedule = msg.schedule;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\nconst TODAY = new Date();\nconst today = TODAY.toISOString().slice(0, 10);\n\nfunction fmtDate(iso) {\n  const d = new Date(iso);\n  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });\n}\nfunction findTask(q) {\n  if (!q) return null;\n  const needle = q.toLowerCase();\n  // Exact id match\n  let t = schedule.tasks.find(x => x.id === q);\n  if (t) return [t];\n  // Substring in name\n  let matches = schedule.tasks.filter(x => x.name.toLowerCase().includes(needle));\n  if (matches.length) return matches;\n  // Section id match → all tasks in section\n  const sec = schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n  if (sec) return schedule.tasks.filter(x => x.section === sec.id);\n  return [];\n}\n\nfunction statusText() {\n  const p = schedule.project;\n  const tasks = schedule.tasks;\n  const start = new Date(p.startDate);\n  const end = new Date(p.endDate);\n  let pctTime = 0;\n  if (TODAY < start) pctTime = 0;\n  else if (TODAY > end) pctTime = 100;\n  else pctTime = Math.round(((TODAY - start) / (end - start)) * 100);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const notStarted = tasks.filter(t => !t.actualStart).length;\n  const overdue = tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  const pctTasks = Math.round((done / tasks.length) * 100);\n  const overdueList = overdue.slice(0,5).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `• _${t.name}_ — ${dd} дн.`;\n  }).join('\\n');\n  let updLine = '';\n  if (p.lastUpdated) updLine = `\\n🕐 Обновлено: ${fmtDate(p.lastUpdated)}${p.lastUpdatedBy ? ' · '+p.lastUpdatedBy : ''}`;\n  return `📊 *${p.name}*\\n\\n⏱ По времени: *${pctTime}%*\\n✅ По задачам: *${pctTasks}%* (${done} из ${tasks.length})\\n\\n🟡 В работе: ${running}\\n⚪️ Не начато: ${notStarted}\\n🔴 Просрочено: ${overdue.length}${overdue.length ? '\\n\\n*Топ просрочек:*\\n'+overdueList : ''}${updLine}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction todayText() {\n  const tasks = schedule.tasks.filter(t => {\n    const ps = new Date(t.planStart || t.start);\n    const pe = new Date(t.planEnd || t.end);\n    return ps <= TODAY && TODAY <= pe;\n  });\n  if (!tasks.length) return `📅 На сегодня нет активных задач по плану.\\n\\n🔗 ${GANTT}`;\n  const lines = tasks.map(t => {\n    const pe = new Date(t.planEnd || t.end);\n    const dd = Math.round((pe - TODAY) / 86400000);\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} _${t.name}_ · до ${fmtDate(t.planEnd)} (${dd} дн.)`;\n  }).join('\\n');\n  return `📅 *Сегодня по плану:*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction overdueText() {\n  const overdue = schedule.tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  if (!overdue.length) return `🎉 Нет просроченных задач!`;\n  const lines = overdue.slice(0,10).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `🔴 _${t.name}_ · план до ${fmtDate(t.planEnd)} · просрочено на *${dd} дн.*`;\n  }).join('\\n');\n  return `⚠️ *Просрочено: ${overdue.length}*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction sectionText(secQuery) {\n  const sec = schedule.sections.find(s => s.id === secQuery || s.name.toLowerCase().includes((secQuery || '').toLowerCase()));\n  if (!sec) return `🤔 Не нашёл секцию «${secQuery}». Список: ${schedule.sections.map(s=>s.name).join(', ')}.`;\n  const tasks = schedule.tasks.filter(t => t.section === sec.id);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const pct = Math.round((done / tasks.length) * 100);\n  const lines = tasks.map(t => {\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} [${t.id}] _${t.name}_ · ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n  }).join('\\n');\n  return `🎨 *${sec.name}* — ${pct}% (${done}/${tasks.length})\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction startText() {\n  return `👋 Привет, ${name}!\\n\\nЯ помогаю вести график работ. Можно писать *текстом* или диктовать *голосом* — пойму.\\n\\n━━━━━━━━━━━━━━━\\n📊 *Узнать что происходит:*\\n• _«как дела»_, _«статус»_, _«что сегодня»_\\n• _«что просрочено?»_, _«как электрика»_\\n\\n✏️ *Отметить прогресс:*\\n• _«электрика готова»_\\n• _«ГКЛ закончили вчера»_\\n• _«малярка на 60%»_\\n\\n📅 *Подвинуть сроки:*\\n• _«сдвинь потолки на 3 дня позже»_\\n• _«старт покраски перенеси на понедельник»_\\n\\n⚠️ *Задержка:*\\n• _«шпатлёвка стоит — ждём материал»_\\n\\n📸 *Файлы (скоро):*\\n• PDF/Word со сметой → создам новый проект\\n• Фото с объекта → прикреплю к задаче\\n\\n━━━━━━━━━━━━━━━\\n🔗 *График онлайн:* ${GANTT}\\n\\n💡 *Советую закрепить это сообщение* — пригодится как справочник.`;\n}\n\nfunction helpText() {\n  return `📋 *Как со мной разговаривать:*\\n\\nМожно *голосом* или *текстом* — без строгих команд. Примеры:\\n\\n📊 _«как дела»_ · _«статус»_ · _«что сегодня»_\\n✏️ _«электрика готова»_ · _«стяжку закрыли вчера»_\\n📅 _«перенеси потолки на 3 дня»_\\n⚠️ _«задержка по малярке, ждём цвет»_\\n\\n*Явные команды:*\\n• /статус — сводка проекта\\n• /график — ссылка на витрину\\n• /отмена — отменить текущий диалог\\n\\n🔗 ${GANTT}`;\n}\n\n// ─── Main logic ───\nlet responseText = '';\nlet intent = msg.commandType || 'unknown';\nlet pendingAction = null;\nlet useKeyboard = false;\n\nif (msg.commandType === 'start') {\n  responseText = startText();\n} else if (msg.commandType === 'help') {\n  responseText = helpText();\n} else if (msg.commandType === 'gantt') {\n  responseText = `🔗 Витрина графика:\\n${GANTT}\\n\\nПлан/факт по ${schedule.tasks.length} задачам, milestone, прогресс, субподрядчики.`;\n} else if (msg.commandType === 'status') {\n  responseText = statusText();\n} else if (msg.commandType === 'cancel') {\n  responseText = `❎ Нечего отменять — активных диалогов нет.`;\n} else if (msg.commandType === 'unsupported') {\n  if (msg.type === 'photo') responseText = `📸 Фото — скоро. Будет привязка к задаче.`;\n  else responseText = `📄 Документы — скоро. PDF/Word со сметой → создание нового проекта.`;\n} else if (msg.gpt) {\n  // GPT classification\n  const g = msg.gpt;\n  intent = g.intent;\n\n  if (g.clarify_question) {\n    const intentLabel = {\n      mark_complete: '✅ отметить готовой',\n      mark_started: '🟡 отметить стартом',\n      set_progress: '📊 поставить %',\n      shift_dates: '📅 сдвинуть сроки',\n      add_delay: '⚠️ задержка',\n      query_status: '📊 статус',\n      query_today: '📅 сегодня',\n      query_overdue: '🔴 просрочки',\n      query_section: '🎨 по секции'\n    };\n    const sugg = (g.suggested_intents || []).filter(i => intentLabel[i]).slice(0, 4);\n    const hintLines = sugg.length ? `\\n\\nМожет один из:\\n${sugg.map(i => '• ' + intentLabel[i]).join('\\n')}` : '';\n    const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n    responseText = `${transcriptPrefix}🤔 ${g.clarify_question}${hintLines}`;\n    intent = 'clarify';\n  } else if (g.intent === 'query_status') {\n    responseText = statusText();\n  } else if (g.intent === 'query_today') {\n    responseText = todayText();\n  } else if (g.intent === 'query_overdue') {\n    responseText = overdueText();\n  } else if (g.intent === 'query_section') {\n    responseText = sectionText(g.task_query);\n  } else if (g.intent === 'greeting') {\n    responseText = `👋 Привет! Напиши _«статус»_ или диктуй что произошло.`;\n  } else if (g.intent === 'mark_complete' || g.intent === 'mark_started' || g.intent === 'set_progress' || g.intent === 'shift_dates' || g.intent === 'add_delay') {\n    // Write intents → resolve task, stage confirmation\n    const candidates = findTask(g.task_id || g.task_query);\n    if (!candidates || candidates.length === 0) {\n      responseText = `🤔 Не нашёл задачу «${g.task_query || g.task_id}».\\n\\nПопробуй назвать точнее или /график.`;\n      intent = 'task_not_found';\n    } else if (candidates.length > 1) {\n      const list = candidates.slice(0,5).map(t => `• [${t.id}] _${t.name}_`).join('\\n');\n      responseText = `🔍 Нашёл несколько задач, уточни:\\n\\n${list}\\n\\nНапиши ID (например _«закрой 3»_) или уточни название.`;\n      intent = 'task_ambiguous';\n    } else {\n      const t = candidates[0];\n      const datePart = g.date ? fmtDate(g.date) : fmtDate(today);\n      let confirmText = '';\n      if (g.intent === 'mark_complete') confirmText = `✅ Отметить «${t.name}» завершённой ${datePart}?`;\n      else if (g.intent === 'mark_started') confirmText = `🟡 Отметить «${t.name}» стартовавшей ${datePart}?`;\n      else if (g.intent === 'set_progress') confirmText = `📊 Поставить прогресс «${t.name}» = ${Math.round((g.value||0)*100)}%?`;\n      else if (g.intent === 'shift_dates') confirmText = `📅 Сдвинуть «${t.name}» на ${g.days > 0 ? '+' : ''}${g.days} дней?`;\n      else if (g.intent === 'add_delay') confirmText = `⚠️ Задержка по «${t.name}» ${g.days ? '(+'+g.days+' дней) ' : ''}· причина: «${g.reason || '—'}»?`;\n\n      pendingAction = {\n        type: g.intent,\n        taskId: t.id,\n        taskName: t.name,\n        date: g.date || today,\n        days: g.days,\n        value: g.value,\n        reason: g.reason\n      };\n      const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n      responseText = `${transcriptPrefix}${confirmText}`;\n      useKeyboard = true;\n    }\n  } else if (g.intent === 'add_task' || g.intent === 'add_note' || g.intent === 'query_period') {\n    responseText = `⏳ _«${g.intent}»_ в разработке. Пока можно: отметить готово, сдвинуть, задержку.`;\n    intent = 'not_implemented';\n  } else {\n    // unknown / smalltalk / greeting fallback — попробуем предложить варианты\n    const intentLabel = {\n      mark_complete: '✅ отметить готовой',\n      mark_started: '🟡 отметить стартом',\n      set_progress: '📊 поставить %',\n      shift_dates: '📅 сдвинуть сроки',\n      add_delay: '⚠️ зафиксировать задержку',\n      query_status: '📊 общий статус',\n      query_today: '📅 задачи на сегодня',\n      query_overdue: '🔴 просроченные',\n      query_section: '🎨 по секции',\n    };\n    const sugg = (g.suggested_intents || []).filter(i => intentLabel[i]).slice(0, 4);\n    const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n    if (sugg.length) {\n      const lines = sugg.map(i => `• ${intentLabel[i]}`).join('\\n');\n      responseText = `${transcriptPrefix}🤔 Не уверен что именно ты хочешь. Возможно ты имел в виду:\\n\\n${lines}\\n\\nПереформулируй поточнее — или скажи _«помощь»_ чтобы увидеть все команды.`;\n    } else {\n      responseText = `${transcriptPrefix}🤔 Не понял. Попробуй _«статус»_, _«что просрочено»_ или _«электрика готова»_.\\n\\nВсе команды: /help`;\n    }\n    intent = 'unknown';\n  }\n} else {\n  responseText = `🤔 Не распознал. /help`;\n}\n\nreturn [{ json: { ...msg, intent, responseText, pendingAction, useKeyboard } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000025",
       "name": "BuildResponse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3100, 300]
+      "position": [
+        3100,
+        300
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "typeValidation": "loose", "version": 2 },
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c1", "leftValue": "={{ $json.useKeyboard }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.useKeyboard }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -260,7 +395,10 @@
       "name": "IF useKeyboard",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [3300, 300]
+      "position": [
+        3300,
+        300
+      ]
     },
     {
       "parameters": {
@@ -270,13 +408,24 @@
       "name": "StageConfirm",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3500, 200]
+      "position": [
+        3500,
+        200
+      ]
     },
     {
       "parameters": {
         "operation": "create",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblugbp0O3x6qlxL6",
+          "mode": "id"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -290,24 +439,99 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "ConfirmId", "displayName": "ConfirmId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "Action", "displayName": "Action", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "CreatedAt", "displayName": "CreatedAt", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
-            { "id": "ExpiresAt", "displayName": "ExpiresAt", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
-            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+            {
+              "id": "ConfirmId",
+              "displayName": "ConfirmId",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TelegramUserId",
+              "displayName": "TelegramUserId",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectId",
+              "displayName": "ProjectId",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CreatedAt",
+              "displayName": "CreatedAt",
+              "required": false,
+              "type": "dateTime",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExpiresAt",
+              "displayName": "ExpiresAt",
+              "required": false,
+              "type": "dateTime",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resolution",
+              "displayName": "Resolution",
+              "required": false,
+              "type": "options",
+              "display": true,
+              "canBeUsedToMatch": true,
+              "options": [
+                {
+                  "name": "pending",
+                  "value": "pending"
+                },
+                {
+                  "name": "confirmed",
+                  "value": "confirmed"
+                },
+                {
+                  "name": "cancelled",
+                  "value": "cancelled"
+                },
+                {
+                  "name": "expired",
+                  "value": "expired"
+                }
+              ]
+            }
           ]
         },
-        "options": { "typecast": true }
+        "options": {
+          "typecast": true
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000028",
       "name": "InsertPending",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [3700, 200],
+      "position": [
+        3700,
+        200
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
     {
@@ -320,8 +544,18 @@
             {
               "row": {
                 "buttons": [
-                  { "text": "✅ Да, применить", "additionalFields": { "callback_data": "={{ 'confirm:' + $('StageConfirm').item.json.confirmId }}" } },
-                  { "text": "❌ Отмена", "additionalFields": { "callback_data": "={{ 'cancel:' + $('StageConfirm').item.json.confirmId }}" } }
+                  {
+                    "text": "✅ Да, применить",
+                    "additionalFields": {
+                      "callback_data": "={{ 'confirm:' + $('StageConfirm').item.json.confirmId }}"
+                    }
+                  },
+                  {
+                    "text": "❌ Отмена",
+                    "additionalFields": {
+                      "callback_data": "={{ 'cancel:' + $('StageConfirm').item.json.confirmId }}"
+                    }
+                  }
                 ]
               }
             }
@@ -337,9 +571,15 @@
       "name": "SendWithKeyboard",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [3900, 200],
+      "position": [
+        3900,
+        200
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
@@ -356,16 +596,30 @@
       "name": "SendPlain",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [3500, 440],
+      "position": [
+        3500,
+        440
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
         "operation": "create",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblWkS72GumLM0Npm", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblWkS72GumLM0Npm",
+          "mode": "id"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -376,32 +630,149 @@
             "MessageText": "={{ $('BuildResponse').item.json.text }}",
             "ParsedPayload": "={{ JSON.stringify({ type: $('BuildResponse').item.json.type, fromVoice: !!$('BuildResponse').item.json.fromVoice, pendingAction: $('BuildResponse').item.json.pendingAction, gpt: $('BuildResponse').item.json.gpt }) }}",
             "Status": "={{ $('BuildResponse').item.json.useKeyboard ? 'pending_confirm' : 'ok' }}",
-            "ResultMessage": "={{ ($('BuildResponse').item.json.responseText || '').slice(0, 400) }}"
+            "ResultMessage": "={{ ($('BuildResponse').item.json.responseText || '').slice(0, 400) }}",
+            "Transcript": "={{ $('BuildResponse').item.json.fromVoice ? $('BuildResponse').item.json.text : '' }}",
+            "Confidence": "={{ $('BuildResponse').item.json.gpt ? $('BuildResponse').item.json.gpt.confidence : null }}",
+            "GPTRawOutput": "={{ $('BuildResponse').item.json.gpt ? JSON.stringify($('BuildResponse').item.json.gpt) : '' }}",
+            "LatencyMs": "={{ $('BuildResponse').item.json.startTs ? Date.now() - $('BuildResponse').item.json.startTs : null }}"
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "Timestamp", "displayName": "Timestamp", "required": false, "type": "dateTime", "display": true, "canBeUsedToMatch": true },
-            { "id": "TelegramUserId", "displayName": "TelegramUserId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "ProjectId", "displayName": "ProjectId", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "Intent", "displayName": "Intent", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "MessageText", "displayName": "MessageText", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "ParsedPayload", "displayName": "ParsedPayload", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "Status", "displayName": "Status", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"ok","value":"ok"},{"name":"pending_confirm","value":"pending_confirm"},{"name":"rejected","value":"rejected"},{"name":"error","value":"error"}] },
-            { "id": "ResultMessage", "displayName": "ResultMessage", "required": false, "type": "string", "display": true, "canBeUsedToMatch": true }
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "type": "dateTime",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TelegramUserId",
+              "displayName": "TelegramUserId",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectId",
+              "displayName": "ProjectId",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MessageText",
+              "displayName": "MessageText",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ParsedPayload",
+              "displayName": "ParsedPayload",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "type": "options",
+              "display": true,
+              "canBeUsedToMatch": true,
+              "options": [
+                {
+                  "name": "ok",
+                  "value": "ok"
+                },
+                {
+                  "name": "pending_confirm",
+                  "value": "pending_confirm"
+                },
+                {
+                  "name": "rejected",
+                  "value": "rejected"
+                },
+                {
+                  "name": "error",
+                  "value": "error"
+                }
+              ]
+            },
+            {
+              "id": "ResultMessage",
+              "displayName": "ResultMessage",
+              "required": false,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "type": "number",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GPTRawOutput",
+              "displayName": "GPTRawOutput",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LatencyMs",
+              "displayName": "LatencyMs",
+              "type": "number",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            }
           ]
         },
-        "options": { "typecast": true }
+        "options": {
+          "typecast": true
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000031",
       "name": "LogAudit",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [4100, 300],
+      "position": [
+        4100,
+        300
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
-
     {
       "parameters": {
         "jsCode": "// Parse callback_data: 'confirm:<id>' or 'cancel:<id>'\nconst msg = $('Auth').first().json;\nconst parts = (msg.text || '').split(':');\nconst action = parts[0]; // confirm or cancel\nconst confirmId = parts[1] || '';\nreturn [{ json: { ...msg, cbAction: action, cbConfirmId: confirmId } }];"
@@ -410,13 +781,24 @@
       "name": "ParseCallback",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1300, 580]
+      "position": [
+        1300,
+        580
+      ]
     },
     {
       "parameters": {
         "operation": "search",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblugbp0O3x6qlxL6",
+          "mode": "id"
+        },
         "returnAll": false,
         "limit": 1,
         "filterByFormula": "={{ \"AND({ConfirmId}='\" + $json.cbConfirmId + \"',{Resolution}='pending')\" }}",
@@ -426,9 +808,15 @@
       "name": "LookupPending",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [1500, 580],
+      "position": [
+        1500,
+        580
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
     {
@@ -439,7 +827,10 @@
       "name": "PendingCtx",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1700, 580]
+      "position": [
+        1700,
+        580
+      ]
     },
     {
       "parameters": {
@@ -447,8 +838,14 @@
         "value1": "={{ $json.pendingFound && !$json.pendingExpired ? $json.cbAction : 'missing' }}",
         "rules": {
           "rules": [
-            { "value2": "confirm", "output": 0 },
-            { "value2": "cancel", "output": 1 }
+            {
+              "value2": "confirm",
+              "output": 0
+            },
+            {
+              "value2": "cancel",
+              "output": 1
+            }
           ]
         },
         "fallbackOutput": 2
@@ -457,12 +854,19 @@
       "name": "Route Callback",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 2,
-      "position": [1900, 580]
+      "position": [
+        1900,
+        580
+      ]
     },
     {
       "parameters": {
         "source": "database",
-        "workflowId": { "__rl": true, "value": "2a8758b3-5407-431f-9f44-79020db3a5ba", "mode": "id" },
+        "workflowId": {
+          "__rl": true,
+          "value": "2a8758b3-5407-431f-9f44-79020db3a5ba",
+          "mode": "id"
+        },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -470,8 +874,18 @@
             "author": "={{ $json.userFields?.Name || $json.username || 'Bot' }}"
           },
           "schema": [
-            { "id": "action", "displayName": "action", "required": false, "type": "object" },
-            { "id": "author", "displayName": "author", "required": false, "type": "string" }
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "type": "object"
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -480,34 +894,87 @@
       "name": "ExecutePatch",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [2100, 460]
+      "position": [
+        2100,
+        460
+      ]
     },
     {
       "parameters": {
         "operation": "update",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblugbp0O3x6qlxL6",
+          "mode": "id"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "matchingColumns": ["id"],
+          "matchingColumns": [
+            "id"
+          ],
           "value": {
             "id": "={{ $('PendingCtx').item.json.pendingRecordId }}",
             "Resolution": "confirmed"
           },
           "schema": [
-            { "id": "id", "displayName": "id", "required": true, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resolution",
+              "displayName": "Resolution",
+              "required": false,
+              "type": "options",
+              "display": true,
+              "canBeUsedToMatch": true,
+              "options": [
+                {
+                  "name": "pending",
+                  "value": "pending"
+                },
+                {
+                  "name": "confirmed",
+                  "value": "confirmed"
+                },
+                {
+                  "name": "cancelled",
+                  "value": "cancelled"
+                },
+                {
+                  "name": "expired",
+                  "value": "expired"
+                }
+              ]
+            }
           ]
         },
-        "options": { "typecast": true }
+        "options": {
+          "typecast": true
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000045",
       "name": "MarkConfirmed",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [2300, 460],
+      "position": [
+        2300,
+        460
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
     {
@@ -524,124 +991,552 @@
       "name": "SendDone",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2500, 460],
+      "position": [
+        2500,
+        460
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
         "operation": "update",
-        "base": { "__rl": true, "value": "apph1Z1U3OU2gBvnL", "mode": "id" },
-        "table": { "__rl": true, "value": "tblugbp0O3x6qlxL6", "mode": "id" },
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblugbp0O3x6qlxL6",
+          "mode": "id"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "matchingColumns": ["id"],
+          "matchingColumns": [
+            "id"
+          ],
           "value": {
             "id": "={{ $('PendingCtx').item.json.pendingRecordId }}",
             "Resolution": "cancelled"
           },
           "schema": [
-            { "id": "id", "displayName": "id", "required": true, "type": "string", "display": true, "canBeUsedToMatch": true },
-            { "id": "Resolution", "displayName": "Resolution", "required": false, "type": "options", "display": true, "canBeUsedToMatch": true, "options": [{"name":"pending","value":"pending"},{"name":"confirmed","value":"confirmed"},{"name":"cancelled","value":"cancelled"},{"name":"expired","value":"expired"}] }
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "type": "string",
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resolution",
+              "displayName": "Resolution",
+              "required": false,
+              "type": "options",
+              "display": true,
+              "canBeUsedToMatch": true,
+              "options": [
+                {
+                  "name": "pending",
+                  "value": "pending"
+                },
+                {
+                  "name": "confirmed",
+                  "value": "confirmed"
+                },
+                {
+                  "name": "cancelled",
+                  "value": "cancelled"
+                },
+                {
+                  "name": "expired",
+                  "value": "expired"
+                }
+              ]
+            }
           ]
         },
-        "options": { "typecast": true }
+        "options": {
+          "typecast": true
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000047",
       "name": "MarkCancelled",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
-      "position": [2100, 620],
+      "position": [
+        2100,
+        620
+      ],
       "credentials": {
-        "airtableTokenApi": { "id": "d7bb546a-a890-48", "name": "WSB · Airtable PAT" }
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     },
     {
       "parameters": {
         "chatId": "={{ $('PendingCtx').item.json.chatId }}",
         "text": "❎ Отменено. Ничего не записано.",
-        "additionalFields": { "parse_mode": "Markdown", "appendAttribution": false }
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "appendAttribution": false
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000048",
       "name": "SendCancel",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2300, 620],
+      "position": [
+        2300,
+        620
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
         "chatId": "={{ $('ParseCallback').item.json.chatId }}",
         "text": "⏱ Это подтверждение устарело или уже было обработано. Повтори команду.",
-        "additionalFields": { "parse_mode": "Markdown", "appendAttribution": false }
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "appendAttribution": false
+        }
       },
       "id": "b1000000-0001-4000-8000-000000000049",
       "name": "SendExpired",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2100, 780],
+      "position": [
+        2100,
+        780
+      ],
       "credentials": {
-        "telegramApi": { "id": "54054404-0389-4a", "name": "WSB · Telegram Bot" }
+        "telegramApi": {
+          "id": "54054404-0389-4a",
+          "name": "WSB · Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apph1Z1U3OU2gBvnL",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblWkS72GumLM0Npm",
+          "mode": "id"
+        },
+        "returnAll": false,
+        "limit": 5,
+        "filterByFormula": "={{ \"AND({TelegramUserId}='\" + $json.userId + \"', DATETIME_DIFF(NOW(), {Timestamp}, 'minutes') <= 15)\" }}",
+        "sort": {
+          "property": [
+            {
+              "field": "Timestamp",
+              "direction": "desc"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0001-4000-8000-000000000022a",
+      "name": "FetchConversation",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2550,
+        120
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "d7bb546a-a890-48",
+          "name": "WSB · Airtable PAT"
+        }
       }
     }
   ],
   "connections": {
-    "TelegramTrigger": { "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]] },
-    "Normalize": { "main": [[{ "node": "LookupUser", "type": "main", "index": 0 }]] },
-    "LookupUser": { "main": [[{ "node": "Auth", "type": "main", "index": 0 }]] },
-    "Auth": { "main": [[{ "node": "IF authorized", "type": "main", "index": 0 }]] },
-    "IF authorized": { "main": [[{ "node": "Route Type", "type": "main", "index": 0 }], []] },
+    "TelegramTrigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "LookupUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LookupUser": {
+      "main": [
+        [
+          {
+            "node": "Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth": {
+      "main": [
+        [
+          {
+            "node": "IF authorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF authorized": {
+      "main": [
+        [
+          {
+            "node": "Route Type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
     "Route Type": {
       "main": [
-        [{ "node": "TG GetFile", "type": "main", "index": 0 }],
-        [{ "node": "ParseCallback", "type": "main", "index": 0 }],
-        [{ "node": "ReadSchedule", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "TG DownloadVoice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ParseCallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ReadSchedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "TG GetFile": { "main": [[{ "node": "TG DownloadVoice", "type": "main", "index": 0 }]] },
-    "TG DownloadVoice": { "main": [[{ "node": "OpenAI Whisper", "type": "main", "index": 0 }]] },
-    "OpenAI Whisper": { "main": [[{ "node": "VoiceToText", "type": "main", "index": 0 }]] },
-    "VoiceToText": { "main": [[{ "node": "ReadSchedule", "type": "main", "index": 0 }]] },
-    "ReadSchedule": { "main": [[{ "node": "PreClassify", "type": "main", "index": 0 }]] },
-    "PreClassify": { "main": [[{ "node": "IF needsGPT", "type": "main", "index": 0 }]] },
+    "TG DownloadVoice": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Whisper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Whisper": {
+      "main": [
+        [
+          {
+            "node": "VoiceToText",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VoiceToText": {
+      "main": [
+        [
+          {
+            "node": "ReadSchedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ReadSchedule": {
+      "main": [
+        [
+          {
+            "node": "PreClassify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PreClassify": {
+      "main": [
+        [
+          {
+            "node": "IF needsGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "IF needsGPT": {
       "main": [
-        [{ "node": "GPT Classify", "type": "main", "index": 0 }],
-        [{ "node": "BuildResponse", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "FetchConversation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BuildResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "GPT Classify": { "main": [[{ "node": "ParseGPT", "type": "main", "index": 0 }]] },
-    "ParseGPT": { "main": [[{ "node": "BuildResponse", "type": "main", "index": 0 }]] },
-    "BuildResponse": { "main": [[{ "node": "IF useKeyboard", "type": "main", "index": 0 }]] },
+    "BuildGPTBody": {
+      "main": [
+        [
+          {
+            "node": "GPT Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT Classify": {
+      "main": [
+        [
+          {
+            "node": "ParseGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseGPT": {
+      "main": [
+        [
+          {
+            "node": "BuildResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuildResponse": {
+      "main": [
+        [
+          {
+            "node": "IF useKeyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "IF useKeyboard": {
       "main": [
-        [{ "node": "StageConfirm", "type": "main", "index": 0 }],
-        [{ "node": "SendPlain", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "StageConfirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SendPlain",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "StageConfirm": { "main": [[{ "node": "InsertPending", "type": "main", "index": 0 }]] },
-    "InsertPending": { "main": [[{ "node": "SendWithKeyboard", "type": "main", "index": 0 }]] },
-    "SendWithKeyboard": { "main": [[{ "node": "LogAudit", "type": "main", "index": 0 }]] },
-    "SendPlain": { "main": [[{ "node": "LogAudit", "type": "main", "index": 0 }]] },
-
-    "ParseCallback": { "main": [[{ "node": "LookupPending", "type": "main", "index": 0 }]] },
-    "LookupPending": { "main": [[{ "node": "PendingCtx", "type": "main", "index": 0 }]] },
-    "PendingCtx": { "main": [[{ "node": "Route Callback", "type": "main", "index": 0 }]] },
+    "StageConfirm": {
+      "main": [
+        [
+          {
+            "node": "InsertPending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsertPending": {
+      "main": [
+        [
+          {
+            "node": "SendWithKeyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendWithKeyboard": {
+      "main": [
+        [
+          {
+            "node": "LogAudit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendPlain": {
+      "main": [
+        [
+          {
+            "node": "LogAudit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseCallback": {
+      "main": [
+        [
+          {
+            "node": "LookupPending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LookupPending": {
+      "main": [
+        [
+          {
+            "node": "PendingCtx",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PendingCtx": {
+      "main": [
+        [
+          {
+            "node": "Route Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Route Callback": {
       "main": [
-        [{ "node": "ExecutePatch", "type": "main", "index": 0 }],
-        [{ "node": "MarkCancelled", "type": "main", "index": 0 }],
-        [{ "node": "SendExpired", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "ExecutePatch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MarkCancelled",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SendExpired",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "ExecutePatch": { "main": [[{ "node": "MarkConfirmed", "type": "main", "index": 0 }]] },
-    "MarkConfirmed": { "main": [[{ "node": "SendDone", "type": "main", "index": 0 }]] },
-    "MarkCancelled": { "main": [[{ "node": "SendCancel", "type": "main", "index": 0 }]] }
+    "ExecutePatch": {
+      "main": [
+        [
+          {
+            "node": "MarkConfirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MarkConfirmed": {
+      "main": [
+        [
+          {
+            "node": "SendDone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MarkCancelled": {
+      "main": [
+        [
+          {
+            "node": "SendCancel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FetchConversation": {
+      "main": [
+        [
+          {
+            "node": "BuildGPTBody",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "meta": {},
   "pinData": {},

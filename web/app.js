@@ -3,10 +3,14 @@ const DAY_MS = 86400000;
 
 const MOBILE_MQ = window.matchMedia('(max-width: 720px)');
 const isMobile = () => MOBILE_MQ.matches;
-const ZOOM_LEVELS = [14, 18, 22, 28, 36];
-const ZOOM_LABELS = ['−35%', '−18%', '100%', '+27%', '+64%'];
-const currentCellW = () => isMobile() ? 16 : ZOOM_LEVELS[state.zoomIdx];
+const CELL_BASE = 22;
+const CELL_MIN = 4;
+const CELL_MAX = 80;
+const ZOOM_PRESETS = [6, 10, 14, 18, 22, 28, 36, 50, 70];
+const clampCell = (x) => Math.max(CELL_MIN, Math.min(CELL_MAX, x));
+const currentCellW = () => state.cellW;
 const currentLabelW = () => (isMobile() ? 0 : 260);
+const zoomPct = () => Math.round((state.cellW / CELL_BASE) * 100);
 
 const state = {
   schedule: null,
@@ -18,8 +22,9 @@ const state = {
   hoverRow: null,
   pinCol: null,
   pinRow: null,
-  // zoom (index into ZOOM_LEVELS, default 2 = 22px = 100%)
-  zoomIdx: 2,
+  // zoom — continuous cell width in px (default 22 = 100%, mobile 16)
+  cellW: (window.matchMedia('(max-width: 720px)').matches ? 16 : 22),
+  initialScrollDone: false,
   // filter state
   filterSection: null, // null = all, or section id
   filterSubOnly: false,
@@ -54,6 +59,8 @@ async function init() {
   attachStatHandlers();
   attachTasksSheetHandlers();
   attachToolbarHandlers();
+  attachGanttGestures();
+  attachPrintHandlers();
 
   // Re-layout gantt + sheet on breakpoint change (phone rotate / window resize across 720px)
   let lastMobile = isMobile();
@@ -66,6 +73,13 @@ async function init() {
   };
   if (MOBILE_MQ.addEventListener) MOBILE_MQ.addEventListener('change', onMQ);
   else MOBILE_MQ.addListener(onMQ);
+
+  // On window resize: re-clamp fit-to-width cellW
+  let resizeRaf = 0;
+  window.addEventListener('resize', () => {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => { resizeRaf = 0; renderGantt(); });
+  });
 }
 
 /* ─── helpers ─── */
@@ -283,6 +297,16 @@ function attachToolbarHandlers() {
 }
 
 /* ─── Gantt ─── */
+// Minimum cellW so that labelCol + days*cellW fills the viewport width.
+// Prevents an empty white gap on the right at max zoom-out.
+function fitCellW(totalDays) {
+  const gantt = $('#gantt');
+  if (!gantt || !totalDays) return CELL_MIN;
+  const w = gantt.getBoundingClientRect().width;
+  if (w <= 0) return CELL_MIN;
+  return Math.max(CELL_MIN, (w - currentLabelW()) / totalDays);
+}
+
 function renderGantt() {
   const gantt = $('#gantt');
   const p = state.schedule.project;
@@ -291,6 +315,9 @@ function renderGantt() {
   const todayD = effectiveToday();
   const todayStripeISO = toISO(todayD);
   const totalDays = dayDiff(start, end) + 1;
+  // Clamp up to fit-to-width so Gantt always fills the horizontal space
+  const fit = fitCellW(totalDays);
+  if (state.cellW < fit) state.cellW = fit;
   const cellW = currentCellW();
   const labelColW = currentLabelW();
 
@@ -387,13 +414,15 @@ function renderGantt() {
     )
     .join('');
 
-  const zoomLabel = ZOOM_LABELS[state.zoomIdx];
+  const zoomLabel = zoomPct() + '%';
+  const canOut = state.cellW > fit + 0.5;
+  const canIn = state.cellW < CELL_MAX - 0.5;
   const header = `<div class="corner">
       <div class="corner-title">Виды работ · <strong style="color:var(--navy);margin-left:4px;">${state.schedule.tasks.length}</strong></div>
       <div class="zoom-btns">
-        <button class="zoom-btn" id="zoom-out" title="Уменьшить масштаб" ${state.zoomIdx === 0 ? 'disabled' : ''}>−</button>
-        <span class="zoom-label">${zoomLabel}</span>
-        <button class="zoom-btn" id="zoom-in" title="Увеличить масштаб" ${state.zoomIdx === ZOOM_LEVELS.length - 1 ? 'disabled' : ''}>+</button>
+        <button class="zoom-btn" id="zoom-out" title="Уменьшить масштаб" ${canOut ? '' : 'disabled'}>−</button>
+        <span class="zoom-label" title="Жест щипка на трекпаде или двумя пальцами">${zoomLabel}</span>
+        <button class="zoom-btn" id="zoom-in" title="Увеличить масштаб" ${canIn ? '' : 'disabled'}>+</button>
       </div>
     </div>
     <div class="dates-header">
@@ -513,19 +542,158 @@ function renderGantt() {
     });
   });
 
-  // ── zoom buttons
+  // ── zoom buttons (snap to nearest preset, anchored at viewport center)
   const zoomOut = $('#zoom-out'), zoomIn = $('#zoom-in');
-  if (zoomOut) zoomOut.addEventListener('click', (e) => { e.stopPropagation(); if (state.zoomIdx > 0) { state.zoomIdx--; renderGantt(); } });
-  if (zoomIn) zoomIn.addEventListener('click', (e) => { e.stopPropagation(); if (state.zoomIdx < ZOOM_LEVELS.length - 1) { state.zoomIdx++; renderGantt(); } });
+  const snapZoom = (dir) => {
+    const cur = state.cellW;
+    const next = dir < 0
+      ? [...ZOOM_PRESETS].reverse().find((x) => x < cur - 0.5)
+      : ZOOM_PRESETS.find((x) => x > cur + 0.5);
+    const target = clampCell(next ?? (dir < 0 ? CELL_MIN : CELL_MAX));
+    const rect = gantt.getBoundingClientRect();
+    zoomTo(target, rect.left + rect.width / 2);
+  };
+  if (zoomOut) zoomOut.addEventListener('click', (e) => { e.stopPropagation(); snapZoom(-1); });
+  if (zoomIn) zoomIn.addEventListener('click', (e) => { e.stopPropagation(); snapZoom(+1); });
 
-  // ── scroll to today (or start)
-  requestAnimationFrame(() => {
-    const todayDate = parseISO(today);
-    if (todayDate >= start && todayDate <= end) {
-      const off = dayDiff(start, todayDate) * cellW;
-      gantt.scrollLeft = Math.max(0, off - 120);
+  // ── scroll to today (or start) — only on first render
+  if (!state.initialScrollDone) {
+    state.initialScrollDone = true;
+    requestAnimationFrame(() => {
+      const todayDate = parseISO(today);
+      if (todayDate >= start && todayDate <= end) {
+        const off = dayDiff(start, todayDate) * cellW;
+        gantt.scrollLeft = Math.max(0, off - 120);
+      }
+    });
+  }
+}
+
+/* ─── Zoom gestures: trackpad pinch (wheel+ctrl) + touch pinch ─── */
+function zoomTo(newCellW, anchorClientX) {
+  const gantt = $('#gantt');
+  if (!gantt) return;
+  const rect = gantt.getBoundingClientRect();
+  const cursorX = Math.max(0, Math.min(rect.width, anchorClientX - rect.left));
+  const labelW = currentLabelW();
+  const oldCellW = state.cellW;
+  const contentX = gantt.scrollLeft + cursorX;
+  const dayAtCursor = Math.max(0, (contentX - labelW) / oldCellW);
+  const target = clampCell(newCellW);
+  if (Math.abs(target - oldCellW) < 0.01) return;
+  state.cellW = target;
+  renderGantt();
+  const newContentX = labelW + dayAtCursor * state.cellW;
+  gantt.scrollLeft = Math.max(0, newContentX - cursorX);
+}
+
+/* ─── Print / PDF export ─── */
+// A3 landscape @ 96dpi = 1587px. With 10mm margins each side (~76px total) → ~1510px usable.
+// Label column ~220px in print → ~1290px for day cells. For 120-day Gantt → cellW ~10px.
+function attachPrintHandlers() {
+  const PRINT_PAGE_WIDTH_PX = 1510;
+  const PRINT_LABEL_W = 220;
+  const PRINT_CELL_MIN = 6;
+
+  let savedCellW = null;
+  let savedLabelW = null;
+  let active = false;
+
+  const enterPrint = () => {
+    if (active) return;
+    active = true;
+    savedCellW = state.cellW;
+    document.body.classList.add('is-printing');
+    const totalDays = state.layout.totalDays || 120;
+    const available = PRINT_PAGE_WIDTH_PX - PRINT_LABEL_W;
+    const fit = Math.max(PRINT_CELL_MIN, Math.min(state.cellW, Math.floor(available / totalDays)));
+    if (Math.abs(fit - state.cellW) > 0.1) {
+      state.cellW = fit;
+      renderGantt();
     }
+  };
+  const exitPrint = () => {
+    if (!active) return;
+    active = false;
+    document.body.classList.remove('is-printing');
+    if (savedCellW != null) {
+      state.cellW = savedCellW;
+      savedCellW = null;
+      renderGantt();
+    }
+  };
+
+  window.addEventListener('beforeprint', enterPrint);
+  window.addEventListener('afterprint', exitPrint);
+  // Safari / iOS fallback: print media-query change fires when browser transitions.
+  const mql = window.matchMedia('print');
+  const onMQ = (e) => { if (e.matches) enterPrint(); else exitPrint(); };
+  if (mql.addEventListener) mql.addEventListener('change', onMQ);
+  else if (mql.addListener) mql.addListener(onMQ);
+}
+
+function attachGanttGestures() {
+  const gantt = $('#gantt');
+  if (!gantt) return;
+
+  // rAF batch: accumulate multiplicative factor across events, or hold latest absolute target.
+  // Wheel events compound (factor *= ...); touch sets absolute each frame (overwrite).
+  let rafPending = false;
+  let pendingFactor = 1;
+  let pendingAbs = null;
+  let pendingX = null;
+  const kick = () => {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      const target = pendingAbs != null ? pendingAbs : state.cellW * pendingFactor;
+      if (Math.abs(target - state.cellW) > 0.01) zoomTo(target, pendingX);
+      pendingFactor = 1; pendingAbs = null; pendingX = null;
+    });
+  };
+  const queueFactor = (f, x) => { pendingFactor *= f; pendingAbs = null; pendingX = x; kick(); };
+  const queueAbs = (w, x) => { pendingAbs = w; pendingFactor = 1; pendingX = x; kick(); };
+
+  // Trackpad pinch on macOS / Windows precision touchpads fires wheel + ctrlKey
+  gantt.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    queueFactor(Math.exp(-e.deltaY * 0.01), e.clientX);
+  }, { passive: false });
+
+  // Safari desktop: gesture events as fallback (e.scale is cumulative vs gesturestart)
+  let gestureStartCellW = null;
+  gantt.addEventListener('gesturestart', (e) => {
+    e.preventDefault();
+    gestureStartCellW = state.cellW;
   });
+  gantt.addEventListener('gesturechange', (e) => {
+    if (gestureStartCellW == null) return;
+    e.preventDefault();
+    queueAbs(gestureStartCellW * e.scale, e.clientX);
+  });
+  gantt.addEventListener('gestureend', () => { gestureStartCellW = null; });
+
+  // Touch pinch: two-finger zoom on mobile / touchscreens
+  let pinch = null;
+  const dist = (ts) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+  const mid = (ts) => (ts[0].clientX + ts[1].clientX) / 2;
+  gantt.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    pinch = { d0: dist(e.touches), w0: state.cellW };
+  }, { passive: false });
+  gantt.addEventListener('touchmove', (e) => {
+    if (!pinch || e.touches.length !== 2) return;
+    e.preventDefault();
+    const d = dist(e.touches);
+    if (pinch.d0 < 1) return;
+    queueAbs(pinch.w0 * (d / pinch.d0), mid(e.touches));
+  }, { passive: false });
+  const endPinch = (e) => { if (!e.touches || e.touches.length < 2) pinch = null; };
+  gantt.addEventListener('touchend', endPinch);
+  gantt.addEventListener('touchcancel', endPinch);
 }
 
 /* ─── highlight: row/col hover + pin + intersection ─── */

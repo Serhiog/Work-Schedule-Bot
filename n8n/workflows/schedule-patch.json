@@ -13,10 +13,11 @@
       "parameters": {
         "method": "GET",
         "url": "https://api.github.com/repos/Serhiog/Work-Schedule-Bot/contents/web/schedule.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $credentials.githubApi.accessToken }}" },
             { "name": "Accept", "value": "application/vnd.github+json" }
           ]
         },
@@ -45,10 +46,11 @@
       "parameters": {
         "method": "PUT",
         "url": "https://api.github.com/repos/Serhiog/Work-Schedule-Bot/contents/web/schedule.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $credentials.githubApi.accessToken }}" },
             { "name": "Accept", "value": "application/vnd.github+json" }
           ]
         },
