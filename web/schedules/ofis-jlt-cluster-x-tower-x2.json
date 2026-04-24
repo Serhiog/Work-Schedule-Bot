@@ -1,0 +1,456 @@
+{
+  "project": {
+    "slug": "ofis-jlt-cluster-x-tower-x2",
+    "code": "OFIS-JLT-C",
+    "name": "Офис JLT Cluster X, Tower X2",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2026-04-24",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 350000,
+    "totalIncVat": 367500,
+    "startDate": null,
+    "endDate": null,
+    "durationDays": 0,
+    "contractEndDate": null,
+    "lastUpdated": "2026-04-24T11:39:10.275Z",
+    "lastUpdatedBy": "Sergio",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "fire_safety",
+      "name": "Пожаробезопасность",
+      "color": "#dc2626",
+      "sub": true
+    },
+    {
+      "id": "hvac",
+      "name": "ОВиК (вентиляция)",
+      "color": "#06b6d4",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "finishing",
+      "name": "Штукатурно-малярные",
+      "color": "#a855f7"
+    },
+    {
+      "id": "paint",
+      "name": "Покраска",
+      "color": "#22c55e"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Сопровождение разрешительной документации",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 63000,
+      "durationDaysPlanned": 20,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Замена и перенос вентиляции",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "durationDaysPlanned": 20,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "fire_safety",
+      "stage": "ST1",
+      "name": "Перенос системы пожаротушения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "durationDaysPlanned": 15,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтаж в двух санузлах",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "durationDaysPlanned": 7,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Замена вентиляции",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 31500,
+      "durationDaysPlanned": 20,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "fire_safety",
+      "stage": "ST1",
+      "name": "Перенос системы пожаротушения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 22050,
+      "durationDaysPlanned": 15,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтаж в санузлах",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 21000,
+      "durationDaysPlanned": 7,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Черновая электрика",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 15750,
+      "durationDaysPlanned": 18,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "plumbing",
+      "stage": "ST1",
+      "name": "Черновая сантехника",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 12,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Укрывка поверхностей защитным материалом",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 3,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "11",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Монтаж гипсокартонных перегородок",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 17850,
+      "durationDaysPlanned": 10,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "12",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Шумоизоляция стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 7,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "13",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Укладка напольной плитки",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 21000,
+      "durationDaysPlanned": 8,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "14",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Монтаж потолка из ГКЛ",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 10,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "15",
+      "section": "finishing",
+      "stage": "ST3",
+      "name": "Подготовка стен под покраску",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 15750,
+      "durationDaysPlanned": 10,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "16",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покраска перегородок с двух сторон",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 15750,
+      "durationDaysPlanned": 6,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "17",
+      "section": "electrical",
+      "stage": "ST3",
+      "name": "Чистовая электрика",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 17850,
+      "durationDaysPlanned": 7,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "18",
+      "section": "plumbing",
+      "stage": "ST3",
+      "name": "Чистовая сантехника",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 8400,
+      "durationDaysPlanned": 7,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "19",
+      "section": "flooring",
+      "stage": "ST3",
+      "name": "Монтаж напольного плинтуса",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 2625,
+      "durationDaysPlanned": 3,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "20",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покраска потолка",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 5,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "21",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покраска основного потолка",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 20825,
+      "durationDaysPlanned": 6,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "22",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покраска окон",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 21000,
+      "durationDaysPlanned": 5,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "23",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Вывоз мусора",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 3150,
+      "durationDaysPlanned": 2,
+      "planStart": null,
+      "planEnd": null,
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
