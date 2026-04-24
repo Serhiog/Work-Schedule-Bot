@@ -15,7 +15,7 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-23T21:09:53.673Z",
+    "lastUpdated": "2026-04-24T05:20:23.403Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -696,6 +696,19 @@
       "costIncVat": 0,
       "planStart": "2026-05-13",
       "planEnd": "2026-06-23",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "33",
+      "name": "Финальная чистка",
+      "section": "cleaning",
+      "planStart": "2026-05-10",
+      "planEnd": "2026-05-15",
+      "start": "2026-05-10",
+      "end": "2026-05-15",
+      "progress": 0,
+      "contractor": "CYFR",
       "actualStart": null,
       "actualEnd": null
     }
