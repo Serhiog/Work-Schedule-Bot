@@ -416,6 +416,7 @@ button.stat { -webkit-appearance: none; appearance: none; }
 .gantt {
   display: grid;
   grid-template-columns: var(--label-col-w, 260px) 1fr;
+  grid-auto-rows: min-content;
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
@@ -507,6 +508,8 @@ button.stat { -webkit-appearance: none; appearance: none; }
   display: grid;
   grid-auto-flow: column;
   border-bottom: 1px solid var(--line-2);
+  height: 26px;
+  overflow: hidden;
 }
 .milestones-row {
   position: relative;
@@ -569,6 +572,7 @@ button.stat { -webkit-appearance: none; appearance: none; }
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: var(--cell-w, 22px);
+  height: 32px;
 }
 .day-cell {
   height: 32px;
@@ -783,18 +787,21 @@ button.stat { -webkit-appearance: none; appearance: none; }
   background-image: var(--column-stripes, none);
 }
 
-/* Plan (baseline) bar — top row, bold fill + striped overlay */
+/* Plan (baseline) bar — top row: hatched light fill, dashed border =
+   reads as "planned envelope". Readable, visible, but clearly "draft" vs
+   the solid fact bar below. */
 .bar-plan {
   position: absolute;
   top: 4px;
   height: 20px;
   border-radius: 3px;
+  touch-action: manipulation;
   background:
     repeating-linear-gradient(135deg,
       transparent 0, transparent 5px,
       rgba(255,255,255,0.32) 5px, rgba(255,255,255,0.32) 9px),
     color-mix(in srgb, var(--b-top) 38%, white);
-  border: 1.5px solid var(--b-top);
+  border: 1.5px dashed var(--b-top);
   display: flex;
   align-items: center;
   padding: 0 7px;
@@ -828,36 +835,47 @@ button.stat { -webkit-appearance: none; appearance: none; }
   white-space: nowrap;
 }
 
-/* Fact (actual) bar — bottom row, solid gradient */
+/* Fact (actual) bar — bottom row: solid vertical gradient, clear shadow =
+   reads as "actually built". Distinction from plan is dashed vs solid
+   border + stripes vs gradient; subtle but immediately readable. */
 .bar-fact {
   position: absolute;
   top: 28px;
   height: 20px;
   border-radius: 3px;
+  touch-action: manipulation;
   background: linear-gradient(180deg, var(--b-top) 0%, var(--b-bot) 100%);
-  box-shadow: 0 2px 6px rgba(16,24,40,0.18), inset 0 1px 0 rgba(255,255,255,0.28);
+  border: 1px solid var(--b-bot);
+  box-shadow:
+    0 2px 8px rgba(16,24,40,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.32);
   display: flex;
   align-items: center;
   padding: 0 8px;
   font-size: 11px;
   font-weight: 600;
   color: white;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.18);
   letter-spacing: 0.1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
   animation: barIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  z-index: 1;
+  z-index: 2;
 }
 .bar-fact.running {
   background: linear-gradient(90deg, var(--b-top) 0%, var(--b-bot) 80%, color-mix(in srgb, var(--b-bot) 40%, transparent) 100%);
 }
-.bar-plan:hover,
-.bar-fact:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-  z-index: 3;
+/* Hover only on devices with a real pointer — on touch devices :hover sticks
+   after tap and makes bars feel laggy under finger during scroll. */
+@media (hover: hover) and (pointer: fine) {
+  .bar-plan:hover,
+  .bar-fact:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    z-index: 3;
+  }
 }
 .bar-plan.light { color: var(--ink-2); }
 .bar-fact.light { color: var(--navy-ink); text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
@@ -1123,6 +1141,9 @@ button.stat { -webkit-appearance: none; appearance: none; }
   margin: 28px 0 12px;
   padding-top: 18px;
   border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .drawer-list {
   display: flex;
@@ -1174,6 +1195,44 @@ button.stat { -webkit-appearance: none; appearance: none; }
   color: var(--muted);
   margin-top: 4px;
 }
+.drawer-delays {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.drawer-delay-row {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #f97316;
+  border-radius: 10px;
+  background: var(--bg-2, #fafafa);
+}
+.drawer-delay-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.drawer-delay-days {
+  font-weight: 700;
+  color: #f97316;
+}
+.drawer-delay-date {
+  color: var(--muted);
+  font-size: 12px;
+}
+.drawer-delay-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+.drawer-delay-reason {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text, #1a1a1a);
+}
 .drawer-progress {
   margin-top: 8px;
   height: 6px;
@@ -1186,6 +1245,75 @@ button.stat { -webkit-appearance: none; appearance: none; }
   border-radius: 999px;
   transition: width 0.4s ease;
 }
+/* Big progress block above the grid */
+.drawer-progress-block {
+  margin: 14px 0 16px;
+}
+.drawer-progress-block .drawer-progress {
+  margin-top: 10px;
+  height: 8px;
+}
+.drawer-progress-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.drawer-progress-pct {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  color: var(--navy-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.drawer-progress-lbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  font-weight: 600;
+}
+/* Metric chips row */
+.drawer-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.drawer-metric {
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+}
+.drawer-metric-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy-ink);
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.drawer-metric-lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.drawer-metric--warn {
+  background: #fee4e2;
+  border-color: #fbc7c1;
+}
+.drawer-metric--warn .drawer-metric-val { color: #b42318; }
+.drawer-metric--warn .drawer-metric-lbl { color: #b42318; opacity: 0.85; }
+.drawer-metric--ok {
+  background: #e0f2ec;
+  border-color: #b9e3d0;
+}
+.drawer-metric--ok .drawer-metric-val { color: #15803d; }
+.drawer-metric--ok .drawer-metric-lbl { color: #15803d; opacity: 0.85; }
 
 /* ───── Tasks FAB (mobile) ───── */
 .tasks-fab {
@@ -1346,6 +1474,27 @@ button.stat { -webkit-appearance: none; appearance: none; }
 }
 .tasks-sheet-item .tstatus.done { background: #e0f2ec; color: #15803d; }
 .tasks-sheet-item .tstatus.running { background: #fef3c7; color: #b45309; }
+.tasks-sheet-item .tstatus.overdue { background: #fee4e2; color: #b42318; }
+.tasks-sheet-item .tpct {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--navy-ink);
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--line-2);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.tasks-sheet-item .tdelay {
+  font-size: 10px;
+  font-weight: 700;
+  color: #b42318;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #fee4e2;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
 
 /* ───── Responsive ───── */
 @media (max-width: 1100px) {
@@ -1373,12 +1522,76 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .legend-item { font-size: 10px; gap: 5px; }
   .chip { width: 10px; height: 10px; }
 
+  /* Mobile layout: two-tier scroll.
+     - .page scrolls vertically (to hide hero and reveal full-screen gantt)
+     - .gantt scrolls its own content internally
+     Critically: .gantt-wrap is position:relative (NOT sticky). Sticky +
+     nested overflow:auto breaks iOS touch routing; plain nested scroll
+     without sticky works on real devices. */
+  html, body {
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .page {
+    height: 100dvh;
+    max-width: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 10px 12px 0;
+  }
+  .gantt-wrap {
+    position: relative;
+    top: auto;
+    /* 100dvh so when page scrolls to bottom, gantt fills viewport */
+    height: 100dvh;
+    flex: none;
+  }
+  .footer { display: none; }
+
+  /* Compact mobile header — free up viewport for gantt */
+  .top-bar { padding: 0 0 8px; margin-bottom: 8px; }
+  .brand-mark { width: 28px; height: 28px; }
+  .brand-name { font-size: 16px; }
+  .top-nav { gap: 12px; }
+  .top-nav-link { font-size: 12px; }
+
+  .hero { padding: 0 0 8px; margin-bottom: 8px; gap: 6px; }
+  .hero-title { font-size: 18px; letter-spacing: -0.3px; line-height: 1.15; }
+  .hero-sub { display: none; }
+  .hero-chip { margin-bottom: 2px; font-size: 10px; padding: 2px 8px; }
+  .hero-updated { font-size: 10px; }
+  .hero-stats { gap: 4px; grid-template-columns: repeat(4, 1fr); }
+  .stat { padding: 5px 6px; }
+  .stat-value { font-size: 13px; margin-top: 0; }
+  .stat-label { font-size: 8px; letter-spacing: 0.4px; }
+  .stat-meta { display: none; }
+
+  /* Stages, legend hidden on mobile — available via tap / drawer */
+  .stages-ribbon { display: none; }
+  .legend { display: none; }
+
+  .gantt-toolbar { padding: 0 0 6px; margin-bottom: 6px; gap: 6px; }
+  .toolbar-select { font-size: 12px; padding: 4px 6px; }
+  .toolbar-chip, .toolbar-btn { font-size: 11px; padding: 4px 8px; }
+  .toolbar-label { font-size: 11px; }
+
   /* Hide left sticky column on mobile — use sheet instead */
-  .gantt { grid-template-columns: 0 1fr; max-height: none; }
+  .gantt {
+    grid-template-columns: 0 1fr;
+    max-height: none;
+    -webkit-overflow-scrolling: touch;
+    /* Allow scroll chaining back to .page when gantt is at its top/bottom,
+       so user can swipe down inside gantt to reveal hero again. */
+    overscroll-behavior-y: auto;
+  }
   .corner, .task-label, .section-label { display: none; }
   .dates-header { grid-column: 1 / -1; }
   .task-grid { grid-column: 1 / -1; height: 44px; }
   .section-grid { grid-column: 1 / -1; }
+  .days-row { height: 28px; }
   .day-cell { height: 28px; }
   .day-cell .dow { display: none; }
   .day-cell .dnum { font-size: 10px; }
@@ -1406,10 +1619,1025 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .tasks-fab-label { display: none; }
 }
 
+/* ───── PlanRadar ticket overlay ───── */
+
+/* Toggle button active state */
+.toolbar-btn[data-active="true"] {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+/* Marker on task bar */
+/* ── Aggregated ticket badge (one per task bar) ── */
+.tk-badge {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px 3px 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  z-index: 9;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  border: 1.5px solid rgba(255,255,255,0.9);
+  pointer-events: auto;
+}
+.tk-badge:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 10;
+}
+.tk-badge-flag {
+  width: 10px;
+  height: 12px;
+  flex-shrink: 0;
+}
+.tk-badge-count { letter-spacing: 0.3px; }
+
+/* Severity tiers — larger + brighter + animated for more open tickets */
+.tk-badge--done {
+  background: #16a34a;
+  box-shadow: 0 2px 6px rgba(22,163,74,0.35);
+  border-color: rgba(255,255,255,0.85);
+}
+.tk-badge--low {
+  background: #f59e0b;
+  box-shadow: 0 2px 8px rgba(245,158,11,0.40);
+}
+.tk-badge--mid {
+  background: #ef4444;
+  box-shadow: 0 3px 10px rgba(239,68,68,0.45), 0 0 0 3px rgba(239,68,68,0.14);
+  padding: 4px 9px 4px 6px;
+  font-size: 12px;
+}
+.tk-badge--high {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  box-shadow: 0 3px 12px rgba(220,38,38,0.55), 0 0 0 4px rgba(220,38,38,0.18);
+  padding: 5px 10px 5px 7px;
+  font-size: 12px;
+  animation: tk-pulse 2.2s ease-in-out infinite;
+}
+@keyframes tk-pulse {
+  0%, 100% { box-shadow: 0 3px 12px rgba(220,38,38,0.55), 0 0 0 4px rgba(220,38,38,0.18); }
+  50%      { box-shadow: 0 3px 14px rgba(220,38,38,0.70), 0 0 0 7px rgba(220,38,38,0.10); }
+}
+/* Worst-status color is applied via tier; keep status classes for semantic future use */
+.tk-badge--resolved { background: #16a34a; }
+.tk-badge--rejected { background: #6b7280; }
+
+/* ── Section collapse ── */
+.section-label { cursor: pointer; user-select: none; }
+.section-label .section-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  color: var(--muted-2);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.section-label--collapsed .section-chevron {
+  transform: rotate(-90deg);
+}
+.section-label--collapsed {
+  opacity: 0.78;
+}
+.section-label--collapsed .section-count {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.row-hidden { display: none !important; }
+.section-label:hover { background: linear-gradient(90deg, #f1f5f9 0%, #f1f5f9 95%, rgba(241,245,249,0) 100%); }
+.section-label:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+
+/* Drawer — tickets section */
+.drawer-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.ticket-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 12px 10px;
+  border-left-width: 3px;
+  background: #fafaf9;
+}
+.ticket-card--open        { border-left-color: #dc2626; }
+.ticket-card--in_review   { border-left-color: #7c3aed; }
+.ticket-card--in_progress { border-left-color: #d97706; }
+.ticket-card--deferred    { border-left-color: #6b7280; }
+.ticket-card--resolved    { border-left-color: #16a34a; opacity: 0.85; }
+.ticket-card--rejected    { border-left-color: #374151; opacity: 0.70; }
+
+.ticket-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.ticket-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.ticket-card--open        .ticket-status-dot { background: #dc2626; }
+.ticket-card--in_review   .ticket-status-dot { background: #7c3aed; }
+.ticket-card--in_progress .ticket-status-dot { background: #d97706; }
+.ticket-card--deferred    .ticket-status-dot { background: #6b7280; }
+.ticket-card--resolved    .ticket-status-dot { background: #16a34a; }
+.ticket-card--rejected    .ticket-status-dot { background: #374151; }
+
+.ticket-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy-ink);
+  flex: 1;
+  line-height: 1.35;
+}
+.ticket-card-meta {
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+  text-align: right;
+  line-height: 1.4;
+}
+.ticket-card-desc {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.ticket-card-creator {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.ticket-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.ticket-photo-btn {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.ticket-photo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  display: block;
+  transition: opacity 0.15s;
+}
+.ticket-photo:hover { opacity: 0.85; }
+
+/* ticket card actions row */
+.ticket-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ticket-status-select {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink-1);
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+.ticket-status-select:disabled { opacity: 0.5; cursor: not-allowed; }
+.ticket-open-link {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.ticket-open-link:hover { color: var(--ink-1); background: var(--hover); }
+
+/* section title with add button */
+.ticket-add-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+  border-radius: 4px;
+}
+.ticket-add-btn:hover { background: var(--hover); color: var(--ink-1); }
+
+/* create ticket form */
+.ticket-create-form {
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.ticket-form-input,
+.ticket-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink-1);
+  outline: none;
+  resize: vertical;
+}
+.ticket-form-input:focus,
+.ticket-form-textarea:focus { border-color: #1a3c6e; }
+.ticket-form-textarea { rows: 2; min-height: 56px; }
+.ticket-form-actions {
+  display: flex;
+  gap: 8px;
+}
+.ticket-form-submit {
+  padding: 6px 14px;
+  background: #1a3c6e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ticket-form-submit:hover:not(:disabled) { background: #142f56; }
+.ticket-form-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.ticket-form-cancel {
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.ticket-form-cancel:hover { background: var(--hover); }
+.ticket-form-error {
+  font-size: 12px;
+  color: #dc2626;
+  min-height: 16px;
+}
+.ticket-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.ticket-photo-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ticket-photo-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ticket-preview-item {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  overflow: visible;
+}
+.ticket-preview-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+.ticket-preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.ticket-photo-add-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.ticket-photo-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--hover);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ticket-photo-add-btn:hover { background: var(--sidebar-bg); color: var(--ink-1); }
+.ticket-due {
+  display: inline-block;
+  font-size: 11px;
+  color: #d97706;
+  background: rgba(217,119,6,0.10);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin: 2px 0 4px;
+}
+.ticket-card--resolved .ticket-due { color: #16a34a; background: rgba(22,163,74,0.10); }
+.ticket-due--overdue { color: #dc2626 !important; background: rgba(220,38,38,0.10) !important; font-weight: 600; }
+
+/* ───── Photo lightbox ───── */
+#photo-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+#photo-lightbox.lightbox--open { display: flex; }
+.lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+}
+.lightbox-img {
+  position: relative;
+  max-width: 92vw;
+  max-height: 88vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  object-fit: contain;
+}
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.28); }
+
+/* ── Ticket selection mode + share bar ── */
+.ticket-select-toggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+}
+.ticket-select-toggle:hover { color: #2563eb; border-color: #2563eb; }
+
+.tickets-section--selecting .ticket-card {
+  padding-left: 42px;
+  position: relative;
+}
+.tickets-section--selecting .ticket-card-actions { opacity: 0.35; pointer-events: none; }
+.ticket-select-mark {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line-2, #cbd5e1);
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.ticket-select-mark--on {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.ticket-card--selected {
+  outline: 2px solid #2563eb;
+  outline-offset: -1px;
+  background: #eff6ff;
+}
+
+.tickets-action-bar {
+  position: sticky;
+  bottom: 0;
+  margin: 12px -18px -16px;
+  padding: 10px 14px;
+  background: #ffffffea;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 5;
+}
+.tickets-action-cancel {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text, #1a1a1a);
+  font-size: 13px;
+  cursor: pointer;
+}
+.tickets-action-cancel:hover { background: var(--line-2, #f5f5f5); }
+.tickets-action-share {
+  flex: 1 1 auto;
+  padding: 9px 16px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.tickets-action-share:hover:not(:disabled) { background: #1d4ed8; }
+.tickets-action-share:disabled { background: var(--line-2, #e5e7eb); color: var(--muted); border-color: transparent; cursor: not-allowed; }
+.tickets-action-share-ico { font-size: 15px; font-weight: 700; }
+.tickets-action-share-lbl { white-space: nowrap; }
+
+/* ── PDF page templates (rendered offscreen then snapshot by html2canvas) ── */
+.pdf-page {
+  width: 794px;
+  min-height: 1123px;
+  padding: 56px 60px;
+  box-sizing: border-box;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #111;
+  font-size: 14px;
+  line-height: 1.45;
+  page-break-after: always;
+}
+.pdf-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #2563eb;
+  margin-bottom: 28px;
+}
+.pdf-hdr-brand {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #2563eb;
+}
+.pdf-hdr-project {
+  font-size: 13px;
+  color: #555;
+}
+.pdf-ticket-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 6px 0 10px;
+  color: #111;
+}
+.pdf-task-ref {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 22px;
+}
+.pdf-task-ref b { color: #111; }
+.pdf-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  padding: 16px 18px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+.pdf-meta > div { display: flex; flex-direction: column; gap: 2px; }
+.pdf-meta-k {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  font-weight: 500;
+}
+.pdf-meta-v { font-size: 14px; color: #111; }
+.pdf-meta-v--overdue { color: #dc2626; font-weight: 600; }
+.pdf-section-lbl {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  font-weight: 600;
+  margin: 18px 0 10px;
+}
+.pdf-desc {
+  background: #fff;
+  border-left: 3px solid #e5e7eb;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #222;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.pdf-photos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+.pdf-photo-wrap {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #f1f5f9;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdf-photo-wrap img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.pdf-footer {
+  position: absolute;
+  bottom: 34px;
+  left: 60px;
+  right: 60px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+}
+
+
+/* ── Ticket edit modal ── */
+.ticket-card { cursor: pointer; }
+.ticket-card:hover { border-color: var(--line-2, #d4d4d4); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.ticket-edit-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ticket-edit-btn:hover { color: var(--text, #1a1a1a); border-color: var(--text, #1a1a1a); }
+
+.ticket-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ticket-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  animation: fadeIn 120ms ease;
+}
+.ticket-modal-dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 14px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  animation: modalIn 160ms ease;
+}
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+.ticket-modal-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted);
+}
+.ticket-modal-close:hover { background: var(--line-2, #f0f0f0); color: var(--text, #1a1a1a); }
+.ticket-modal-head {
+  padding: 18px 48px 8px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.ticket-modal-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.ticket-modal-open-pr {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.ticket-modal-open-pr:hover { text-decoration: underline; color: var(--text, #1a1a1a); }
+.ticket-modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.edit-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.edit-input, .edit-textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text, #1a1a1a);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.edit-input:focus, .edit-textarea:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: -1px;
+  border-color: #2563eb;
+}
+.edit-textarea { resize: vertical; min-height: 80px; }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.edit-photos, .edit-photos-new {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.edit-photo {
+  position: relative;
+  width: 72px; height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+.edit-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.edit-photo--new { border-color: #2563eb; border-style: dashed; }
+.edit-photo-del {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 20px; height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.edit-photo-del:hover { background: #dc2626; }
+.edit-photo-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  position: relative;
+}
+.edit-photo-add:hover { border-color: #2563eb; color: #2563eb; }
+.edit-err {
+  color: #dc2626;
+  font-size: 12px;
+  min-height: 16px;
+}
+.ticket-modal-foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.edit-foot-spacer { flex: 1; }
+.edit-cancel, .edit-save, .edit-delete-ticket {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text, #1a1a1a);
+}
+.edit-cancel:hover { background: var(--line-2, #f5f5f5); }
+.edit-save {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.edit-save:hover:not(:disabled) { background: #1d4ed8; }
+.edit-save:disabled { opacity: 0.7; cursor: default; }
+.edit-save--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+  padding: 8px 16px 8px 40px !important;
+  min-height: 38px;
+  min-width: 140px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 40%, #60a5fa 50%, #3b82f6 60%, #1d4ed8 100%) !important;
+  background-size: 250% 100% !important;
+  animation: save-shimmer 1.6s linear infinite;
+  opacity: 1 !important;
+  cursor: default !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+.edit-save--loading::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: save-spin 0.65s linear infinite;
+}
+.edit-save--loading::after {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 24px;
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+@keyframes save-shimmer {
+  0%   { background-position: 250% 0; }
+  100% { background-position: -100% 0; }
+}
+@keyframes save-spin {
+  to { transform: rotate(360deg); }
+}
+.edit-delete-ticket {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+.edit-delete-ticket:hover { background: #fee2e2; border-color: #dc2626; }
+@media (max-width: 540px) {
+  /* Selection action bar — mobile */
+  .tickets-action-bar { padding: 10px 12px; }
+  .tickets-action-cancel, .tickets-action-share {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .ticket-select-toggle { width: 32px; height: 32px; }
+
+  /* Create ticket form — 44px touch targets on mobile */
+  .ticket-form-submit, .ticket-form-cancel {
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 14px;
+    flex: 1;
+  }
+  .ticket-form-input, .ticket-form-textarea {
+    font-size: 16px; /* prevent iOS zoom */
+    padding: 10px 12px;
+  }
+  .ticket-form-actions {
+    gap: 8px;
+    display: flex;
+  }
+
+  .ticket-modal { padding: 0; }
+  .ticket-modal-dialog {
+    max-width: 100%;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    animation: modalInMobile 200ms ease;
+  }
+  @keyframes modalInMobile {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ticket-modal-head {
+    padding: 14px 44px 10px 14px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+  }
+  .ticket-modal-close { top: 8px; right: 8px; width: 36px; height: 36px; font-size: 18px; }
+  .ticket-modal-body {
+    padding: 14px;
+    gap: 16px;
+    /* give room for sticky footer */
+    padding-bottom: 88px;
+  }
+  .edit-row { grid-template-columns: 1fr; gap: 14px; }
+  .edit-input, .edit-textarea {
+    font-size: 16px; /* prevent iOS zoom on focus */
+    padding: 10px 12px;
+  }
+  .edit-textarea { min-height: 100px; }
+  .ticket-modal-foot {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .edit-cancel, .edit-save {
+    flex: 1;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .edit-delete-ticket {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+  .edit-foot-spacer { display: none; }
+  /* Larger touch targets for photo thumbs */
+  .edit-photo { width: 80px; height: 80px; }
+  .edit-photo-del { width: 24px; height: 24px; font-size: 13px; top: 3px; right: 3px; }
+  .edit-photo-add { min-height: 40px; padding: 10px 14px; }
+  .edit-save--loading { padding-left: 40px !important; }
+}
+
+@media (max-width: 380px) {
+  .edit-delete-ticket { width: 44px; padding: 0; font-size: 0; }
+  .edit-delete-ticket::before { content: '🗑'; font-size: 16px; }
+}
+
+/* ───── Ticket filter chips + sort ───── */
+.ticket-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0 4px;
+}
+.ticket-chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ticket-chip:hover { background: var(--hover); color: var(--ink-1); }
+.ticket-chip--active {
+  background: var(--ink-1);
+  color: var(--bg);
+  border-color: var(--ink-1);
+}
+/* Status-coloured chips when active */
+.ticket-chip--open.ticket-chip--active       { background: #ef4444; border-color: #ef4444; }
+.ticket-chip--in_progress.ticket-chip--active { background: #f97316; border-color: #f97316; }
+.ticket-chip--in_review.ticket-chip--active  { background: #a855f7; border-color: #a855f7; }
+.ticket-chip--deferred.ticket-chip--active   { background: #6b7280; border-color: #6b7280; }
+.ticket-chip--resolved.ticket-chip--active   { background: #22c55e; border-color: #22c55e; }
+.ticket-chip--rejected.ticket-chip--active   { background: #374151; border-color: #374151; }
+.ticket-sort-select {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 6px;
+  width: 100%;
+}
+.ticket-sort-select:focus { outline: none; border-color: var(--ink-2); }
+.ticket-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px 0;
+  text-align: center;
+}
+
 /* ───── Print (PDF export) ───── */
 @media print {
   @page {
-    size: A3 landscape;
+    size: A4 landscape;
     margin: 10mm;
   }
   /* CRITICAL: force print to keep all backgrounds/gradients/colors.
@@ -1434,6 +2662,11 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .legend { font-size: 7pt; margin-bottom: 6px; }
   .legend-item { font-size: 7pt; }
   .gantt-wrap {
+    /* CRITICAL: sticky + 100dvh in print causes Chrome/Safari to clip everything
+       beyond the first "page viewport" — PDF becomes garbled. Must reset. */
+    position: static !important;
+    height: auto !important;
+    display: block !important;
     margin: 0 !important;
     border-radius: 0;
     box-shadow: none;
@@ -1444,9 +2677,10 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .gantt {
     max-height: none !important;
     overflow: visible !important;
-    width: 100% !important;
+    /* Grid columns are set by inline style (set by JS in enterPrint).
+       Do NOT override width here — let the grid template dictate layout. */
   }
-  /* Sticky → static in print so columns lay out linearly */
+  /* Sticky → static in print so header rows lay out in normal flow */
   .corner, .dates-header, .section-label, .task-label {
     position: static !important;
   }
@@ -1460,17 +2694,43 @@ button.stat { -webkit-appearance: none; appearance: none; }
   .day-cell .dow { font-size: 6pt !important; }
   .day-cell .dnum { font-size: 7pt !important; }
   .month-cell { font-size: 8pt !important; height: 20px !important; }
-  .task-grid { break-inside: avoid; min-height: 26px !important; }
-  .task-label { font-size: 8pt !important; padding: 2px 6px !important; min-height: 26px !important; }
-  .section-label { font-size: 8pt !important; padding: 3px 8px !important; }
+  /* task-grid: flex column so bars flow into print pages correctly.
+     position:absolute bars don't paginate in Safari PDF — relative+margin-left does. */
+  .task-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    height: auto !important;
+    min-height: 26px !important;
+    overflow: visible !important;
+    break-inside: avoid;
+  }
   .bar-plan, .bar-fact {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin-left: var(--bar-left, 0px) !important;
+    margin-top: 3px !important;
+    margin-bottom: 1px !important;
+    align-self: flex-start !important;
+    flex-shrink: 0 !important;
     animation: none !important;
     transition: none !important;
     box-shadow: 0 0 0 0.5pt rgba(0,0,0,0.15) !important;
     font-size: 7pt !important;
   }
+  .task-label { font-size: 8pt !important; padding: 2px 6px !important; min-height: 26px !important; }
+  .section-label { font-size: 8pt !important; padding: 3px 8px !important; }
   .bar-plan-text { font-size: 7pt !important; }
   .zoom-btns, .task-open-btn, .gantt-overlays { display: none !important; }
+  /* Suppress animation/shadow artifacts that cause text to render doubled in Safari PDF */
+  .stages-ribbon, .stage-bar, .stage-fill, .stage-name, .stage-share,
+  .corner, .corner-title {
+    animation: none !important;
+    transition: none !important;
+    text-shadow: none !important;
+    -webkit-font-smoothing: subpixel-antialiased !important;
+  }
   .corner { padding: 6px 8px; font-size: 8pt; }
   .day-cell.today { animation: none !important; }
   .day-cell.today { background: rgba(253, 230, 138, 0.55) !important; }
