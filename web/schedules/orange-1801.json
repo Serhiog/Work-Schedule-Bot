@@ -1,0 +1,717 @@
+{
+  "project": {
+    "slug": "orange-1801",
+    "code": "10-F",
+    "name": "Orange Group Office 3.0",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "ORANGE GROUP BUYING AND SELLING OF REAL ESTATE CO. L.L.C",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2025-12-19",
+    "supplementaryAgreement": "№ 2",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 761595.61,
+    "totalIncVat": 799675.39,
+    "startDate": "2026-02-24",
+    "endDate": "2026-06-23",
+    "durationDays": 120,
+    "contractEndDate": "2026-06-05",
+    "lastUpdated": "2026-04-24T05:20:23.403Z",
+    "lastUpdatedBy": "Sergei Grishenkov",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "fire_safety",
+      "name": "Пожаробезопасность",
+      "color": "#dc2626",
+      "sub": true
+    },
+    {
+      "id": "hvac",
+      "name": "ОВиК (вентиляция)",
+      "color": "#06b6d4",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "finishing",
+      "name": "Штукатурно-малярные",
+      "color": "#a855f7"
+    },
+    {
+      "id": "paint",
+      "name": "Покраска",
+      "color": "#22c55e"
+    },
+    {
+      "id": "glass",
+      "name": "Стеклянные перегородки",
+      "color": "#14b8a6",
+      "sub": true
+    },
+    {
+      "id": "furniture",
+      "name": "Мебель и декор",
+      "color": "#475569"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "date": "2026-03-11",
+      "name": "Завершение демонтажа",
+      "stage": "ST1"
+    },
+    {
+      "id": "M2",
+      "date": "2026-04-22",
+      "name": "Готовность MEP (first-fix)",
+      "stage": "ST1"
+    },
+    {
+      "id": "M3",
+      "date": "2026-05-19",
+      "name": "Завершение чистовой отделки",
+      "stage": "ST3"
+    },
+    {
+      "id": "M4",
+      "date": "2026-06-05",
+      "name": "Сдача по контракту",
+      "stage": "ST4"
+    },
+    {
+      "id": "M5",
+      "date": "2026-06-23",
+      "name": "Финальная приёмка",
+      "stage": "ST4"
+    }
+  ],
+  "holidays": [
+    {
+      "date": "2026-03-20",
+      "name": "Праздничные дни"
+    },
+    {
+      "date": "2026-03-21",
+      "name": "Праздничные дни"
+    },
+    {
+      "date": "2026-03-22",
+      "name": "Праздничные дни"
+    },
+    {
+      "date": "2026-05-26",
+      "name": "День Арафата (наблюдение)"
+    },
+    {
+      "date": "2026-05-27",
+      "name": "Курбан-байрам"
+    },
+    {
+      "date": "2026-05-28",
+      "name": "Курбан-байрам"
+    },
+    {
+      "date": "2026-05-29",
+      "name": "Курбан-байрам"
+    },
+    {
+      "date": "2026-06-16",
+      "name": "Исламский новый год"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-02-24",
+      "planEnd": "2026-03-11",
+      "actualStart": "2026-02-24",
+      "actualEnd": "2026-03-11"
+    },
+    {
+      "id": "5",
+      "section": "plumbing",
+      "stage": "ST1",
+      "name": "Сантехнические работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-16",
+      "planEnd": "2026-05-02",
+      "actualStart": "2026-03-02",
+      "actualEnd": "2026-04-18",
+      "subtasks": [
+        {
+          "name": "Закладные сантехнических приборов",
+          "start": "2026-03-01",
+          "finish": "2026-03-09",
+          "duration_days": 9
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Электромонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-03",
+      "planEnd": "2026-04-08",
+      "actualStart": "2026-03-03",
+      "actualEnd": "2026-04-08",
+      "subtasks": [
+        {
+          "name": "Напольные розетки",
+          "start": "2026-03-01",
+          "finish": "2026-03-17",
+          "duration_days": 17
+        },
+        {
+          "name": "Закладные детали подсветка",
+          "start": "2026-03-01",
+          "finish": "2026-03-28",
+          "duration_days": 28
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Монтаж гипсокартоновых стен и перегородок",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-06",
+      "planEnd": "2026-04-11",
+      "actualStart": "2026-03-06",
+      "actualEnd": "2026-04-11"
+    },
+    {
+      "id": "7",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Работы по вентиляционным системам Frost",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-16",
+      "planEnd": "2026-05-02",
+      "actualStart": "2026-03-06",
+      "actualEnd": "2026-05-02"
+    },
+    {
+      "id": "8",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Закуп фанкоилов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-16",
+      "planEnd": "2026-03-20",
+      "actualStart": "2026-03-06",
+      "actualEnd": "2026-03-20"
+    },
+    {
+      "id": "9",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Закупка воздуховодов и фасонных изделий",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-16",
+      "planEnd": "2026-03-25",
+      "actualStart": "2026-03-06",
+      "actualEnd": "2026-03-25"
+    },
+    {
+      "id": "14",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Сборка и монтаж воздуховодов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-19",
+      "planEnd": "2026-04-27",
+      "actualStart": "2026-03-09",
+      "actualEnd": "2026-04-27"
+    },
+    {
+      "id": "17",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Демонтаж старой стяжки пола",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-09",
+      "planEnd": "2026-03-14",
+      "actualStart": "2026-03-09",
+      "actualEnd": "2026-03-14"
+    },
+    {
+      "id": "10",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Установка фанкоилов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-21",
+      "planEnd": "2026-03-28",
+      "actualStart": "2026-03-11",
+      "actualEnd": "2026-03-28"
+    },
+    {
+      "id": "18",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Устройство наливного пола",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-16",
+      "planEnd": "2026-03-28",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "21",
+      "section": "finishing",
+      "stage": "ST3",
+      "name": "Штукатурно-малярные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-17",
+      "planEnd": "2026-04-01",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Установка чистовых электроприборов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-18",
+      "planEnd": "2026-06-05",
+      "actualStart": "2026-03-18",
+      "actualEnd": null,
+      "progress": 0.45,
+      "subtasks": [
+        {
+          "name": "Электроприборы",
+          "start": "2026-03-02",
+          "finish": "2026-05-17",
+          "duration_days": 77
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Монтаж очень хорошей системы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-29",
+      "planEnd": "2026-04-21",
+      "actualStart": null
+    },
+    {
+      "id": "12",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Монтаж узлов обвязки фанкоилов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-04-09",
+      "planEnd": "2026-04-12",
+      "actualStart": null
+    },
+    {
+      "id": "20",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Монтаж гипсокартоновых потолков",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-30",
+      "planEnd": "2026-04-13",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "24",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покрасочные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-31",
+      "planEnd": "2026-05-19",
+      "actualStart": "2026-03-31",
+      "actualEnd": "2026-05-01",
+      "progress": 0.4,
+      "subtasks": [
+        {
+          "name": "Краска",
+          "start": "2026-03-09",
+          "finish": "2026-03-19",
+          "duration_days": 11
+        },
+        {
+          "name": "Декоративная штукатурка",
+          "start": "2026-03-09",
+          "finish": "2026-04-05",
+          "duration_days": 28
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Опрессовка, промывка и хим обработка труб хладоснабжения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-04-13",
+      "planEnd": "2026-04-25",
+      "actualStart": null
+    },
+    {
+      "id": "15",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Подключение слаботочной электрики и установка термостатов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-04-08",
+      "planEnd": "2026-04-18",
+      "actualStart": null,
+      "actualEnd": null,
+      "subtasks": [
+        {
+          "name": "Изоляция воздуховодов",
+          "start": null,
+          "finish": "2026-04-20",
+          "duration_days": null
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Пусконаладочные работы, акты приемки",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-05-06",
+      "planEnd": "2026-05-12",
+      "actualStart": "2026-04-16",
+      "progress": 0.9,
+      "subtasks": [
+        {
+          "name": "Терморегуляторы, решетки радиаторов",
+          "start": "2026-03-01",
+          "finish": "2026-03-14",
+          "duration_days": 14
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "section": "glass",
+      "stage": "ST3",
+      "name": "Монтаж стеклянных перегородок",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-04-21",
+      "planEnd": "2026-05-11",
+      "actualStart": "2026-04-21",
+      "actualEnd": null,
+      "progress": 0.15,
+      "subtasks": [
+        {
+          "name": "Стеклянные перегородки",
+          "start": "2026-03-05",
+          "finish": "2026-05-27",
+          "duration_days": 84
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Укладка плитки",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-04-23",
+      "planEnd": "2026-04-24",
+      "actualStart": null,
+      "actualEnd": null,
+      "subtasks": [
+        {
+          "name": "Плитка фоновая для санузлов",
+          "start": "2026-02-26",
+          "finish": "2026-03-09",
+          "duration_days": 12
+        },
+        {
+          "name": "Плитка акцентная для санузлов",
+          "start": "2026-02-26",
+          "finish": "2026-06-11",
+          "duration_days": 106
+        },
+        {
+          "name": "Плитка акцентная для кухни",
+          "start": null,
+          "finish": null,
+          "duration_days": null
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Укладка ковролина",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-05-05",
+      "planEnd": "2026-05-18",
+      "actualStart": null,
+      "actualEnd": null,
+      "subtasks": [
+        {
+          "name": "Ковролин",
+          "start": "2026-03-01",
+          "finish": "2026-05-01",
+          "duration_days": 62
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "section": "plumbing",
+      "stage": "ST1",
+      "name": "Монтаж сантехнического оборудования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-06-01",
+      "planEnd": "2026-06-06",
+      "actualStart": null,
+      "actualEnd": null,
+      "subtasks": [
+        {
+          "name": "Сантехническое оборудование",
+          "start": "2026-03-05",
+          "finish": "2026-05-04",
+          "duration_days": 61
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "section": "fire_safety",
+      "stage": "ST1",
+      "name": "FAS · укладка кабелей пожарной безопасности",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-30",
+      "planEnd": "2026-03-31",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "28",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Изделия на заказ (металл, стекло, панели, зеркала)",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-15",
+      "planEnd": "2026-05-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "29",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Мебель заказная отдельностоящая",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-01",
+      "planEnd": "2026-06-13",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "30",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Мебель заказная встраиваемая",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-03-01",
+      "planEnd": "2026-06-09",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "31",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Мебель из наличия",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-05-04",
+      "planEnd": "2026-06-13",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "32",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Декор",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "planStart": "2026-05-13",
+      "planEnd": "2026-06-23",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "33",
+      "name": "Финальная чистка",
+      "section": "cleaning",
+      "planStart": "2026-05-10",
+      "planEnd": "2026-05-15",
+      "start": "2026-05-10",
+      "end": "2026-05-15",
+      "progress": 0,
+      "contractor": "CYFR",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
