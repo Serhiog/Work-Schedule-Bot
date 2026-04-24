@@ -49,6 +49,78 @@ function scheduleJsonUrl(slug) {
   return `${base}/schedules/${slug}.json?t=${Date.now()}`;
 }
 
+function renderDatelessView(s) {
+  document.title = `${s.project.name} · Новый проект · CYFR`;
+  const p = s.project;
+  const sectionById = {};
+  s.sections.forEach((se) => (sectionById[se.id] = se));
+  const stageById = {};
+  s.stages.forEach((st) => (stageById[st.id] = st));
+
+  const works = s.tasks.map((t) => {
+    const sec = sectionById[t.section] || { name: t.section, color: '#64748b' };
+    const stg = stageById[t.stage] || { name: t.stage, color: '#64748b' };
+    return `<div class="dateless-work">
+      <div class="dateless-work-head">
+        <span class="dateless-stage" style="background:${stg.color}22; color:${stg.color}; border-color:${stg.color}44">${stg.name.replace(/^Этап \d+ · /, '')}</span>
+        <span class="dateless-section" style="background:${sec.color}22; color:${sec.color}">${sec.name}</span>
+      </div>
+      <div class="dateless-work-name">${t.name}</div>
+      <div class="dateless-work-meta">
+        ${t.durationDaysPlanned ? `⏱ ~${t.durationDaysPlanned} дн.` : ''}
+        ${t.costIncVat ? `· 💰 ${new Intl.NumberFormat('ru-RU').format(t.costIncVat)} AED` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const total = s.tasks.reduce((sum, t) => sum + (Number(t.costIncVat)||0), 0);
+  const totalDur = s.tasks.reduce((sum, t) => sum + (Number(t.durationDaysPlanned)||0), 0);
+
+  document.body.innerHTML = `<div class="dateless-wrap">
+    <div class="dateless-header">
+      <div class="dateless-chip">⏳ НОВЫЙ ПРОЕКТ · ДАТЫ НЕ УСТАНОВЛЕНЫ</div>
+      <h1 class="dateless-title">${p.name}</h1>
+      <div class="dateless-stats">
+        <div class="dateless-stat"><div class="dateless-stat-v">${s.tasks.length}</div><div class="dateless-stat-l">работ</div></div>
+        <div class="dateless-stat"><div class="dateless-stat-v">${s.sections.length}</div><div class="dateless-stat-l">секций</div></div>
+        <div class="dateless-stat"><div class="dateless-stat-v">~${totalDur} дн.</div><div class="dateless-stat-l">длительность</div></div>
+        <div class="dateless-stat"><div class="dateless-stat-v">${new Intl.NumberFormat('ru-RU').format(Math.round(total))} AED</div><div class="dateless-stat-l">оценка</div></div>
+      </div>
+      <div class="dateless-hint">
+        📅 <strong>Даты пока не проставлены.</strong> Следующим шагом бот пройдёт по работам и поможет установить план — напиши в Telegram:<br>
+        <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;margin-top:8px;display:inline-block">установить даты для ${p.slug}</code>
+      </div>
+    </div>
+    <div class="dateless-works">${works}</div>
+  </div>`;
+
+  // Inject styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .dateless-wrap { max-width: 960px; margin: 0 auto; padding: 32px 24px; font-family: 'Inter', -apple-system, sans-serif; }
+    .dateless-header { margin-bottom: 32px; }
+    .dateless-chip { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 1.4px; color: #d97706; background: #fef3c7; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+    .dateless-title { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin: 0 0 20px; color: #1e3b60; line-height: 1.1; }
+    .dateless-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .dateless-stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .dateless-stat-v { font-size: 18px; font-weight: 700; color: #1e3b60; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+    .dateless-stat-l { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 2px; }
+    .dateless-hint { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #075985; line-height: 1.6; }
+    .dateless-works { display: flex; flex-direction: column; gap: 8px; }
+    .dateless-work { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 4px; }
+    .dateless-work-head { display: flex; gap: 6px; flex-wrap: wrap; }
+    .dateless-stage, .dateless-section { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
+    .dateless-work-name { font-size: 14px; font-weight: 500; color: #0b1220; }
+    .dateless-work-meta { font-size: 11px; color: #64748b; font-variant-numeric: tabular-nums; }
+    @media (max-width: 720px) {
+      .dateless-wrap { padding: 16px 12px; }
+      .dateless-title { font-size: 22px; }
+      .dateless-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function showProjectNotFound(slug) {
   const safe = String(slug).replace(/[<>&]/g, '');
   document.body.innerHTML = `<div style="padding:56px 24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto">
@@ -81,6 +153,12 @@ async function init() {
     state.filterSection = urlSection;
   }
   if (params.get('sub') === '1') state.filterSubOnly = true;
+
+  // Fresh projects (just created from estimate) don't yet have dates — show setup view
+  if (!s.project.startDate || !s.project.endDate) {
+    renderDatelessView(s);
+    return;
+  }
 
   renderHero();
   renderStagesRibbon();
@@ -1259,7 +1337,6 @@ function buildTicketCards(taskId) {
           ${statusOpts}
         </select>
         <button class="ticket-edit-btn" data-ticket-id="${escapeHtml(tk.id)}" title="Редактировать тикет">✎</button>
-        <a href="https://www.planradar.com/dr/1500855/projects/1533951/details?selected_ticket=${escapeHtml(tk.id)}" target="_blank" rel="noopener" class="ticket-open-link" title="Открыть в PlanRadar">↗</a>
       </div>
     </div>`;
   }).join('');
@@ -1498,16 +1575,13 @@ function attachTicketCardHandlers() {
   document.querySelectorAll('.ticket-photo-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); openPhotoLightbox(btn.dataset.url); });
   });
-  document.querySelectorAll('.ticket-open-link').forEach((a) => {
-    a.addEventListener('click', (e) => e.stopPropagation());
-  });
   // Edit button + whole-card click (except on actionable inner controls)
   document.querySelectorAll('.ticket-edit-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); openTicketEditModal(btn.dataset.ticketId); });
   });
   document.querySelectorAll('.ticket-card').forEach((card) => {
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.ticket-status-select, .ticket-open-link, .ticket-photo-btn, .ticket-edit-btn, select, a, button')) return;
+      if (e.target.closest('.ticket-status-select, .ticket-photo-btn, .ticket-edit-btn, select, button')) return;
       const tid = card.dataset.ticketId;
       const taskId = card.dataset.taskId;
       const vs = ticketViewState[taskId];
@@ -1635,7 +1709,7 @@ function buildTicketPageHtml(tk, task, project) {
     ${descClean ? `<div class="pdf-section-lbl">Описание</div><div class="pdf-desc">${escapeHtml(descClean)}</div>` : ''}
     ${photosHtml ? `<div class="pdf-section-lbl">Фотографии (${tk.photoDataUrls.length})</div><div class="pdf-photos">${photosHtml}</div>` : ''}
     <div class="pdf-footer">
-      <span>Источник: PlanRadar · ${escapeHtml(project?.code || '')}</span>
+      <span>${escapeHtml(project?.contractor || 'CYFR')} · ${escapeHtml(project?.code || '')}</span>
       <span>${new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
     </div>
   </div>`;
@@ -1799,7 +1873,6 @@ function openTicketEditModal(ticketId) {
       <button class="ticket-modal-close" title="Закрыть">✕</button>
       <div class="ticket-modal-head">
         <span class="ticket-modal-label">Тикет · задача №${escapeHtml(String(tk.task_id || ''))}</span>
-        <a class="ticket-modal-open-pr" href="https://www.planradar.com/dr/1500855/projects/1533951/details?selected_ticket=${escapeHtml(tk.id)}" target="_blank" rel="noopener">Открыть в PlanRadar ↗</a>
       </div>
       <div class="ticket-modal-body">
         <label class="edit-label">Название
