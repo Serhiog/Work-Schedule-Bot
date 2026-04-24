@@ -325,6 +325,20 @@ function fmtRelative(date) {
 function renderHero() {
   const p = state.schedule.project;
   document.title = `${p.name} · График работ · CYFR`;
+
+  // Populate header meta dynamically (was hardcoded to Orange in index.html)
+  const titleEl = $('#hero-title');
+  if (titleEl) titleEl.textContent = p.name || 'Проект';
+  const chipEl = $('#hero-chip');
+  if (chipEl) chipEl.textContent = p.code ? `Контракт № ${p.code}` : 'Проект';
+  const subEl = $('#hero-sub');
+  if (subEl) {
+    const customer = (p.customer || '').trim();
+    subEl.innerHTML = customer
+      ? `Отделочные работы · <strong>${escapeHtml(customer)}</strong>`
+      : `Отделочные работы · <span style="color:var(--muted);font-style:italic">клиент не указан</span>`;
+  }
+
   const start = parseISO(p.startDate),
     end = parseISO(p.endDate);
   const durDays = dayDiff(start, end) + 1;
