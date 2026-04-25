@@ -10,6 +10,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
+  <script>
+    // Применить тему до рендера (избежать FOUC)
+    try {
+      var saved = localStorage.getItem('theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (prefersDark ? 'dark' : 'light');
+      if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    } catch (_) {}
+  </script>
 </head>
 <body>
   <div class="page">
@@ -25,6 +34,24 @@
       <nav class="top-nav">
         <a class="top-nav-link active" href="#">График</a>
         <a class="top-nav-link" href="https://cyfr.ae" target="_blank" rel="noopener">cyfr.ae →</a>
+        <button type="button" class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+          <span class="theme-toggle-icon" id="theme-toggle-icon">🌙</span>
+        </button>
+        <div class="admin-menu" id="admin-menu">
+          <button type="button" class="theme-toggle admin-toggle" id="admin-toggle" title="Сервисные функции" aria-label="Сервисные функции" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⚙️</span>
+          </button>
+          <div class="admin-dropdown" id="admin-dropdown" hidden>
+            <div class="admin-dropdown-title">Сервисные функции</div>
+            <button type="button" class="admin-dropdown-item" data-admin-action="meeting">
+              <span class="admin-dropdown-ico" aria-hidden="true">📋</span>
+              <div class="admin-dropdown-text">
+                <div class="admin-dropdown-name">Применить конспект встречи</div>
+                <div class="admin-dropdown-desc">Read.ai → анализ → дополнение тикетов</div>
+              </div>
+            </button>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -60,6 +87,9 @@
       </div>
     </section>
 
+    <!-- Project analytics: SPI + EAC + Critical Path summary -->
+    <section class="project-analytics" id="project-analytics" aria-label="Аналитика проекта"></section>
+
     <!-- Stages ribbon -->
     <section class="stages-ribbon" id="stages-ribbon"></section>
 
@@ -87,11 +117,52 @@
         <button type="button" class="toolbar-btn" id="btn-tickets" data-active="false" title="Показать полевые тикеты на графике">
           <span aria-hidden="true">⚑</span> Тикеты
         </button>
+        <button type="button" class="toolbar-btn" id="btn-heatmap" data-active="false" title="Тепловая карта загрузки людей по дням">
+          <span aria-hidden="true">👥</span> Загрузка
+        </button>
+        <button type="button" class="toolbar-btn" id="btn-report" title="Сформировать отчёт клиенту с фото из тикетов и AI-расширением тезисов">
+          <span aria-hidden="true">📄</span> Отчёт клиенту
+        </button>
         <button type="button" class="toolbar-btn" id="btn-print" title="Сохранить как PDF или распечатать">
           <span aria-hidden="true">⎙</span> PDF / Печать
         </button>
       </div>
     </section>
+
+    <!-- Report wizard modal -->
+    <div class="report-modal" id="report-modal" aria-hidden="true">
+      <div class="report-backdrop" data-report-close></div>
+      <aside class="report-panel" role="dialog" aria-modal="true" aria-label="Отчёт клиенту">
+        <header class="report-head">
+          <div class="report-head-title">
+            <span class="report-head-ico" aria-hidden="true">📄</span>
+            <div>
+              <div class="report-head-name">Отчёт клиенту</div>
+              <div class="report-head-step" id="report-step-label">Шаг 1 из 4 · Период</div>
+            </div>
+          </div>
+          <button class="report-close" data-report-close aria-label="Закрыть">×</button>
+        </header>
+        <div class="report-stepper" id="report-stepper">
+          <div class="report-stepper-dot report-stepper-dot--active" data-step="1"><span>1</span><em>Период</em></div>
+          <div class="report-stepper-line"></div>
+          <div class="report-stepper-dot" data-step="2"><span>2</span><em>Тезисы</em></div>
+          <div class="report-stepper-line"></div>
+          <div class="report-stepper-dot" data-step="3"><span>3</span><em>Фото</em></div>
+          <div class="report-stepper-line"></div>
+          <div class="report-stepper-dot" data-step="4"><span>4</span><em>Готово</em></div>
+        </div>
+        <div class="report-body" id="report-body"></div>
+        <footer class="report-foot">
+          <button type="button" class="report-btn-back" id="report-back" disabled>← Назад</button>
+          <div class="report-foot-spacer"></div>
+          <button type="button" class="report-btn-next" id="report-next">Далее →</button>
+        </footer>
+      </aside>
+    </div>
+
+    <!-- Resource heatmap (toggle) -->
+    <section class="resource-heatmap" id="resource-heatmap" hidden></section>
 
     <!-- Gantt -->
     <section class="gantt-wrap">

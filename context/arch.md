@@ -1,5 +1,58 @@
 # Архитектура — Work Schedule Bot
 
+## Текущий production-стек (актуально на 2026-04-23)
+
+```
+[Telegram Voice/Text]
+       ↓
+  n8n Cloud Webhook (main-telegram-bot)
+       ↓
+  ParseMessage → Auth (Airtable Users) → VoiceToText? (Whisper)
+       ↓
+  FetchSchedule (GitHub raw schedule.json) + FetchConversation (AuditLog last 5)
+       ↓
+  PreClassify → BuildGPTRequest → HTTP POST api.openai.com gpt-5 (JSON Schema strict)
+       ↓
+  ParseGPT → BuildResponse (Code node — вся бизнес-логика)
+       ↓
+  IF pendingAction? → SavePending (Airtable PendingConfirmations) → SendTelegram
+  или callback → LookupPending → ExecuteSchedulePatch (sub-workflow)
+       ↓
+  AuditLog write (Airtable)
+```
+
+### n8n Cloud Workflows
+| Workflow | ID | Статус |
+|---|---|---|
+| WSB · Main Telegram Bot | `MRkjwQ6fsBJ8CULk` | ✅ активен |
+| WSB · Sub · SchedulePatch | `RYfACqNNTFnaqNZC` | ✅ активен |
+| WSB · Cron · Daily Digest | `Wvffv5zw7256es5x` | ✅ активен |
+
+### Как обновляется schedule.json
+1. Пользователь голосом → бот → GPT распознаёт `mark_complete` / `set_progress` / `shift_dates` / etc.
+2. Бот спрашивает подтверждение (inline keyboard Да/Нет)
+3. При нажатии Да → executeWorkflow → SchedulePatch sub-workflow
+4. SchedulePatch: GET raw schedule.json из GitHub → мутация в Code → PUT contents обратно в GitHub (base64)
+5. Vercel auto-deploy: любой push в main ветку → Vercel пересобирает страницу (web/)
+
+### Модели OpenAI
+- `whisper-1` — транскрипция голоса
+- `gpt-5` — классификация интентов (JSON Schema strict, structured output), Daily Digest
+
+### Airtable (apph1Z1U3OU2gBvnL)
+| Таблица | ID | Назначение |
+|---|---|---|
+| Tasks | `tblvLBhmfevWkywus` | График работ 47 задач |
+| Holidays | `tblOBZOihkYm89yJn` | Праздничные периоды |
+| Projects | `tblJCAgd956UPBRCn` | Проекты (сейчас: orange) |
+| Users | `tblDxfO0Fue11EQmp` | Telegram-пользователи + роли |
+| AuditLog | `tblWkS72GumLM0Npm` | Лог всех сообщений + GPT метрики |
+| PendingConfirmations | `tblugbp0O3x6qlxL6` | Ожидают inline confirm |
+| SectionOwners | `tblXZULUmovkpopnt` | Ответственные по секциям |
+
+---
+
+
 ## Airtable — схема данных
 
 ### База: `Work Schedule — Orange Group Office 3.0`

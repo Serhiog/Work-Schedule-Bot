@@ -116,3 +116,76 @@
 ### Визуал «день = клетка»
 - В Airtable Timeline zoom-контрол справа сверху: выбрать **Day** или **Week**
 - В этом режиме разметка колонок по дням, пустые промежутки читаются как N дней
+
+---
+
+## 2026-04-23 — Phase 2: Telegram-бот задеплоен в n8n Cloud
+
+### Архитектура
+- n8n Cloud `grishenkov.app.n8n.cloud` — бот работает здесь (не localhost)
+- 3 активных workflow: Main Bot, SchedulePatch (sub), Daily Digest (cron 09:00 UTC)
+- Deploy-скрипт: `n8n/scripts/migrate-to-cloud.js` (idempotent, match by name)
+
+### Telegram бот
+- `@Cyfr_work_bot` (токен `8770380445:...`)
+- Голос → Whisper (`whisper-1`) → текст
+- GPT-5 с JSON Schema strict output → 15 интентов:
+  mark_complete, mark_started, set_progress, shift_dates, add_delay, add_note, add_task,
+  query_status, query_today, query_overdue, query_period, query_section,
+  greeting, smalltalk, unknown
+- Дополнительно: `suggested_intents` (2–4 fallback) + `clarify_question`
+- Диалоговый контекст: последние 5 сообщений из AuditLog (15 мин)
+
+### schedule.json → GitHub → Vercel
+- Данные хранятся в `Serhiog/Work-Schedule-Bot/web/schedule.json`
+- Мутации через GitHub Contents API (GET→модификация→PUT base64)
+- Vercel auto-deploy при каждом push в main
+
+### Реализованные интенты (с подтверждением inline keyboard)
+- `mark_complete`, `mark_started` — дата (default: today)
+- `set_progress` — 0–100%
+- `shift_dates` — ±N дней
+- `add_delay` — причина + опционально N дней
+
+### Аналитика (AuditLog + Daily Digest)
+- Каждое сообщение → AuditLog: Transcript, Intent, Confidence, LatencyMs, ResultMessage
+- Cron 09:00 UTC → GPT-5 анализирует 24ч логов → сводка + рекомендации → Telegram owner
+
+### Airtable bot tables (created 2026-04-23)
+- Projects `tblJCAgd956UPBRCn`
+- Users `tblDxfO0Fue11EQmp`
+- AuditLog `tblWkS72GumLM0Npm`
+- PendingConfirmations `tblugbp0O3x6qlxL6`
+- SectionOwners `tblXZULUmovkpopnt`
+
+### Скрипты
+- `n8n/scripts/create-bot-tables.js` — создал bot tables в Airtable
+- `n8n/scripts/extend-auditlog.js` — добавил analysis-поля
+- `n8n/scripts/migrate-to-cloud.js` — deploy + credential setup
+- `n8n/scripts/create-credentials.js` — утилита создания credentials
+
+---
+
+## 2026-04-23 — create_ticket intent + PlanRadar drawer
+
+### Что сделано
+
+**Web (cyfr-schedule-app.vercel.app):**
+- PlanRadar API работает на реальных данных (mock:false)
+- Исправлен base URL: `/api/v1/{customer_id}/...` (не `/api/v2/`)
+- Drawer: кнопка "➕" → форма создания тикета (title + description)
+- Каждая карточка тикета: dropdown смены статуса → PUT в PlanRadar
+- Кнопка "↗" открывает тикет в PlanRadar напрямую
+- PAT claude-code-2 активен в Vercel env
+
+**n8n Cloud (патч create_ticket):**
+- Добавлен intent `create_ticket` в BuildGPTBody (INTENTS + schema: subject, description)
+- BuildResponse: обработка create_ticket — fuzzy match → confirm
+- SchedulePatch sub-workflow: IF isTicketAction → CreateTicketHTTP → TicketResult
+  - Если type=create_ticket: POST https://cyfr-schedule-app.vercel.app/api/planradar
+  - Иначе: обычный GitHub mutation
+
+### Ограничение
+- Создание тикетов через API требует `PLANRADAR_COMPONENT_ID` (floor plan в проекте)
+- Пока компонент не загружен — бот вернёт "Создайте вручную" с ссылкой
+- После загрузки плана в PlanRadar и установки PLANRADAR_COMPONENT_ID в Vercel — всё заработает

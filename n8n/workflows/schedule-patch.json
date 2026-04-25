@@ -7,7 +7,10 @@
       "name": "When Executed By Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -18,7 +21,10 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" }
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
           ]
         },
         "options": {}
@@ -27,20 +33,29 @@
       "name": "GitHub GET",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [420, 300],
+      "position": [
+        420,
+        300
+      ],
       "credentials": {
-        "githubApi": { "id": "5f692631-413a-40", "name": "WSB · GitHub PAT" }
+        "githubApi": {
+          "id": "5f692631-413a-40",
+          "name": "WSB · GitHub PAT"
+        }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Apply mutation to schedule.json.\n// Input: action = { type, taskId, field?, value?, date?, days?, reason?, name? }\n// author = string\n\nconst raw = $input.first().json;\nconst contentB64 = raw.content;\nconst sha = raw.sha;\nconst schedule = JSON.parse(Buffer.from(contentB64, 'base64').toString('utf8'));\n\nconst action = $('When Executed By Another Workflow').first().json.action || {};\nconst author = $('When Executed By Another Workflow').first().json.author || 'Bot';\n\nlet summary = '';\n\nif (action.type === 'mark_complete') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const date = action.date || new Date().toISOString().slice(0, 10);\n  t.actualEnd = date;\n  if (!t.actualStart) t.actualStart = t.planStart || date;\n  t.progress = 1;\n  summary = `mark_complete: «${t.name}» actualEnd=${date}`;\n} else if (action.type === 'mark_started') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const date = action.date || new Date().toISOString().slice(0, 10);\n  t.actualStart = date;\n  if (typeof t.progress !== 'number' || t.progress === 0) t.progress = 0.01;\n  summary = `mark_started: «${t.name}» actualStart=${date}`;\n} else if (action.type === 'set_progress') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  t.progress = Math.max(0, Math.min(1, Number(action.value)));\n  summary = `set_progress: «${t.name}» progress=${Math.round(t.progress*100)}%`;\n} else if (action.type === 'shift_dates') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const days = Number(action.days);\n  const shift = (iso) => {\n    const d = new Date(iso);\n    d.setUTCDate(d.getUTCDate() + days);\n    return d.toISOString().slice(0, 10);\n  };\n  t.planStart = shift(t.planStart || t.start);\n  t.planEnd = shift(t.planEnd || t.end);\n  summary = `shift_dates: «${t.name}» ±${days}d → ${t.planStart}..${t.planEnd}`;\n} else if (action.type === 'add_delay') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error(`Task ${action.taskId} not found`);\n  const delays = t.delays || [];\n  delays.push({\n    date: new Date().toISOString().slice(0,10),\n    days: Number(action.days) || 0,\n    reason: String(action.reason || '')\n  });\n  t.delays = delays;\n  summary = `add_delay: «${t.name}» +${action.days || 0}d ${action.reason || ''}`;\n} else if (action.type === 'add_milestone') {\n  const ms = schedule.milestones || [];\n  const id = 'M' + (ms.length + 1);\n  ms.push({\n    id, date: action.date, name: action.name, stage: action.stage || 'ST4'\n  });\n  schedule.milestones = ms;\n  summary = `add_milestone: ${action.name} on ${action.date}`;\n} else {\n  throw new Error(`Unknown action type: ${action.type}`);\n}\n\n// Update lastUpdated\nschedule.project.lastUpdated = new Date().toISOString();\nschedule.project.lastUpdatedBy = author;\n\nconst newContent = Buffer.from(JSON.stringify(schedule, null, 2), 'utf8').toString('base64');\n\nreturn [{ json: {\n  sha,\n  content: newContent,\n  message: `bot: ${summary}`,\n  committerName: author,\n  committerEmail: 'bot@cyfr.ae',\n  summary\n} }];"
+        "jsCode": "// Apply mutation to schedule.json.\nconst raw = $input.first().json;\nconst contentB64 = raw.content;\nconst sha = raw.sha;\nconst schedule = JSON.parse(Buffer.from(contentB64, 'base64').toString('utf8'));\n\nconst action = $('When Executed By Another Workflow').first().json.action || {};\nconst author  = $('When Executed By Another Workflow').first().json.author  || 'Bot';\n\nlet summary = '';\n\nconst shiftDate = (iso, days) => {\n  if (!iso) return iso;\n  const d = new Date(iso);\n  d.setUTCDate(d.getUTCDate() + days);\n  return d.toISOString().slice(0, 10);\n};\nconst MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];\nconst fmtD = iso => { if (!iso) return '—'; const d = new Date(iso); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; };\n\nif (action.type === 'mark_complete') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const date = action.date || new Date().toISOString().slice(0,10);\n  t.actualEnd = date;\n  if (!t.actualStart) t.actualStart = t.planStart || date;\n  t.progress = 1;\n  summary = `«${t.name}» — выполнена ${fmtD(date)}`;\n\n} else if (action.type === 'mark_started') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const date = action.date || new Date().toISOString().slice(0,10);\n  t.actualStart = date;\n  if (typeof t.progress !== 'number' || t.progress === 0) t.progress = 0.01;\n  summary = `«${t.name}» — начата ${fmtD(date)}`;\n\n} else if (action.type === 'mark_cancelled') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  t.cancelled = true;\n  summary = `«${t.name}» — отменена`;\n\n} else if (action.type === 'set_progress') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  t.progress = Math.max(0, Math.min(1, Number(action.value)));\n  summary = `«${t.name}» — прогресс ${Math.round(t.progress*100)}%`;\n\n} else if (action.type === 'shift_dates') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const days = Number(action.days);\n  const dt3 = action.dateType || 'plan';\n  const shiftBothEnds = action.shiftStart !== false;\n  if (dt3 === 'plan' || dt3 === 'both') {\n    if (shiftBothEnds) t.planStart = shiftDate(t.planStart || t.start, days);\n    t.planEnd = shiftDate(t.planEnd || t.end, days);\n  }\n  if (dt3 === 'actual' || dt3 === 'both') {\n    if (shiftBothEnds) t.actualStart = shiftDate(t.actualStart || t.planStart || t.start, days);\n    t.actualEnd = shiftDate(t.actualEnd || t.planEnd || t.end, days);\n  }\n  const dtLbl3 = dt3 === 'actual' ? 'факт' : dt3 === 'both' ? 'план и факт' : 'план';\n  const _newEnd3 = (dt3==='actual'||dt3==='both') ? (t.actualEnd||t.planEnd) : t.planEnd;\n  const _newSt3  = shiftBothEnds ? ((dt3==='actual'||dt3==='both') ? (t.actualStart||t.planStart) : t.planStart) : null;\n  const _range3  = _newSt3 ? `${fmtD(_newSt3)} — ${fmtD(_newEnd3)}` : `→ ${fmtD(_newEnd3)}`;\n  if (action.reason) {\n    const delays = t.delays || [];\n    delays.push({ date: new Date().toISOString().slice(0,10), days, reason: String(action.reason), dateType: dt3, shiftStart: shiftBothEnds });\n    t.delays = delays;\n  }\n  summary = `«${t.name}» [${dtLbl3}]: ${days>0?'+':''}${days} дн. ${_range3}${action.reason ? ' · ' + action.reason : ''}`;\n\n} else if (action.type === 'set_dates') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const dtS = action.dateType || 'plan';\n  if (dtS === 'plan' || dtS === 'both') {\n    if (action.planStart) t.planStart = action.planStart;\n    if (action.planEnd)   t.planEnd   = action.planEnd;\n  }\n  if (dtS === 'actual' || dtS === 'both') {\n    if (action.planStart) t.actualStart = action.planStart;\n    if (action.planEnd)   t.actualEnd   = action.planEnd;\n  }\n  const dtLblS = dtS === 'actual' ? 'факт' : dtS === 'both' ? 'план и факт' : 'план';\n  const _what = action.planStart && action.planEnd ? `${fmtD(action.planStart)} — ${fmtD(action.planEnd)}` : action.planEnd ? `конец → ${fmtD(action.planEnd)}` : `начало → ${fmtD(action.planStart)}`;\n  summary = `«${t.name}» [${dtLblS}]: ${_what}`;\n\n} else if (action.type === 'set_duration') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const dur = Number(action.duration);\n  const newEnd = new Date(t.planStart || t.start);\n  newEnd.setUTCDate(newEnd.getUTCDate() + dur);\n  t.planEnd = newEnd.toISOString().slice(0, 10);\n  summary = `«${t.name}» — длительность ${dur} дн., конец → ${fmtD(t.planEnd)}`;\n\n} else if (action.type === 'bulk_shift_section') {\n  const tasks = schedule.tasks.filter(t => t.section === action.section);\n  const days = Number(action.days);\n  const dtB = action.dateType || 'plan';\n  const shiftBothB = action.shiftStart !== false;\n  for (const t of tasks) {\n    if (dtB === 'plan' || dtB === 'both') {\n      if (shiftBothB) t.planStart = shiftDate(t.planStart || t.start, days);\n      t.planEnd = shiftDate(t.planEnd || t.end, days);\n    }\n    if (dtB === 'actual' || dtB === 'both') {\n      if (shiftBothB) t.actualStart = shiftDate(t.actualStart || t.planStart || t.start, days);\n      t.actualEnd = shiftDate(t.actualEnd || t.planEnd || t.end, days);\n    }\n  }\n  const dtLblB = dtB === 'actual' ? 'факт' : dtB === 'both' ? 'план и факт' : 'план';\n  summary = `Раздел «${action.sectionName || action.section}» [${dtLblB}]: ${days>0?'+':''}${days} дн. — ${tasks.length} задач`;\n\n} else if (action.type === 'add_delay') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const delays = t.delays || [];\n  delays.push({ date: new Date().toISOString().slice(0,10), days: Number(action.days)||0, reason: String(action.reason||'') });\n  t.delays = delays;\n  summary = `«${t.name}» — задержка +${action.days||0} дн.${action.reason ? ': '+action.reason : ''}`;\n\n} else if (action.type === 'add_note') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const notes = t.notes || [];\n  notes.push({ date: new Date().toISOString().slice(0,10), text: String(action.note||'') });\n  t.notes = notes;\n  summary = `«${t.name}» — заметка добавлена`;\n\n} else if (action.type === 'add_task') {\n  const maxId = schedule.tasks.reduce((mx, t) => {\n    const n = parseInt(t.id, 10);\n    return isNaN(n) ? mx : Math.max(mx, n);\n  }, 0);\n  const newId = String(maxId + 1);\n  schedule.tasks.push({\n    id: newId,\n    name: action.taskName,\n    section: action.section,\n    planStart: action.planStart,\n    planEnd: action.planEnd,\n    start: action.planStart,\n    end: action.planEnd,\n    progress: 0,\n    contractor: action.contractorName || null,\n    actualStart: null,\n    actualEnd: null\n  });\n  summary = `Добавлена задача «${action.taskName}»`;\n\n} else if (action.type === 'remove_task') {\n  const idx = schedule.tasks.findIndex(t => t.id === String(action.taskId));\n  if (idx === -1) throw new Error('Task not found: ' + action.taskId);\n  const removed = schedule.tasks.splice(idx, 1)[0];\n  summary = `Задача «${removed.name}» удалена`;\n\n} else if (action.type === 'rename_task') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  const oldName = t.name;\n  t.name = action.newName;\n  summary = `Переименовано: «${oldName}» → «${action.newName}»`;\n\n} else if (action.type === 'move_task_section') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  t.section = action.section;\n  summary = `«${t.name}» перемещена в раздел ${action.section}`;\n\n} else if (action.type === 'set_contractor') {\n  const t = schedule.tasks.find(x => x.id === String(action.taskId));\n  if (!t) throw new Error('Task not found: ' + action.taskId);\n  t.contractor = action.contractorName;\n  if (action.contractorPhone) t.contractorPhone = action.contractorPhone;\n  summary = `«${t.name}» — подрядчик: ${action.contractorName}`;\n\n} else if (action.type === 'set_section_contractor') {\n  const tasks = schedule.tasks.filter(t => t.section === action.section);\n  for (const t of tasks) { t.contractor = action.contractorName; }\n  summary = `Раздел ${action.section}: подрядчик ${action.contractorName} (${tasks.length} задач)`;\n\n} else if (action.type === 'add_section') {\n  if (!schedule.sections) schedule.sections = [];\n  if (schedule.sections.find(s => s.id === action.sectionId)) throw new Error('Section already exists: ' + action.sectionId);\n  schedule.sections.push({ id: action.sectionId, name: action.sectionName, color: '#94a3b8' });\n  summary = `Добавлен раздел «${action.sectionName}»`;\n\n} else if (action.type === 'rename_section') {\n  const sec = schedule.sections.find(s => s.id === action.sectionId);\n  if (!sec) throw new Error('Section not found: ' + action.sectionId);\n  sec.name = action.newName;\n  summary = `Раздел переименован: «${action.oldName}» → «${action.newName}»`;\n\n} else if (action.type === 'remove_section') {\n  const idx = schedule.sections.findIndex(s => s.id === action.sectionId);\n  if (idx === -1) throw new Error('Section not found: ' + action.sectionId);\n  schedule.sections.splice(idx, 1);\n  schedule.tasks = schedule.tasks.filter(t => t.section !== action.sectionId);\n  summary = `Раздел «${action.sectionName}» удалён`;\n\n} else if (action.type === 'add_milestone') {\n  const ms = schedule.milestones || [];\n  const id = 'M' + (ms.length + 1);\n  ms.push({ id, date: action.date, name: action.name, stage: action.stage || 'ST4' });\n  schedule.milestones = ms;\n  summary = `add_milestone: ${action.name} on ${action.date}`;\n\n} else {\n  throw new Error('Unknown action type: ' + action.type);\n}\n\n// ─── История изменений (audit log): task.history[] + schedule.history[] ───\nconst histEntry = {\n  at: new Date().toISOString(),\n  by: author,\n  type: action.type,\n  summary\n};\nconst pushToTask = (t) => {\n  if (!t) return;\n  t.history = t.history || [];\n  t.history.push(histEntry);\n};\nconst TASK_ACTIONS = new Set([\n  'mark_complete','mark_started','mark_cancelled','set_progress',\n  'shift_dates','set_dates','set_duration','add_delay','add_note',\n  'rename_task','move_task_section','set_contractor'\n]);\nconst SECTION_BULK = new Set(['bulk_shift_section','set_section_contractor']);\nconst PROJECT_ACTIONS = new Set([\n  'add_task','remove_task','add_section','rename_section','remove_section','add_milestone'\n]);\n\nif (TASK_ACTIONS.has(action.type)) {\n  pushToTask(schedule.tasks.find(x => x.id === String(action.taskId)));\n} else if (SECTION_BULK.has(action.type)) {\n  schedule.tasks.filter(x => x.section === action.section).forEach(pushToTask);\n} else if (action.type === 'add_task') {\n  pushToTask(schedule.tasks[schedule.tasks.length - 1]);\n}\n// Always mirror to project-level history (for remove_task + section/milestone + crash-proof audit)\nif (PROJECT_ACTIONS.has(action.type) || TASK_ACTIONS.has(action.type) || SECTION_BULK.has(action.type)) {\n  schedule.history = schedule.history || [];\n  schedule.history.push(histEntry);\n  // Cap to last 500 project-level entries to keep JSON reasonable\n  if (schedule.history.length > 500) schedule.history = schedule.history.slice(-500);\n}\n\nschedule.project.lastUpdated   = new Date().toISOString();\nschedule.project.lastUpdatedBy = author;\n\nconst newContent = Buffer.from(JSON.stringify(schedule, null, 2), 'utf8').toString('base64');\n\nreturn [{ json: { sha, content: newContent, message: `bot: ${summary}`, committerName: author, committerEmail: 'bot@cyfr.ae', summary } }];"
       },
       "id": "a2000000-0001-4000-8000-000000000003",
       "name": "Apply Mutation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [640, 300]
+      "position": [
+        640,
+        300
+      ]
     },
     {
       "parameters": {
@@ -51,7 +66,10 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" }
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
           ]
         },
         "sendBody": true,
@@ -63,9 +81,15 @@
       "name": "GitHub PUT",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 300],
+      "position": [
+        860,
+        300
+      ],
       "credentials": {
-        "githubApi": { "id": "5f692631-413a-40", "name": "WSB · GitHub PAT" }
+        "githubApi": {
+          "id": "5f692631-413a-40",
+          "name": "WSB · GitHub PAT"
+        }
       }
     },
     {
@@ -76,16 +100,61 @@
       "name": "Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1080, 300]
+      "position": [
+        1080,
+        300
+      ]
     }
   ],
   "connections": {
-    "When Executed By Another Workflow": { "main": [[{ "node": "GitHub GET", "type": "main", "index": 0 }]] },
-    "GitHub GET": { "main": [[{ "node": "Apply Mutation", "type": "main", "index": 0 }]] },
-    "Apply Mutation": { "main": [[{ "node": "GitHub PUT", "type": "main", "index": 0 }]] },
-    "GitHub PUT": { "main": [[{ "node": "Result", "type": "main", "index": 0 }]] }
+    "When Executed By Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "GitHub GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub GET": {
+      "main": [
+        [
+          {
+            "node": "Apply Mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Mutation": {
+      "main": [
+        [
+          {
+            "node": "GitHub PUT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub PUT": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "meta": {},
   "pinData": {},

@@ -132,11 +132,42 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.PLANRADAR_API_KEY;
 
+  // Helper: resolve ticketQuery → ticketId by fuzzy match (used by bot voice flow)
+  async function resolveTicketIdFromQuery(query) {
+    if (!apiKey || !query) return null;
+    try {
+      const r = await fetch(`${PLANRADAR_BASE}/projects/${PROJECT_ID}/tickets/?per_page=200`,
+        { headers: { 'X-PlanRadar-API-Key': apiKey, 'Accept': 'application/json' } });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const arr = Array.isArray(d) ? d : (d.data || d.tickets || []);
+      const needle = String(query).toLowerCase().trim();
+      // Exact subject match first
+      const exact = arr.find((t) => String((t.attributes||t).subject || '').toLowerCase() === needle);
+      if (exact) return (exact.attributes||exact).uuid || exact.id;
+      // Partial subject match
+      const partial = arr.find((t) => String((t.attributes||t).subject || '').toLowerCase().includes(needle));
+      if (partial) return (partial.attributes||partial).uuid || partial.id;
+      // Description match
+      const desc = arr.find((t) => {
+        const tv = (t.attributes||t)['typed-values'] || {};
+        return Object.values(tv).some((v) => String(v||'').toLowerCase().includes(needle));
+      });
+      if (desc) return (desc.attributes||desc).uuid || desc.id;
+      return null;
+    } catch { return null; }
+  }
+
   // PUT /api/planradar — update ticket (status / subject / description / dueDate)
   if (req.method === 'PUT') {
     if (!apiKey) return res.status(503).json({ error: 'API key not configured' });
-    const { ticketId, status, subject, description, dueDate, taskId } = req.body || {};
-    if (!ticketId) return res.status(400).json({ error: 'ticketId required' });
+    let { ticketId, ticketQuery, status, subject, description, dueDate, taskId } = req.body || {};
+    // Voice flow: bot sends ticketQuery (fragment of subject) — resolve to ticketId
+    if (!ticketId && ticketQuery) {
+      ticketId = await resolveTicketIdFromQuery(ticketQuery);
+      if (!ticketId) return res.status(404).json({ error: `Тикет не найден по запросу: «${ticketQuery}»` });
+    }
+    if (!ticketId) return res.status(400).json({ error: 'ticketId or ticketQuery required' });
     const attrs = {};
     if (status) {
       const statusId = STATUS_TO_ID[status];
@@ -168,7 +199,11 @@ export default async function handler(req, res) {
   // DELETE /api/planradar — delete photo attachment or whole ticket
   if (req.method === 'DELETE') {
     if (!apiKey) return res.status(503).json({ error: 'API key not configured' });
-    const { ticketId, photoId } = req.body || {};
+    let { ticketId, ticketQuery, photoId } = req.body || {};
+    if (!ticketId && !photoId && ticketQuery) {
+      ticketId = await resolveTicketIdFromQuery(ticketQuery);
+      if (!ticketId) return res.status(404).json({ error: `Тикет не найден по запросу: «${ticketQuery}»` });
+    }
     if (photoId) {
       // Delete single DMS attachment by its resource id
       try {

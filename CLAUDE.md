@@ -5,34 +5,34 @@ Telegram-бот с голосовым управлением графиком р
 
 ---
 
-## Цели
+## Статус фаз
 
-1. **Фаза 1 (текущая):** перенести существующий Excel-график в Airtable. Красивый Gantt/Timeline view.
-2. **Фаза 2:** Telegram-бот
-   - Voice (Whisper) → интент
-   - Сдвиг задач + каскад по зависимостям
-   - Запросы: «что на сегодня / эту неделю / месяц?»
-   - Отчёты
-3. **Фаза 3:** доступ для нескольких пользователей, роли.
+- ✅ **Фаза 1:** Excel → Airtable (47 задач, Gantt views, Sort_Order, baseline plan/fact)
+- ✅ **Фаза 2:** Telegram-бот живёт на n8n Cloud. 15 интентов, GPT-5, Whisper, Daily Digest
+- 🔄 **Фаза 3:** PlanRadar integration, HTML Gantt renderer, smeta parser, multi-project
 
 ---
 
 ## Стек
 
-- **n8n** (cloud, НЕ localhost) — бэкенд и оркестратор
-- **Airtable** (отдельная база, не CYFR SLC-SEDA) — хранение и UI графика
-- **OpenAI** — Whisper + GPT (tool use для разбора интентов)
-- **Telegram Bot API**
+- **n8n Cloud** (`grishenkov.app.n8n.cloud`) — бэкенд, 3 активных workflow
+- **OpenAI** — `whisper-1` (голос → текст), `gpt-5` (классификация интентов, daily digest)
+- **Telegram Bot API** — `@Cyfr_work_bot` (токен в ids.md)
+- **GitHub** (`Serhiog/Work-Schedule-Bot`) — хранит `web/schedule.json`
+- **Vercel** (`cyfr-schedule-app.vercel.app`) — публичный Gantt, auto-deploy из GitHub
+- **Airtable** (`apph1Z1U3OU2gBvnL`) — Tasks, Holidays, AuditLog, PendingConfirmations, Users, Projects
 - **Claude Code + VS Code** — разработка
 
 ---
 
 ## Контекст-файлы (читать перед работой)
 
-- `context/arch.md` — схема данных Airtable, зависимости, алгоритм сдвига
-- `context/ids.md` — IDs баз/таблиц, токены (не коммитить секреты!)
-- `context/todo.md` — pending задачи с приоритетами
+- `context/arch.md` — схема данных Airtable + архитектура бота
+- `context/bot_tasks.md` — каталог интентов бота
+- `context/ids.md` — все IDs, токены, workflow IDs (не коммитить!)
+- `context/todo.md` — pending задачи
 - `context/done.md` — выполненные задачи
+- `context/vision.md` — целевая архитектура
 - `source/schedule_original.xlsx` — исходный Excel
 - `data/tasks.json` — распарсенные задачи
 
@@ -72,21 +72,22 @@ Telegram-бот с голосовым управлением графиком р
 
 ---
 
-## Phase 1 — план
+## Workflows в n8n Cloud
 
-1. [x] Распарсить Excel → JSON (`scripts/extract_tasks.py`)
-2. [ ] Получить Airtable PAT с правами `data.records:write`, `schema.bases:write`
-3. [ ] Создать базу «Work Schedule» в workspace пользователя
-4. [ ] Создать таблицы: Tasks, Holidays, (опц.) Contractors
-5. [ ] Залить данные через API
-6. [ ] Настроить views: Timeline, Grid, «Сегодня», «Эта неделя», «Просрочено»
-7. [ ] Зафиксировать зависимости (Depends On) на основе фактических дат Excel
-8. [ ] Исправить ошибку: «установка чистовых электроприборов» → после штукатурно-малярных
+| Workflow | ID | Описание |
+|---|---|---|
+| WSB · Main Telegram Bot | `MRkjwQ6fsBJ8CULk` | Главный бот |
+| WSB · Sub · SchedulePatch | `RYfACqNNTFnaqNZC` | Git commit schedule.json |
+| WSB · Cron · Daily Digest | `Wvffv5zw7256es5x` | Ежедн. 09:00 UTC аналитика |
+
+Deploy: `node n8n/scripts/migrate-to-cloud.js` с env: N8N_CLOUD_API_KEY, TELEGRAM_BOT_TOKEN, OPENAI_KEY, AIRTABLE_PAT, GITHUB_PAT
 
 ---
 
-## Phase 2 — набросок
+## Phase 3 — следующие задачи
 
-- n8n workflow: Telegram Trigger (voice) → Whisper → LLM (tool use) → Airtable (GET/PATCH) → Telegram reply
-- Tools: `shift_task`, `query_tasks_by_period`, `get_overdue`, `report_week`
-- Сдвиг: пересчитать Finish учитывая Holidays + каскад на Depends On
+1. PlanRadar probe: `scripts/planradar_probe.py` — проверить API (фазы, тикеты, зависимости, каскад) ← **ждём PAT от пользователя**
+2. HTML Gantt renderer — кастомный клетчатый Gantt на Vercel (правило: каждый день = ячейка)
+3. Smeta parser — Telegram doc → GPT-4 → JSON → schedule.json
+4. Интенты: `add_task`, `add_note`, `query_period` (скелет есть, не имплементированы)
+5. Multi-project routing (сейчас хардкод `orange`)

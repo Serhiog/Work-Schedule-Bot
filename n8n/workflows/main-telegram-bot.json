@@ -305,7 +305,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build OpenAI chat completion request body with structured output.\n// msg is from PreClassify (through $('PreClassify'))\nconst msg = $('PreClassify').first().json;\nconst schedule = msg.schedule;\n\n// Conversation context from FetchConversation node (last 5 AuditLog entries for this user)\nconst history = $input.all().map(i => i.json).filter(r => r && r.fields).map(r => r.fields);\nconst contextLines = history\n  .slice(0, 5)\n  .reverse()\n  .map(h => {\n    const ts = h.Timestamp ? new Date(h.Timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';\n    const userMsg = (h.MessageText || '').slice(0, 120);\n    const botResp = (h.ResultMessage || '').slice(0, 120).replace(/\\n/g, ' ');\n    const intent = h.Intent || '?';\n    return `  [${ts}] user: \"${userMsg}\" → bot(${intent}): \"${botResp}\"`;\n  })\n  .join('\\n');\nconst contextBlock = contextLines\n  ? `\\n\\nКонтекст последних сообщений этого пользователя (для оценки непрерывности диалога):\\n${contextLines}\\n\\nЕсли пользователь повторяет вопрос в других словах — предыдущий ответ был НЕ тот. Пересмотри интент.`\n  : '';\n\n\nconst INTENTS = [\n  { id: 'mark_complete',  desc: 'отметить задачу завершённой (готово, закончили, сделали, закрыли)' },\n  { id: 'mark_started',   desc: 'отметить старт задачи (начали, стартовали, запустили, приступили)' },\n  { id: 'set_progress',   desc: 'поставить процент выполнения (N%, процентов, половина, треть, почти готово)' },\n  { id: 'shift_dates',    desc: 'сдвинуть сроки задачи на N дней или на конкретную дату (перенеси, сдвинь, отложи, раньше)' },\n  { id: 'add_delay',      desc: 'зафиксировать задержку с причиной (задержка, стоим, ждём материал/согласование)' },\n  { id: 'add_note',       desc: 'добавить текстовую заметку к задаче (заметка, запиши, примечание)' },\n  { id: 'add_task',       desc: 'добавить новую задачу в график' },\n  { id: 'query_status',   desc: 'общая сводка по проекту (как дела, статус, прогресс, отчёт)' },\n  { id: 'query_today',    desc: 'задачи активные сегодня или завтра (что сегодня, что на завтра)' },\n  { id: 'query_overdue',  desc: 'просроченные задачи (что просрочено, отставание, где тормозим)' },\n  { id: 'query_period',   desc: 'задачи на период (неделя/месяц/май — конкретный промежуток)' },\n  { id: 'query_section',  desc: 'прогресс по секции (как электрика, по сантехнике, стены)' },\n  { id: 'greeting',       desc: 'приветствие (привет, здорово)' },\n  { id: 'smalltalk',      desc: 'болталка вне темы проекта' },\n  { id: 'unknown',        desc: 'не удалось понять — присвой только если ВООБЩЕ не похоже ни на одну задачу' }\n];\n\nconst systemPrompt = `Ты — интент-классификатор для русского Telegram-бота по графику стройки Orange Group Office в Дубае. Извлекай структурированный JSON строго по схеме.\n\nВозможные intent'ы:\n${INTENTS.map(i => `• ${i.id} — ${i.desc}`).join('\\n')}\n\nКак работать:\n1. Прочитай сообщение пользователя (оно на русском, возможно с неформальным стилем, ошибками транскрипции, размытой формулировкой).\n2. Сопоставь с наиболее подходящим intent. Не бойся уверенно присваивать даже если фраза не точная — цель максимум покрытия. unknown ТОЛЬКО если это болталка вне темы проекта или оскорбления.\n3. Если упомянута задача — извлеки task_query (любой фрагмент имени) и попробуй сопоставить с task_id из списка.\n4. Если есть два-три равновероятных варианта → заполни suggested_intents списком из 2-4 наиболее вероятных intent'ов в порядке убывания.\n5. Если уверен ≥ 0.8 — suggested_intents оставь null.\n\nПравила полей:\n• task_query — свободное описание упомянутой работы (пример: «малярка», «электрика», «стяжка»)\n• task_id — строковый ID из списка задач если смог однозначно сопоставить (не гадай — лучше null)\n• days — целое ±N для shift_dates/add_delay, null иначе\n• value — число 0..1 для set_progress (30% = 0.3). null иначе\n• date — ISO YYYY-MM-DD. Относительные («вчера»/«завтра»/«в среду») посчитай от сегодня\n• reason — текст причины задержки, null иначе\n• confidence — 0..1, честная оценка уверенности\n• clarify_question — если confidence < 0.75 или нужна доп. информация от пользователя. На русском, с естественным тоном, без канцелярита. null если уверен.\n• suggested_intents — массив 2-4 intent-id для unknown или confidence < 0.6. null если уверен.\n\nОсобые случаи:\n• Вопросы как дела / как свои дела / как там / ну чё / что нового / как успехи / всё ли в порядке — ВСЕГДА query_status (спрашивают про проект). Не smalltalk, не greeting.\n• Вопросы что сегодня / что сейчас идёт / чем заняты / что завтра → query_today.\n• Где отстаём / что просрочено / проблемы / где тормозим → query_overdue.\n• Короткие реплики без контекста (ок, да, пойдёт) — smalltalk с clarify_question.\n• Приветствия привет / здорово / салам — greeting, в clarify_question предложи команды.\n• Ругательства без дела — smalltalk, clarify_question=Чем помочь по проекту?\n• Ты обслуживаешь ТОЛЬКО стройбота. Любое сообщение с упоминанием работ/сроков/секций — про проект, не болталка.`;\n\nconst today = new Date().toISOString().slice(0,10);\nconst tasksList = schedule.tasks.map(t => `[${t.id}] ${t.name} (секция: ${t.section}, план: ${t.planStart}..${t.planEnd}${t.actualEnd ? ', факт: завершена '+t.actualEnd : t.actualStart ? ', в работе с '+t.actualStart : ', не начата'})`).join('\\n');\nconst sectionsList = schedule.sections.map(s => s.id + '=' + s.name).join(', ');\nconst userContent = `Сегодня: ${today}\\n\\nСписок задач проекта:\\n${tasksList}\\n\\nСекции: ${sectionsList}${contextBlock}\\n\\nТекущее сообщение пользователя: «${msg.text}»`;\n\nconst body = {\n  model: 'gpt-5',\n  response_format: {\n    type: 'json_schema',\n    json_schema: {\n      name: 'intent',\n      strict: true,\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['intent','confidence','task_query','task_id','date','days','value','reason','new_name','new_section','clarify_question','suggested_intents'],\n        properties: {\n          intent: { type: 'string', enum: INTENTS.map(i => i.id) },\n          confidence: { type: 'number' },\n          task_query: { type: ['string','null'] },\n          task_id: { type: ['string','null'] },\n          date: { type: ['string','null'] },\n          days: { type: ['number','null'] },\n          value: { type: ['number','null'] },\n          reason: { type: ['string','null'] },\n          new_name: { type: ['string','null'] },\n          new_section: { type: ['string','null'] },\n          clarify_question: { type: ['string','null'] },\n          suggested_intents: {\n            type: ['array','null'],\n            items: { type: 'string', enum: INTENTS.map(i => i.id) }\n          }\n        }\n      }\n    }\n  },\n  messages: [\n    { role: 'system', content: systemPrompt },\n    { role: 'user', content: userContent }\n  ]\n};\n\nreturn [{ json: { ...msg, openaiBody: body } }];"
+        "jsCode": "// Build OpenAI chat completion request body with structured output.\nconst msg = $('PreClassify').first().json;\nconst schedule = msg.schedule;\n\nconst history = $input.all().map(i => i.json).filter(r => r && r.fields).map(r => r.fields);\nconst contextLines = history\n  .slice(0, 5).reverse()\n  .map(h => {\n    const ts = h.Timestamp ? new Date(h.Timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';\n    const userMsg = (h.MessageText || '').slice(0, 120);\n    const botResp = (h.ResultMessage || '').slice(0, 120).replace(/\\n/g, ' ');\n    const intent = h.Intent || '?';\n    return `  [${ts}] user: \"${userMsg}\" → bot(${intent}): \"${botResp}\"`;\n  }).join('\\n');\nconst contextBlock = contextLines\n  ? `\\n\\nКонтекст последних сообщений этого пользователя:\\n${contextLines}\\n\\nЕсли пользователь отвечает на уточняющий вопрос бота — используй контекст чтобы восстановить все ранее упомянутые поля (task_name, section, plan_start, plan_end, contractor и т.д.).`\n  : '';\n\nconst INTENTS = [\n  // Статус / прогресс\n  { id: 'mark_complete',          desc: 'отметить задачу завершённой (готово, закончили, сделали, закрыли)' },\n  { id: 'mark_started',           desc: 'отметить старт задачи (начали, стартовали, запустили, приступили)' },\n  { id: 'mark_cancelled',         desc: 'отменить задачу — убрать из активных без физического удаления (отменяем, не делаем)' },\n  { id: 'set_progress',           desc: 'поставить процент выполнения (N%, процентов, половина, треть, почти готово)' },\n  { id: 'add_delay',              desc: 'зафиксировать задержку с причиной (задержка, стоим, ждём материал/согласование)' },\n  { id: 'add_note',               desc: 'добавить текстовую заметку к задаче (заметка, запиши, примечание)' },\n  // Даты и длительность\n  { id: 'shift_dates',            desc: 'сдвинуть сроки на N дней ОТНОСИТЕЛЬНО (перенеси на 5 дней, сдвинь вправо, отложи на неделю)' },\n  { id: 'set_start_date',         desc: 'установить конкретную дату начала АБСОЛЮТНО (начинается с 10 мая, старт с X числа)' },\n  { id: 'set_end_date',           desc: 'установить конкретную дату окончания АБСОЛЮТНО (закончить к 20 мая, конец X)' },\n  { id: 'set_both_dates',         desc: 'установить обе даты явно (с 10 по 25 мая, с X до Y)' },\n  { id: 'set_duration',           desc: 'изменить длительность задачи в днях (укорати до 14 дней, продли до 3 недель)' },\n  { id: 'bulk_shift_section',     desc: 'сдвинуть ВСЕ задачи раздела на N дней (все финишные сдвинь, весь раздел перенеси)' },\n  // Задачи CRUD\n  { id: 'add_task',               desc: 'добавить новую работу в график (добавь, создай, включи задачу/работу)' },\n  { id: 'remove_task',            desc: 'удалить работу из графика физически (убери, удали, исключи задачу)' },\n  { id: 'rename_task',            desc: 'переименовать работу (переименуй, называй теперь, изменить название задачи)' },\n  { id: 'move_task_section',      desc: 'переместить задачу в другой раздел (перемести в раздел X, это относится к Y)' },\n  // Подрядчики\n  { id: 'set_contractor',         desc: 'назначить подрядчика на задачу (делает бригада X, это наши силы CYFR, отдали Марату)' },\n  { id: 'set_section_contractor', desc: 'назначить подрядчика на весь раздел (все финишные делает X, раздел Y отдали Марату)' },\n  // Разделы\n  { id: 'add_section',            desc: 'создать новый раздел/категорию (добавь раздел «фасадные работы»)' },\n  { id: 'rename_section',         desc: 'переименовать раздел (переименуй раздел X в Y)' },\n  { id: 'remove_section',         desc: 'удалить раздел целиком со всеми задачами (убери раздел X)' },\n  // Запросы\n  { id: 'query_status',           desc: 'общая сводка по проекту (как дела, статус, прогресс, отчёт)' },\n  { id: 'query_today',            desc: 'что активно сегодня или завтра БЕЗ указания конкретного раздела (что сегодня, что на завтра, что идёт). Если назван раздел — это query_section, не query_today' },\n  { id: 'query_overdue',          desc: 'просроченные задачи (что просрочено, отставание, где тормозим)' },\n  { id: 'query_period',           desc: 'задачи на период (неделя/месяц/май — конкретный промежуток)' },\n  { id: 'query_section',          desc: 'прогресс по конкретному разделу. ВАЖНО: если пользователь назвал раздел (малярка, электрика, сантехника, штукатурка и т.д.) — ВСЕГДА query_section, даже если есть слово «сегодня», «сейчас», «как там»' },\n  // Прочее\n  { id: 'show_help',              desc: 'показать список возможностей бота (что ты умеешь, какие функции, помогите, что можно делать, help, помощь, справка)' },\n  { id: 'greeting',               desc: 'приветствие (привет, здорово) — без запроса возможностей' },\n  { id: 'smalltalk',              desc: 'болталка вне темы проекта' },\n  { id: 'unknown',                desc: 'не удалось понять — только если ВООБЩЕ не похоже ни на одну задачу' }\n];\n\nconst systemPrompt = `Ты — интент-классификатор для русского Telegram-бота по графику стройки Orange Group Office в Дубае. Извлекай структурированный JSON строго по схеме.\n\nВозможные intent'ы:\n${INTENTS.map(i => `• ${i.id} — ${i.desc}`).join('\\n')}\n\nВАЖНО — различай абсолютное vs относительное:\n• shift_dates = относительный сдвиг («на 5 дней», «на неделю», «на 3 дня вперёд»)\n• set_start_date / set_end_date / set_both_dates = конкретная дата («с 10 мая», «до 1 июня», «с 10 по 25 мая»)\n• set_duration = только длительность в днях, без привязки к дате\nВАЖНО — query_section vs query_today:\n• Если пользователь упомянул название раздела (малярка, покраска, электрика, сантехника, штукатурка, полы, и т.д.) → intent = query_section, section = <id раздела>\n• query_today — ТОЛЬКО когда раздел не назван: «что сегодня», «что идёт», «что на завтра»\n• «что по малярке сегодня» → query_section (section=paint), НЕ query_today\n\nПравила общения с пользователем (ОЧЕНЬ ВАЖНО):\n• НИКОГДА не показывай task_id в clarify_question, responseText или любом тексте для пользователя — это внутренний идентификатор.\n• В clarify_question используй НАЗВАНИЯ задач и разделов в кавычках («...»).\n• Различай «раздел» (группа задач) и «задача» (одна работа). Объясняй это словами, не через ID.\n• При неоднозначности ставь варианты простыми словами: «вы имеете в виду весь раздел «Сантехника» или только задачу «Сантехнические работы»?»\n• Обращайся на «вы», но тепло, по-дружески. Без канцелярита.\n• Не используй слова «идентификатор», «объект», «единица» — говори «задача», «раздел», «работа».\n\nПравила полей:\n• Для query_period: plan_start и plan_end = границы запрошенного периода (ISO YYYY-MM-DD).\n  Примеры: «след. неделя» → пн..вс следующей недели; «май» → 01.05..31.05; «до конца месяца» → today..конец месяца; «в ближайшие 10 дней» → today..today+10\n• task_query — фрагмент имени существующей задачи (для поиска)\n• task_name — полное имя НОВОЙ задачи (только для add_task)\n• task_id — ID из списка если однозначно сопоставил (не угадывай — лучше null)\n• section — ID секции: demolition/electrical/plumbing/fire_safety/hvac/flooring/drywall/finishing/glass/paint/furniture/cleaning/materials\n• plan_start — абсолютная дата начала ISO YYYY-MM-DD\n• plan_end — абсолютная дата конца ISO YYYY-MM-DD\n• date — ISO YYYY-MM-DD для mark_complete/mark_started (default: сегодня)\n• days — целое ±N для shift_dates/bulk_shift_section/add_delay\n• date_type — для всех операций с датами: 'plan'=плановые (planStart/planEnd), 'actual'=фактические (actualStart/actualEnd), 'both'=и те и другие. null если пользователь не уточнил. «план/плановые/по плану» → plan; «факт/фактические/по факту/реально» → actual; «всё/оба/и то и другое» → both.\n• shift_start — только для shift_dates/bulk_shift_section: true=сдвинуть начало И конец; false=только конец/финал/дату окончания; null если не указано.\n• value — 0..1 для set_progress (30% = 0.3)\n• duration — количество дней для set_duration\n• contractor_name — имя/название подрядчика\n• contractor_phone — телефон если упомянут\n• is_self — true если «мы»/«наши силы»/«CYFR»; false если подрядчик; null если не упомянуто\n• new_name — новое имя для rename_task\n• section_name — название нового/переименованного раздела для add_section/rename_section\n• reason — текст для add_delay (причина) или add_note (заметка)\n• confidence — 0..1\n• clarify_question — вопрос на русском если confidence < 0.75. null если уверен.\n• suggested_intents — 2-4 intent-id при неуверенности. null если уверен.\n\nОсобые случаи:\n• «как дела / статус / как там» → query_status\n• «что сегодня / что сейчас идёт» → query_today\n• «что просрочено / отставание» → query_overdue\n• Приветствия → greeting\n• Ты обслуживаешь ТОЛЬКО стройбота. Любое упоминание работ/сроков/подрядчиков — про проект.`;\n\nconst today = new Date().toISOString().slice(0,10);\nconst tasksList = schedule.tasks.map(t =>\n  `task_id=${t.id} | ${t.name} (секция: ${t.section}, план: ${t.planStart}..${t.planEnd}${t.actualEnd ? ', завершена '+t.actualEnd : t.actualStart ? ', в работе с '+t.actualStart : ', не начата'}${t.contractor ? ', подрядчик: '+t.contractor : ''}${t.cancelled ? ', ОТМЕНЕНА' : ''})`\n).join('\\n');\nconst sectionsList = schedule.sections.map(s => `${s.id}=${s.name}`).join(', ');\n\nconst userContent = `Сегодня: ${today}\\n\\nСписок задач:\\n${tasksList}\\n\\nСекции: ${sectionsList}${contextBlock}\\n\\nСообщение пользователя: «${msg.text}»`;\n\nconst INTENT_IDS = INTENTS.map(i => i.id);\n\nconst body = {\n  model: 'gpt-5',\n  response_format: {\n    type: 'json_schema',\n    json_schema: {\n      name: 'intent',\n      strict: true,\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['intent','confidence','task_query','task_id','task_name','section','plan_start','plan_end','date','days','value','duration','contractor_name','contractor_phone','is_self','date_type','shift_start','new_name','section_name','reason','clarify_question','suggested_intents'],\n        properties: {\n          intent:            { type: 'string', enum: INTENT_IDS },\n          confidence:        { type: 'number' },\n          task_query:        { type: ['string','null'] },\n          task_id:           { type: ['string','null'] },\n          task_name:         { type: ['string','null'] },\n          section:           { type: ['string','null'] },\n          plan_start:        { type: ['string','null'] },\n          plan_end:          { type: ['string','null'] },\n          date:              { type: ['string','null'] },\n          days:              { type: ['number','null'] },\n          value:             { type: ['number','null'] },\n          duration:          { type: ['number','null'] },\n          contractor_name:   { type: ['string','null'] },\n          contractor_phone:  { type: ['string','null'] },\n          is_self:           { type: ['boolean','null'] },\n          date_type:         { type: ['string','null'] },\n          shift_start:       { type: ['boolean','null'] },\n          new_name:          { type: ['string','null'] },\n          section_name:      { type: ['string','null'] },\n          reason:            { type: ['string','null'] },\n          clarify_question:  { type: ['string','null'] },\n          suggested_intents: { type: ['array','null'], items: { type: 'string', enum: INTENT_IDS } }\n        }\n      }\n    }\n  },\n  messages: [\n    { role: 'system', content: systemPrompt },\n    { role: 'user',   content: userContent }\n  ]\n};\n\nreturn [{ json: { ...msg, openaiBody: body } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000022b",
       "name": "BuildGPTBody",
@@ -357,7 +357,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build final response based on PreClassify or GPT output.\n// Returns: responseText, pendingAction (null or object), useKeyboard (bool), intent.\n\nconst msg = $input.first().json;\nconst schedule = msg.schedule;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\nconst TODAY = new Date();\nconst today = TODAY.toISOString().slice(0, 10);\n\nfunction fmtDate(iso) {\n  const d = new Date(iso);\n  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });\n}\nfunction findTask(q) {\n  if (!q) return null;\n  const needle = q.toLowerCase();\n  // Exact id match\n  let t = schedule.tasks.find(x => x.id === q);\n  if (t) return [t];\n  // Substring in name\n  let matches = schedule.tasks.filter(x => x.name.toLowerCase().includes(needle));\n  if (matches.length) return matches;\n  // Section id match → all tasks in section\n  const sec = schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n  if (sec) return schedule.tasks.filter(x => x.section === sec.id);\n  return [];\n}\n\nfunction statusText() {\n  const p = schedule.project;\n  const tasks = schedule.tasks;\n  const start = new Date(p.startDate);\n  const end = new Date(p.endDate);\n  let pctTime = 0;\n  if (TODAY < start) pctTime = 0;\n  else if (TODAY > end) pctTime = 100;\n  else pctTime = Math.round(((TODAY - start) / (end - start)) * 100);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const notStarted = tasks.filter(t => !t.actualStart).length;\n  const overdue = tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  const pctTasks = Math.round((done / tasks.length) * 100);\n  const overdueList = overdue.slice(0,5).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `• _${t.name}_ — ${dd} дн.`;\n  }).join('\\n');\n  let updLine = '';\n  if (p.lastUpdated) updLine = `\\n🕐 Обновлено: ${fmtDate(p.lastUpdated)}${p.lastUpdatedBy ? ' · '+p.lastUpdatedBy : ''}`;\n  return `📊 *${p.name}*\\n\\n⏱ По времени: *${pctTime}%*\\n✅ По задачам: *${pctTasks}%* (${done} из ${tasks.length})\\n\\n🟡 В работе: ${running}\\n⚪️ Не начато: ${notStarted}\\n🔴 Просрочено: ${overdue.length}${overdue.length ? '\\n\\n*Топ просрочек:*\\n'+overdueList : ''}${updLine}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction todayText() {\n  const tasks = schedule.tasks.filter(t => {\n    const ps = new Date(t.planStart || t.start);\n    const pe = new Date(t.planEnd || t.end);\n    return ps <= TODAY && TODAY <= pe;\n  });\n  if (!tasks.length) return `📅 На сегодня нет активных задач по плану.\\n\\n🔗 ${GANTT}`;\n  const lines = tasks.map(t => {\n    const pe = new Date(t.planEnd || t.end);\n    const dd = Math.round((pe - TODAY) / 86400000);\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} _${t.name}_ · до ${fmtDate(t.planEnd)} (${dd} дн.)`;\n  }).join('\\n');\n  return `📅 *Сегодня по плану:*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction overdueText() {\n  const overdue = schedule.tasks.filter(t => !t.actualEnd && new Date(t.planEnd || t.end) < TODAY);\n  if (!overdue.length) return `🎉 Нет просроченных задач!`;\n  const lines = overdue.slice(0,10).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd || t.end)) / 86400000);\n    return `🔴 _${t.name}_ · план до ${fmtDate(t.planEnd)} · просрочено на *${dd} дн.*`;\n  }).join('\\n');\n  return `⚠️ *Просрочено: ${overdue.length}*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction sectionText(secQuery) {\n  const sec = schedule.sections.find(s => s.id === secQuery || s.name.toLowerCase().includes((secQuery || '').toLowerCase()));\n  if (!sec) return `🤔 Не нашёл секцию «${secQuery}». Список: ${schedule.sections.map(s=>s.name).join(', ')}.`;\n  const tasks = schedule.tasks.filter(t => t.section === sec.id);\n  const done = tasks.filter(t => t.actualEnd).length;\n  const running = tasks.filter(t => t.actualStart && !t.actualEnd).length;\n  const pct = Math.round((done / tasks.length) * 100);\n  const lines = tasks.map(t => {\n    const st = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n    return `${st} [${t.id}] _${t.name}_ · ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n  }).join('\\n');\n  return `🎨 *${sec.name}* — ${pct}% (${done}/${tasks.length})\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n\nfunction startText() {\n  return `👋 Привет, ${name}!\\n\\nЯ помогаю вести график работ. Можно писать *текстом* или диктовать *голосом* — пойму.\\n\\n━━━━━━━━━━━━━━━\\n📊 *Узнать что происходит:*\\n• _«как дела»_, _«статус»_, _«что сегодня»_\\n• _«что просрочено?»_, _«как электрика»_\\n\\n✏️ *Отметить прогресс:*\\n• _«электрика готова»_\\n• _«ГКЛ закончили вчера»_\\n• _«малярка на 60%»_\\n\\n📅 *Подвинуть сроки:*\\n• _«сдвинь потолки на 3 дня позже»_\\n• _«старт покраски перенеси на понедельник»_\\n\\n⚠️ *Задержка:*\\n• _«шпатлёвка стоит — ждём материал»_\\n\\n📸 *Файлы (скоро):*\\n• PDF/Word со сметой → создам новый проект\\n• Фото с объекта → прикреплю к задаче\\n\\n━━━━━━━━━━━━━━━\\n🔗 *График онлайн:* ${GANTT}\\n\\n💡 *Советую закрепить это сообщение* — пригодится как справочник.`;\n}\n\nfunction helpText() {\n  return `📋 *Как со мной разговаривать:*\\n\\nМожно *голосом* или *текстом* — без строгих команд. Примеры:\\n\\n📊 _«как дела»_ · _«статус»_ · _«что сегодня»_\\n✏️ _«электрика готова»_ · _«стяжку закрыли вчера»_\\n📅 _«перенеси потолки на 3 дня»_\\n⚠️ _«задержка по малярке, ждём цвет»_\\n\\n*Явные команды:*\\n• /статус — сводка проекта\\n• /график — ссылка на витрину\\n• /отмена — отменить текущий диалог\\n\\n🔗 ${GANTT}`;\n}\n\n// ─── Main logic ───\nlet responseText = '';\nlet intent = msg.commandType || 'unknown';\nlet pendingAction = null;\nlet useKeyboard = false;\n\nif (msg.commandType === 'start') {\n  responseText = startText();\n} else if (msg.commandType === 'help') {\n  responseText = helpText();\n} else if (msg.commandType === 'gantt') {\n  responseText = `🔗 Витрина графика:\\n${GANTT}\\n\\nПлан/факт по ${schedule.tasks.length} задачам, milestone, прогресс, субподрядчики.`;\n} else if (msg.commandType === 'status') {\n  responseText = statusText();\n} else if (msg.commandType === 'cancel') {\n  responseText = `❎ Нечего отменять — активных диалогов нет.`;\n} else if (msg.commandType === 'unsupported') {\n  if (msg.type === 'photo') responseText = `📸 Фото — скоро. Будет привязка к задаче.`;\n  else responseText = `📄 Документы — скоро. PDF/Word со сметой → создание нового проекта.`;\n} else if (msg.gpt) {\n  // GPT classification\n  const g = msg.gpt;\n  intent = g.intent;\n\n  if (g.clarify_question) {\n    const intentLabel = {\n      mark_complete: '✅ отметить готовой',\n      mark_started: '🟡 отметить стартом',\n      set_progress: '📊 поставить %',\n      shift_dates: '📅 сдвинуть сроки',\n      add_delay: '⚠️ задержка',\n      query_status: '📊 статус',\n      query_today: '📅 сегодня',\n      query_overdue: '🔴 просрочки',\n      query_section: '🎨 по секции'\n    };\n    const sugg = (g.suggested_intents || []).filter(i => intentLabel[i]).slice(0, 4);\n    const hintLines = sugg.length ? `\\n\\nМожет один из:\\n${sugg.map(i => '• ' + intentLabel[i]).join('\\n')}` : '';\n    const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n    responseText = `${transcriptPrefix}🤔 ${g.clarify_question}${hintLines}`;\n    intent = 'clarify';\n  } else if (g.intent === 'query_status') {\n    responseText = statusText();\n  } else if (g.intent === 'query_today') {\n    responseText = todayText();\n  } else if (g.intent === 'query_overdue') {\n    responseText = overdueText();\n  } else if (g.intent === 'query_section') {\n    responseText = sectionText(g.task_query);\n  } else if (g.intent === 'greeting') {\n    responseText = `👋 Привет! Напиши _«статус»_ или диктуй что произошло.`;\n  } else if (g.intent === 'mark_complete' || g.intent === 'mark_started' || g.intent === 'set_progress' || g.intent === 'shift_dates' || g.intent === 'add_delay') {\n    // Write intents → resolve task, stage confirmation\n    const candidates = findTask(g.task_id || g.task_query);\n    if (!candidates || candidates.length === 0) {\n      responseText = `🤔 Не нашёл задачу «${g.task_query || g.task_id}».\\n\\nПопробуй назвать точнее или /график.`;\n      intent = 'task_not_found';\n    } else if (candidates.length > 1) {\n      const list = candidates.slice(0,5).map(t => `• [${t.id}] _${t.name}_`).join('\\n');\n      responseText = `🔍 Нашёл несколько задач, уточни:\\n\\n${list}\\n\\nНапиши ID (например _«закрой 3»_) или уточни название.`;\n      intent = 'task_ambiguous';\n    } else {\n      const t = candidates[0];\n      const datePart = g.date ? fmtDate(g.date) : fmtDate(today);\n      let confirmText = '';\n      if (g.intent === 'mark_complete') confirmText = `✅ Отметить «${t.name}» завершённой ${datePart}?`;\n      else if (g.intent === 'mark_started') confirmText = `🟡 Отметить «${t.name}» стартовавшей ${datePart}?`;\n      else if (g.intent === 'set_progress') confirmText = `📊 Поставить прогресс «${t.name}» = ${Math.round((g.value||0)*100)}%?`;\n      else if (g.intent === 'shift_dates') confirmText = `📅 Сдвинуть «${t.name}» на ${g.days > 0 ? '+' : ''}${g.days} дней?`;\n      else if (g.intent === 'add_delay') confirmText = `⚠️ Задержка по «${t.name}» ${g.days ? '(+'+g.days+' дней) ' : ''}· причина: «${g.reason || '—'}»?`;\n\n      pendingAction = {\n        type: g.intent,\n        taskId: t.id,\n        taskName: t.name,\n        date: g.date || today,\n        days: g.days,\n        value: g.value,\n        reason: g.reason\n      };\n      const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n      responseText = `${transcriptPrefix}${confirmText}`;\n      useKeyboard = true;\n    }\n  } else if (g.intent === 'add_task' || g.intent === 'add_note' || g.intent === 'query_period') {\n    responseText = `⏳ _«${g.intent}»_ в разработке. Пока можно: отметить готово, сдвинуть, задержку.`;\n    intent = 'not_implemented';\n  } else {\n    // unknown / smalltalk / greeting fallback — попробуем предложить варианты\n    const intentLabel = {\n      mark_complete: '✅ отметить готовой',\n      mark_started: '🟡 отметить стартом',\n      set_progress: '📊 поставить %',\n      shift_dates: '📅 сдвинуть сроки',\n      add_delay: '⚠️ зафиксировать задержку',\n      query_status: '📊 общий статус',\n      query_today: '📅 задачи на сегодня',\n      query_overdue: '🔴 просроченные',\n      query_section: '🎨 по секции',\n    };\n    const sugg = (g.suggested_intents || []).filter(i => intentLabel[i]).slice(0, 4);\n    const transcriptPrefix = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n    if (sugg.length) {\n      const lines = sugg.map(i => `• ${intentLabel[i]}`).join('\\n');\n      responseText = `${transcriptPrefix}🤔 Не уверен что именно ты хочешь. Возможно ты имел в виду:\\n\\n${lines}\\n\\nПереформулируй поточнее — или скажи _«помощь»_ чтобы увидеть все команды.`;\n    } else {\n      responseText = `${transcriptPrefix}🤔 Не понял. Попробуй _«статус»_, _«что просрочено»_ или _«электрика готова»_.\\n\\nВсе команды: /help`;\n    }\n    intent = 'unknown';\n  }\n} else {\n  responseText = `🤔 Не распознал. /help`;\n}\n\nreturn [{ json: { ...msg, intent, responseText, pendingAction, useKeyboard } }];"
+        "jsCode": "// Build final response. Returns: responseText, pendingAction, useKeyboard, intent.\nconst msg = $input.first().json;\nconst schedule = msg.schedule;\nconst name = msg.userFields?.Name || msg.firstName || 'друг';\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\nconst TODAY = new Date();\nconst today = TODAY.toISOString().slice(0, 10);\n\nfunction fmtDate(iso) {\n  if (!iso) return '?';\n  const d = new Date(iso);\n  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });\n}\nfunction fmtDur(start, end) {\n  if (!start || !end) return '';\n  const d = Math.round((new Date(end) - new Date(start)) / 86400000);\n  return `${d} дн.`;\n}\nfunction findTask(q) {\n  if (!q) return [];\n  const needle = q.toLowerCase();\n  let t = schedule.tasks.find(x => x.id === q);\n  if (t) return [t];\n  let matches = schedule.tasks.filter(x => x.name.toLowerCase().includes(needle));\n  if (matches.length) return matches;\n  const sec = schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n  if (sec) return schedule.tasks.filter(x => x.section === sec.id);\n  return [];\n}\nfunction findSection(q) {\n  if (!q) return null;\n  const needle = q.toLowerCase().trim();\n  // Slang / Russian name aliases → section ID\n  const ALIASES = {\n    'малярка':'paint','покраска':'paint','маляр':'paint','красить':'paint',\n    'штукатурка':'finishing','финишка':'finishing','шпаклёвка':'finishing','шпатлёвка':'finishing','штукатурно':'finishing',\n    'электрика':'electrical','электро':'electrical','проводка':'electrical',\n    'сантехника':'plumbing','сантех':'plumbing','водопровод':'plumbing','канализация':'plumbing',\n    'демонтаж':'demolition','демонт':'demolition','снос':'demolition',\n    'вентиляция':'hvac','овик':'hvac','кондиционер':'hvac','фанкоил':'hvac','воздуховод':'hvac',\n    'пожарка':'fire_safety','пожаробезопасность':'fire_safety','пожарная':'fire_safety',\n    'гк��':'drywall','гипсокартон':'drywall','перегородки':'drywall','каркас':'drywall',\n    'полы':'flooring','стяжка':'flooring','плитка':'flooring','ковролин':'flooring','наливной':'flooring',\n    'стекло':'glass','стеклянные':'glass','перегородка стекло':'glass',\n    'мебель':'furniture','декор':'furniture',\n    'уборка':'cleaning','генеральная':'cleaning',\n    'логистика':'materials','материалы':'materials','доставка':'materials',\n  };\n  for (const [alias, id] of Object.entries(ALIASES)) {\n    if (needle.includes(alias)) return schedule.sections.find(s => s.id === id);\n  }\n  return schedule.sections.find(s => s.id === needle || s.name.toLowerCase().includes(needle));\n}\nfunction taskLine(t) {\n  return `• _${t.name}_ (${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)})`;\n}\nfunction ambiguousReply(candidates) {\n  return `🔍 Нашёл несколько похожих задач:\\n\\n${candidates.slice(0,5).map(taskLine).join('\\n')}\\n\\nУточните полным названием или датой — например _«которая на май»_ или _«монтаж оборудования»_.`;\n}\nfunction notFoundReply(q) {\n  return `🤔 Не нашёл задачу «${q || '?'}». Попробуй точнее или /график.`;\n}\n\n// ── Query helpers ──\nfunction statusText() {\n  const p = schedule.project;\n  const tasks = schedule.tasks.filter(t => !t.cancelled);\n  const start = new Date(p.startDate), end = new Date(p.endDate);\n  let pctTime = 0;\n  if (TODAY < start) pctTime = 0;\n  else if (TODAY > end) pctTime = 100;\n  else pctTime = Math.round(((TODAY - start) / (end - start)) * 100);\n  const pctWork = tasks.length ? Math.round(tasks.reduce((s,t) => s + taskPct(t), 0) / tasks.length) : 0;\n  const cntDone = tasks.filter(isDone).length;\n  const cntRun  = tasks.filter(isRunning).length;\n  const cntWait = tasks.filter(t => !isDone(t) && !isRunning(t)).length;\n  const overdue = tasks.filter(isOverdue);\n  const running = tasks.filter(isRunning).slice(0, 5);\n  const runLines = running.map(t => `🟡 _${t.name}_ ${taskPct(t)}%`).join('\\n');\n  const overdueList = overdue.slice(0,5).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd||t.end)) / 86400000);\n    return `🔴 _${t.name}_ — ${dd} дн. просрочки`;\n  }).join('\\n');\n  let updLine = p.lastUpdated ? `\\n🕐 Обновле��о: ${fmtDate(p.lastUpdated)}${p.lastUpdatedBy ? ' · '+p.lastUpdatedBy : ''}` : '';\n  let out = `📊 *${p.name}*\\n\\n⏱ Время: *${pctTime}%* пройдено\\n✅ Р��боты: *${pctWork}%* (${cntDone} из ${tasks.length} завершено)\\n\\n🟡 В работе: ${cntRun}\\n⚪️ Не начато: ${cntWait}\\n🔴 Просрочено: ${overdue.length}`;\n  if (running.length) out += `\\n\\n*Сейчас в работе:*\\n${runLines}`;\n  if (overdue.length) out += `\\n\\n*Просрочки:*\\n${overdueList}`;\n  out += updLine + `\\n\\n🔗 ${GANTT}`;\n  return out;\n}\nfunction todayText() {\n  const tasks = schedule.tasks.filter(t => !t.cancelled && !isDone(t)).filter(t => {\n    const ps = new Date(t.planStart || t.start), pe = new Date(t.planEnd || t.end);\n    return ps <= TODAY && TODAY <= pe;\n  });\n  if (!tasks.length) return `📅 На сегодня нет активных задач по плану.\\n\\n🔗 ${GANTT}`;\n  const lines = tasks.map(t => {\n    const pe = new Date(t.planEnd || t.end);\n    const dd = Math.round((pe - TODAY) / 86400000);\n    const pctStr = t.progress > 0 ? ` ${Math.round(t.progress*100)}%` : '';\n    const icon = isOverdue(t) ? '🔴' : isRunning(t) ? '🟡' : '⚪️';\n    let row = `${icon} *${t.name}*${pctStr}`;\n    row += `\\n   📐 план: ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n    if (t.actualStart) row += `\\n   🚀 начали: ${fmtDate(t.actualStart)}`;\n    row += `\\n   ⏳ до конца: ${dd > 0 ? dd+' дн.' : dd === 0 ? 'сегодня дедлайн!' : Math.abs(dd)+' дн. просрочки'}`;\n    return row;\n  }).join('\\n\\n');\n  return `📅 *Сегодня по плану (${tasks.length}):*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\nfunction overdueText() {\n  const overdue = schedule.tasks.filter(t => !t.cancelled && isOverdue(t));\n  if (!overdue.length) return `🎉 Нет просроченных задач!`;\n  const lines = overdue.slice(0,10).map(t => {\n    const dd = Math.round((TODAY - new Date(t.planEnd||t.end)) / 86400000);\n    const pctStr = t.progress > 0 ? ` ${Math.round(t.progress*100)}%` : '';\n    let row = `🔴 *${t.name}*${pctStr} — ${dd} дн. просрочки`;\n    row += `\\n   📐 план: ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n    if (t.actualStart) row += `\\n   🚀 начали: ${fmtDate(t.actualStart)}`;\n    else row += `\\n   ⚪️ ещё не начата`;\n    return row;\n  }).join('\\n\\n');\n  return `⚠️ *Просрочено задач: ${overdue.length}*\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\n// ── Status helpers ──\nfunction isDone(t)    { return t.progress >= 1; }\nfunction isRunning(t) { return !isDone(t) && (t.progress > 0 || !!t.actualStart); }\nfunction isOverdue(t) { return !isDone(t) && new Date(t.planEnd || t.end) < TODAY; }\nfunction taskPct(t)   { return isDone(t) ? 100 : t.progress > 0 ? Math.round(t.progress * 100) : (t.actualStart ? 5 : 0); }\n\nfunction sectionText(q) {\n  const sec = findSection(q);\n  if (!sec) return `🤔 Не нашёл секцию «${q}». Список: ${schedule.sections.map(s=>s.name).join(', ')}.`;\n  const tasks = schedule.tasks.filter(t => t.section === sec.id && !t.cancelled);\n  if (!tasks.length) return `📂 *${sec.name}* — нет задач.`;\n  const totalPct = Math.round(tasks.reduce((s, t) => s + taskPct(t), 0) / tasks.length);\n  const lines = tasks.map(t => {\n    const icon = isDone(t) ? '✅' : isOverdue(t) ? '🔴' : isRunning(t) ? '🟡' : '⚪️';\n    const pctStr = !isDone(t) && t.progress > 0 ? ` ${Math.round(t.progress*100)}%` : '';\n    const ovdStr = isOverdue(t) ? ` — ⚠️ просрочено ${Math.round((TODAY - new Date(t.planEnd||t.end))/86400000)} дн.` : '';\n    let row = `${icon} *${t.name}*${pctStr}${ovdStr}`;\n    row += `\\n   📐 план: ${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}`;\n    return row;\n  }).join('\\n\\n');\n  return `📂 *${sec.name}* — ${totalPct}%\\n\\n${lines}\\n\\n🔗 ${GANTT}`;\n}\nfunction periodText(periodStart, periodEnd) {\n  if (!periodStart || !periodEnd) return `🤔 Не понял период. Например: _«что на следующей неделе»_, _«дедлайны до конца месяца»_, _«задачи в мае»_.`;\n  const ps = new Date(periodStart), pe = new Date(periodEnd);\n  const tasks = schedule.tasks.filter(t => {\n    if (t.cancelled) return false;\n    const ts = new Date(t.planStart || t.start), te = new Date(t.planEnd || t.end);\n    return te >= ps && ts <= pe;\n  });\n  if (!tasks.length) return `📅 В период ${fmtDate(periodStart)} — ${fmtDate(periodEnd)} задач нет.\\n\\n🔗 ${GANTT}`;\n  const deadlines = tasks.filter(t => {\n    const te = new Date(t.planEnd || t.end);\n    return te >= ps && te <= pe && !t.actualEnd;\n  });\n  const active = tasks.filter(t => !deadlines.includes(t));\n  let out = `📅 *Период ${fmtDate(periodStart)} — ${fmtDate(periodEnd)}*\\n`;\n  if (deadlines.length) {\n    out += `\\n🎯 *Дедлайны (${deadlines.length}):*\\n`;\n    out += deadlines.map(t => {\n      const icon = t.actualStart ? '🟡' : '⚪️';\n      return `${icon} _${t.name}_ · до ${fmtDate(t.planEnd)}`;\n    }).join('\\n') + '\\n';\n  }\n  if (active.length) {\n    out += `\\n▶️ *В работе в этот период (${active.length}):*\\n`;\n    out += active.slice(0, 10).map(t => {\n      const icon = t.actualEnd ? '✅' : t.actualStart ? '🟡' : '⚪️';\n      return `${icon} _${t.name}_ · ${fmtDate(t.planStart)}→${fmtDate(t.planEnd)}`;\n    }).join('\\n');\n    if (active.length > 10) out += `\\n_...и ещё ${active.length-10}_`;\n  }\n  return out + `\\n\\n🔗 ${GANTT}`;\n}\nfunction startText() {\n  return `👋 Привет, ${name}!\\n\\nЯ помогаю вести график работ голосом или текстом.\\n\\n━━━━━━━━━━━━━━━\\n📊 _«как дела»_ · _«статус»_ · _«что сегодня»_\\n✅ _«электрика готова»_ · _«малярка на 60%»_\\n📅 _«сдвинь потолки на 3 дня»_ · _«электрика с 10 по 25 мая»_\\n➕ _«добавь монтаж кондиционеров»_ · _«убери вывоз мусора»_\\n✏️ _«переименуй уборку»_ · _«перемести в чистовые»_\\n👷 _«электрику делает бригада Ахмеда»_ · _«это наши силы»_\\n📂 _«добавь раздел фасадные работы»_\\n⚠️ _«задержка по малярке — ждём материал»_\\n\\n🔗 ${GANTT}`;\n}\nfunction helpText() {\n  return `📋 *Всё что я умею — голосом или текстом:*\n\n━━━ 📊 Смотреть график ━━━\n• _«как дела»_ · _«статус»_ · _«прогресс»_\n• _«что сегодня»_ · _«что идёт сейчас»_\n• _«что просрочено»_ · _«где отстаём»_\n• _«как электрика»_ · _«по сантехнике»_\n• _«что на следующей неделе»_ · _«дедлайны в мае»_\n\n━━━ ✅ Статус и прогресс ━━━\n• _«электрика готова»_ · _«��акончили штукатурку»_\n• _«малярка на 60%»_ · _«покраска почти готов��»_\n• _«стяжку начали»_ · _«приступили к плитке»_\n• _«отменить монтаж перегородок»_\n• _«к сантехнике: проверить уклон»_ (заметка)\n• _«задержка по малярке — ждём цвет»_\n\n━━━ 📅 Сроки и даты ━━━\n• _«сдвинь покраску на 5 дней»_\n• _«электрика с 10 по 25 мая»_\n• _«начало стяжки с 1 июня»_\n• _«закончи монтаж к 20 мая»_\n• _«укорати покраску до 14 дней»_\n• _«все финишны�� сдвинь на неделю»_ (весь раздел)\n\n━━━ ➕ Добавить и изменить ━━━\n• _«добавь монтаж кондиционеров»_\n• _«убери вывоз мусора»_\n• _«переименуй уборку в генеральная уборка»_\n• _«перемести сантехнику в черновые»_\n\n━━━ 👷 Подрядчики ━━━\n• _«электрику делает бригада Ахмеда»_\n• _«это наши силы»_ · _«делаем сами»_\n• _«все финишные — бригада Ивана»_\n\n━━━ 📂 Разделы ━━━\n• _«добавь раздел фасадные работы»_\n• _«переименуй раздел»_ · _«удали раздел»_\n\n━━━ ⚡️ Команды ━━━\n/статус · /график · /отмена\n\n🔗 ${GANTT}`;\n}\n\n// ─── Main logic ───\nlet responseText = '';\nlet intent = msg.commandType || 'unknown';\nlet pendingAction = null;\nlet useKeyboard = false;\n\nif (msg.commandType === 'start') {\n  responseText = startText();\n} else if (msg.commandType === 'help') {\n  responseText = helpText();\n} else if (msg.commandType === 'gantt') {\n  responseText = `🔗 Витрина:\\n${GANTT}`;\n} else if (msg.commandType === 'status') {\n  responseText = statusText();\n} else if (msg.commandType === 'cancel') {\n  responseText = `❎ Нечего отменять.`;\n} else if (msg.commandType === 'unsupported') {\n  responseText = msg.type === 'photo'\n    ? `📸 Фото — скоро (привязка к задаче через PlanRadar).`\n    : `📄 Документы — скоро (PDF/Word сметы).`;\n} else if (msg.gpt) {\n  const g = msg.gpt;\n  intent = g.intent;\n  const tp = msg.fromVoice ? `🎤 _«${msg.text}»_\\n\\n` : '';\n\n  // ── clarify_question от GPT ──\n  if (g.clarify_question) {\n    const lbl = {\n      mark_complete:'✅ готово', mark_started:'🟡 старт', set_progress:'📊 %',\n      shift_dates:'📅 сдвиг', add_delay:'⚠️ задержка', add_task:'➕ добавить',\n      remove_task:'🗑 удалить', rename_task:'✏️ переименовать', set_contractor:'👷 подрядчик',\n      set_start_date:'📅 дата начала', set_end_date:'📅 дата конца',\n      bulk_shift_section:'📅 раздел сдвиг'\n    };\n    const sugg = (g.suggested_intents || []).filter(i => lbl[i]).slice(0, 4);\n    const hint = sugg.length ? `\\n\\nВозможно:\\n${sugg.map(i=>'• '+lbl[i]).join('\\n')}` : '';\n    responseText = `${tp}🤔 ${g.clarify_question}${hint}`;\n    intent = 'clarify';\n\n  // ── QUERIES ──\n  } else if (g.intent === 'query_status')  { responseText = statusText(); }\n  else if (g.intent === 'query_today')     {\n    if (g.section) { responseText = sectionText(g.section); intent = 'info'; }\n    else            { responseText = todayText(); }\n  }\n  else if (g.intent === 'query_overdue')   { responseText = overdueText(); }\n  else if (g.intent === 'query_section')   { responseText = sectionText(g.section || g.task_query); }\n  else if (g.intent === 'query_period')    { responseText = periodText(g.plan_start, g.plan_end); }\n  else if (g.intent === 'show_help')       { responseText = helpText(); intent = 'help'; }\n  else if (g.intent === 'greeting')        { responseText = `👋 Привет! Напиши _«статус»_ или диктуй что произошло.`; }\n  else if (g.intent === 'smalltalk')       { responseText = g.clarify_question || `🤔 Чем помочь по проекту?`; }\n\n  // ══════════════════════════════════════\n  // СТАТУС / ПРОГРЕСС\n  // ══════════════════════════════════════\n  else if (['mark_complete','mark_started','set_progress','shift_dates','add_delay','mark_cancelled'].includes(g.intent)) {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query || g.task_id); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      const datePart = g.date ? fmtDate(g.date) : fmtDate(today);\n      // Smart plan/actual detection for shift_dates\n      if (g.intent === 'shift_dates') {\n        const hasActual = !!(t.actualEnd || t.actualStart);\n        const hasPlan   = !!(t.planEnd || t.planStart);\n        let dateType = g.date_type || null;\n        if (dateType === 'actual' && !hasActual && hasPlan) dateType = 'plan';\n        if (dateType === 'plan'   && !hasPlan && hasActual) dateType = 'actual';\n        if (!dateType) {\n          if (!hasActual && hasPlan)       dateType = 'plan';\n          else if (hasActual && !hasPlan)  dateType = 'actual';\n        }\n        const shiftStart = g.shift_start !== false;\n        if (dateType === null) {\n          // Both plan and actual exist — ask user with plan/actual keyboard\n          const pa = { type: 'shift_dates', taskId: t.id, taskName: t.name, date: g.date || today, days: g.days, value: null, reason: null, dateType: null, shiftStart, clarifyDateType: true };\n          return [{ json: { ...msg, intent: 'shift_dates', useKeyboard: true, responseText: `${tp}📅 Для «${t.name}» (${g.days > 0 ? '+' : ''}${g.days} дн.) — что переносим: план или факт?`, pendingAction: pa } }];\n        }\n        const _dtL = dateType === 'actual' ? 'факт' : dateType === 'both' ? 'план и факт' : 'план';\n        const _stL = shiftStart ? 'начало и конец' : 'только конец';\n        const pa = { type: 'shift_dates', taskId: t.id, taskName: t.name, date: g.date || today, days: g.days, value: null, reason: null, dateType, shiftStart };\n        return [{ json: { ...msg, intent: 'shift_dates', useKeyboard: true, responseText: `${tp}📅 Сдвинуть «${t.name}» на ${g.days > 0 ? '+' : ''}${g.days} дней?\\n_(что: ${_dtL}, ${_stL})_`, pendingAction: pa } }];\n      }\n      let confirmText = '';\n      if (g.intent === 'mark_complete')  confirmText = `✅ Отметить «${t.name}» завершённой ${datePart}?`;\n      else if (g.intent === 'mark_started')  confirmText = `🟡 Отметить «${t.name}» стартовавшей ${datePart}?`;\n      else if (g.intent === 'set_progress')  confirmText = `📊 Прогресс «${t.name}» = ${Math.round((g.value||0)*100)}%?`;\n\n      else if (g.intent === 'add_delay')     confirmText = `⚠️ Задержка «${t.name}»${g.days ? ' (+'+g.days+' дн.)' : ''} — причина: «${g.reason || '—'}»?`;\n      else if (g.intent === 'mark_cancelled') confirmText = `❌ Отменить «${t.name}»? (останется в списке)`;\n      pendingAction = { type: g.intent, taskId: t.id, taskName: t.name, date: g.date || today, days: g.days, value: g.value, reason: g.reason, dateType: g.date_type, shiftStart: g.shift_start };\n      responseText = `${tp}${confirmText}`;\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'add_note') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      const note = g.reason;\n      if (!note) { responseText = `📝 Что записать к «${t.name}»?`; intent = 'clarify'; }\n      else { responseText = `${tp}📝 Добавить заметку к «${t.name}»:\\n_«${note}»_?`; pendingAction = { type: 'add_note', taskId: t.id, taskName: t.name, note }; useKeyboard = true; }\n    }\n\n  // ══════════════════════════════════════\n  // ДАТЫ И ДЛИТ��ЛЬНОСТЬ\n  // ══════════════════════════════════════\n  } else if (['set_start_date','set_end_date','set_both_dates'].includes(g.intent)) {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      if (!g.date_type) {\n        let q3 = `📅 Уточните для «${t.name}»:\\n• Меняем *плановые* даты или *фактические* или *и те �� другие*?`;\n        return [{ json: { ...msg, responseText: `${tp}${q3}`, intent: 'clarify', useKeyboard: false, pendingAction: null } }];\n      }\n      const _isAct = g.date_type === 'actual', _isBoth = g.date_type === 'both';\n      const _dtLabel = _isAct ? 'факт' : _isBoth ? 'план и факт' : 'план';\n      const curStart = _isAct ? t.actualStart : t.planStart;\n      const curEnd   = _isAct ? t.actualEnd   : t.planEnd;\n      let confirmText = '', pa = {};\n      if (g.intent === 'set_start_date') {\n        confirmText = `📅 [что: ${_dtLabel}] Начало «${t.name}» = *${fmtDate(g.plan_start)}*?`;\n        pa = { type: 'set_dates', taskId: t.id, taskName: t.name, dateType: g.date_type, planStart: g.plan_start, planEnd: null };\n      } else if (g.intent === 'set_end_date') {\n        confirmText = `📅 [что: ${_dtLabel}] Конец «${t.name}» = *${fmtDate(g.plan_end)}*?`;\n        pa = { type: 'set_dates', taskId: t.id, taskName: t.name, dateType: g.date_type, planStart: null, planEnd: g.plan_end };\n      } else {\n        confirmText = `📅 [что: ${_dtLabel}] «${t.name}»: *${fmtDate(g.plan_start)} → ${fmtDate(g.plan_end)}*?`;\n        pa = { type: 'set_dates', taskId: t.id, taskName: t.name, dateType: g.date_type, planStart: g.plan_start, planEnd: g.plan_end };\n      }\n      pendingAction = pa;\n      responseText = `${tp}${confirmText}`;\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'set_duration') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      const dur = Number(g.duration);\n      const newEndD = new Date(t.planStart || t.start);\n      newEndD.setUTCDate(newEndD.getUTCDate() + dur);\n      const newEnd = newEndD.toISOString().slice(0,10);\n      responseText = `${tp}📅 Длительность «${t.name}» = *${dur} дней*?\\n(новый конец: ${fmtDate(newEnd)})`;\n      pendingAction = { type: 'set_duration', taskId: t.id, taskName: t.name, duration: dur };\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'bulk_shift_section') {\n    const sec = findSection(g.section || g.task_query);\n    if (!sec) {\n      const list = schedule.sections.map(s => `• \\`${s.id}\\` — ${s.name}`).join('\\n');\n      responseText = `🤔 Не нашёл раздел «${g.task_query || g.section}».\\n\\nДоступные:\\n${list}`;\n      intent = 'task_not_found';\n    } else {\n      const tasks = schedule.tasks.filter(t => t.section === sec.id);\n      const days = Number(g.days);\n      const dText = days > 0 ? `+${days}` : `${days}`;\n      // Auto-resolve dateType for section shift\n      {\n        const anyHasActual = tasks.some(t => !!(t.actualEnd || t.actualStart));\n        let dateTypeB = g.date_type || null;\n        if (dateTypeB === 'actual' && !anyHasActual) dateTypeB = 'plan';\n        if (!dateTypeB) dateTypeB = anyHasActual ? null : 'plan';\n        if (dateTypeB === null) {\n          // Some tasks have actual — ask\n          const pa2 = { type: 'bulk_shift_section', section: sec.id, sectionName: sec.name, days, dateType: null, shiftStart: g.shift_start !== false, clarifyDateType: true };\n          return [{ json: { ...msg, intent: 'bulk_shift_section', useKeyboard: true, responseText: `${tp}📅 Раздел «${sec.name}» (${dText} дн.) — что переносим: план или факт?`, pendingAction: pa2 } }];\n        }\n        g.date_type = dateTypeB;\n      }\n      const _dtLB = g.date_type === 'actual' ? 'факт' : g.date_type === 'both' ? 'план и факт' : 'план';\n      const _stLB = g.shift_start === false ? 'только конец' : 'начало и конец';\n      responseText = `${tp}📅 Сдвинуть все *${tasks.length} задач* раздела «${sec.name}» на *${dText} дней*?\\n_(что: ${_dtLB}, ${_stLB})_`;\n      pendingAction = { type: 'bulk_shift_section', section: sec.id, sectionName: sec.name, days, dateType: g.date_type, shiftStart: g.shift_start };\n      useKeyboard = true;\n    }\n\n  // ══════════════════════════════════════\n  // ЗАДАЧИ — CRUD\n  // ══════════════════════════════════════\n  } else if (g.intent === 'add_task') {\n    const taskName = g.task_name || g.task_query;\n    if (!taskName) {\n      responseText = `${tp}➕ Как называется новая работа?`; intent = 'clarify';\n    } else if (!g.section) {\n      const list = schedule.sections.map(s => `• \\`${s.id}\\` — ${s.name}`).join('\\n');\n      responseText = `${tp}📂 К какой секции добавить «${taskName}»?\\n\\n${list}`; intent = 'clarify';\n    } else if (!g.plan_start || !g.plan_end) {\n      const sec = schedule.sections.find(s => s.id === g.section);\n      responseText = `${tp}📅 С какого по какое число «${taskName}» (${sec?.name || g.section})?`; intent = 'clarify';\n    } else if (g.contractor_name === null && g.is_self === null) {\n      responseText = `${tp}👷 Кто выполняет «${taskName}»?\\nНапиши _«мы»_ (CYFR) или имя/название бригады.`; intent = 'clarify';\n    } else {\n      const sec = schedule.sections.find(s => s.id === g.section);\n      const cText = g.is_self ? 'CYFR (наши)' : (g.contractor_name || '—');\n      responseText = `${tp}➕ Добавить?\\n\\n📝 «${taskName}»\\n📂 ${sec?.name || g.section}\\n📅 ${fmtDate(g.plan_start)} → ${fmtDate(g.plan_end)} (${fmtDur(g.plan_start, g.plan_end)})\\n👷 ${cText}`;\n      pendingAction = { type: 'add_task', taskName, section: g.section, planStart: g.plan_start, planEnd: g.plan_end, contractorName: g.is_self ? 'CYFR' : (g.contractor_name || null) };\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'remove_task') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      responseText = `${tp}🗑 Удалить «${t.name}» из графика?\\n⚠️ Откатить можно командой _«отмени»_.`;\n      pendingAction = { type: 'remove_task', taskId: t.id, taskName: t.name };\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'rename_task') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      if (!g.new_name) { responseText = `✏️ Как переименовать «${t.name}»?`; intent = 'clarify'; }\n      else { responseText = `${tp}✏️ Переименовать «${t.name}» → «${g.new_name}»?`; pendingAction = { type: 'rename_task', taskId: t.id, oldName: t.name, newName: g.new_name }; useKeyboard = true; }\n    }\n\n  } else if (g.intent === 'move_task_section') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      const targetSec = findSection(g.section || g.new_section);\n      if (!targetSec) {\n        const list = schedule.sections.map(s => `• \\`${s.id}\\` — ${s.name}`).join('\\n');\n        responseText = `🤔 Не нашёл раздел «${g.section || g.new_section}».\\n\\n${list}`; intent = 'task_not_found';\n      } else {\n        const curSec = schedule.sections.find(s => s.id === t.section);\n        responseText = `${tp}📂 Переместить «${t.name}»\\nиз «${curSec?.name || t.section}» → «${targetSec.name}»?`;\n        pendingAction = { type: 'move_task_section', taskId: t.id, taskName: t.name, section: targetSec.id };\n        useKeyboard = true;\n      }\n    }\n\n  // ══════════════════════════════════════\n  // ПОДРЯДЧИКИ\n  // ══════════════════════════════════════\n  } else if (g.intent === 'set_contractor') {\n    const cands = findTask(g.task_id || g.task_query);\n    if (!cands.length) { responseText = notFoundReply(g.task_query); intent = 'task_not_found'; }\n    else if (cands.length > 1) { responseText = ambiguousReply(cands); intent = 'task_ambiguous'; }\n    else {\n      const t = cands[0];\n      if (g.contractor_name === null && g.is_self === null) {\n        responseText = `👷 Кто выполняет «${t.name}»?\\nНапиши _«мы»_ (CYFR) или имя бригады.`; intent = 'clarify';\n      } else {\n        const cText = g.is_self ? 'CYFR (наши)' : g.contractor_name;\n        const phText = g.contractor_phone ? ` · ${g.contractor_phone}` : '';\n        responseText = `${tp}👷 Назначить «${cText}${phText}» на «${t.name}»?`;\n        pendingAction = { type: 'set_contractor', taskId: t.id, taskName: t.name, contractorName: g.is_self ? 'CYFR' : g.contractor_name, contractorPhone: g.contractor_phone || null };\n        useKeyboard = true;\n      }\n    }\n\n  } else if (g.intent === 'set_section_contractor') {\n    const sec = findSection(g.section || g.task_query);\n    if (!sec) { responseText = `🤔 Не нашёл раздел «${g.task_query || g.section}».`; intent = 'task_not_found'; }\n    else if (g.contractor_name === null && g.is_self === null) {\n      responseText = `👷 Кто выполняет все работы раздела «${sec.name}»?\\nНапиши _«мы»_ или имя бригады.`; intent = 'clarify';\n    } else {\n      const tasks = schedule.tasks.filter(t => t.section === sec.id);\n      const cText = g.is_self ? 'CYFR (наши)' : g.contractor_name;\n      responseText = `${tp}👷 Назначить «${cText}» на все *${tasks.length} задач* раздела «${sec.name}»?`;\n      pendingAction = { type: 'set_section_contractor', section: sec.id, sectionName: sec.name, contractorName: g.is_self ? 'CYFR' : g.contractor_name };\n      useKeyboard = true;\n    }\n\n  // ══════════════════════════════════════\n  // РАЗДЕЛЫ\n  // ══════════════════════════════════════\n  } else if (g.intent === 'add_section') {\n    const secName = g.section_name || g.task_query;\n    if (!secName) { responseText = `📂 Как назвать новый раздел?`; intent = 'clarify'; }\n    else {\n      const secId = secName.toLowerCase().replace(/\\s+/g,'_').replace(/[^a-z0-9_а-яёa-z]/gi,'') || 'section_'+Date.now();\n      responseText = `${tp}📂 Создать новый раздел «${secName}»?`;\n      pendingAction = { type: 'add_section', sectionId: secId, sectionName: secName };\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'rename_section') {\n    const sec = findSection(g.section || g.task_query);\n    if (!sec) {\n      const list = schedule.sections.map(s => `• \\`${s.id}\\` — ${s.name}`).join('\\n');\n      responseText = `🤔 Не нашёл раздел «${g.task_query || g.section}».\\n\\n${list}`; intent = 'task_not_found';\n    } else if (!g.section_name && !g.new_name) {\n      responseText = `✏️ Как переименовать раздел «${sec.name}»?`; intent = 'clarify';\n    } else {\n      const newName = g.section_name || g.new_name;\n      responseText = `${tp}✏️ Переименовать раздел «${sec.name}» → «${newName}»?`;\n      pendingAction = { type: 'rename_section', sectionId: sec.id, oldName: sec.name, newName };\n      useKeyboard = true;\n    }\n\n  } else if (g.intent === 'remove_section') {\n    const sec = findSection(g.section || g.task_query);\n    if (!sec) { responseText = `🤔 Не нашёл раздел «${g.task_query || g.section}».`; intent = 'task_not_found'; }\n    else {\n      const tasks = schedule.tasks.filter(t => t.section === sec.id);\n      const warn = tasks.length > 0 ? `\\n\\n⚠️ В нём *${tasks.length} задач* — они тоже удалятся!` : '';\n      responseText = `${tp}🗑 Удалить раздел «${sec.name}»?${warn}`;\n      pendingAction = { type: 'remove_section', sectionId: sec.id, sectionName: sec.name };\n      useKeyboard = true;\n    }\n\n  // ── unknown fallback ──\n  } else {\n    const lbl = {\n      mark_complete:'✅ отметить готовой', mark_started:'🟡 старт', set_progress:'📊 %',\n      shift_dates:'📅 сдвиг', add_task:'➕ добавить задачу', query_status:'📊 статус',\n      query_today:'📅 сегодня', query_overdue:'🔴 просрочки',\n      set_start_date:'📅 дата начала', set_end_date:'📅 дата конца', set_contractor:'👷 подрядчик'\n    };\n    const sugg = (g.suggested_intents || []).filter(i => lbl[i]).slice(0, 4);\n    if (sugg.length) {\n      responseText = `${tp}🤔 Не уверен что именно ты хочешь. Возможно:\\n\\n${sugg.map(i=>'• '+lbl[i]).join('\\n')}\\n\\nПереформулируй или скажи _«помощь»_.`;\n    } else {\n      responseText = `${tp}🤔 Не понял. Попробуй _«статус»_, _«что просрочено»_ или _«электрика готова»_.\\n\\n/help`;\n    }\n    intent = 'unknown';\n  }\n} else {\n  responseText = `🤔 Не распознал. /help`;\n}\n\nreturn [{ json: { ...msg, intent, responseText, pendingAction, useKeyboard } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000025",
       "name": "BuildResponse",
@@ -531,54 +531,6 @@
         "airtableTokenApi": {
           "id": "d7bb546a-a890-48",
           "name": "WSB · Airtable PAT"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('StageConfirm').item.json.chatId }}",
-        "text": "={{ $('StageConfirm').item.json.responseText }}",
-        "replyMarkup": "inlineKeyboard",
-        "inlineKeyboard": {
-          "rows": [
-            {
-              "row": {
-                "buttons": [
-                  {
-                    "text": "✅ Да, применить",
-                    "additionalFields": {
-                      "callback_data": "={{ 'confirm:' + $('StageConfirm').item.json.confirmId }}"
-                    }
-                  },
-                  {
-                    "text": "❌ Отмена",
-                    "additionalFields": {
-                      "callback_data": "={{ 'cancel:' + $('StageConfirm').item.json.confirmId }}"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "additionalFields": {
-          "parse_mode": "Markdown",
-          "disable_web_page_preview": true,
-          "appendAttribution": false
-        }
-      },
-      "id": "b1000000-0001-4000-8000-000000000029",
-      "name": "SendWithKeyboard",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3900,
-        200
-      ],
-      "credentials": {
-        "telegramApi": {
-          "id": "54054404-0389-4a",
-          "name": "WSB · Telegram Bot"
         }
       }
     },
@@ -775,7 +727,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse callback_data: 'confirm:<id>' or 'cancel:<id>'\nconst msg = $('Auth').first().json;\nconst parts = (msg.text || '').split(':');\nconst action = parts[0]; // confirm or cancel\nconst confirmId = parts[1] || '';\nreturn [{ json: { ...msg, cbAction: action, cbConfirmId: confirmId } }];"
+        "jsCode": "// Parse callback_data: 'confirm:<id>', 'cancel:<id>', 'plan:<id>', 'actual:<id>', 'cron_*:<taskId>'\nconst msg = $('Auth').first().json;\nconst text = msg.text || '';\nconst parts = text.split(':');\nconst action    = parts[0];\nconst confirmId = parts[1] || '';\nconst isCronCallback = action.startsWith('cron');\nreturn [{ json: { ...msg, cbAction: action, cbConfirmId: confirmId, isCronCallback } }];"
       },
       "id": "b1000000-0001-4000-8000-000000000040",
       "name": "ParseCallback",
@@ -864,7 +816,7 @@
         "source": "database",
         "workflowId": {
           "__rl": true,
-          "value": "2a8758b3-5407-431f-9f44-79020db3a5ba",
+          "value": "RYfACqNNTFnaqNZC",
           "mode": "id"
         },
         "workflowInputs": {
@@ -1168,6 +1120,326 @@
           "name": "WSB · Airtable PAT"
         }
       }
+    },
+    {
+      "id": "send-typing-parallel-01",
+      "name": "SendTyping",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8770380445:AAFUpBDNnQtEDCIW5fX2FUBdeCpTCsxZ8yU/sendChatAction",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Normalize').item.json.chatId }}"
+            },
+            {
+              "name": "action",
+              "value": "typing"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "build-keyboard-01",
+      "name": "BuildKeyboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3900,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const stage = $('StageConfirm').first().json;\nconst confirmId = stage.confirmId;\nconst pa = stage.pendingAction || {};\n\nlet keyboard;\nif (pa.awaitingReason === true) {\n  // Reason selection keyboard (after delay +N days)\n  keyboard = [\n    [\n      { text: \"🛠 Материалы\",    callback_data: \"rsn_mat:\"     + confirmId },\n      { text: \"👷 Подрядчик\",    callback_data: \"rsn_sub:\"     + confirmId }\n    ],\n    [\n      { text: \"📋 Проект\",       callback_data: \"rsn_proj:\"    + confirmId },\n      { text: \"🌦 Погода\",       callback_data: \"rsn_weather:\" + confirmId }\n    ],\n    [\n      { text: \"💬 Без указания\",  callback_data: \"rsn_skip:\"    + confirmId },\n      { text: \"❌ Отмена\",        callback_data: \"cancel:\"      + confirmId }\n    ]\n  ];\n} else if (pa.clarifyDateType === true) {\n  keyboard = [\n    [\n      { text: \"📅 По плану\", callback_data: \"plan:\"   + confirmId },\n      { text: \"⏱ По факту\",  callback_data: \"actual:\" + confirmId }\n    ],\n    [{ text: \"❌ Отмена\", callback_data: \"cancel:\" + confirmId }]\n  ];\n} else {\n  keyboard = [\n    [\n      { text: \"✅ Да, применить\", callback_data: \"confirm:\" + confirmId },\n      { text: \"❌ Отмена\",        callback_data: \"cancel:\"  + confirmId }\n    ]\n  ];\n}\n\nreturn [{ json: {\n  tgChatId: stage.chatId,\n  tgText: stage.responseText,\n  tgReplyMarkup: JSON.stringify({ inline_keyboard: keyboard })\n} }];"
+      }
+    },
+    {
+      "id": "send-msg-dynamic-01",
+      "name": "SendMsg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4100,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8770380445:AAFUpBDNnQtEDCIW5fX2FUBdeCpTCsxZ8yU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.tgChatId }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.tgText }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            },
+            {
+              "name": "reply_markup",
+              "value": "={{ $json.tgReplyMarkup }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "resolve-date-type-01",
+      "name": "ResolveDateType",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        720
+      ],
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nconst cbAction = msg.cbAction;\n\n// Plan / Actual selection\nif ((cbAction === 'plan' || cbAction === 'actual') && msg.pendingFound && !msg.pendingExpired) {\n  const dateType = cbAction;\n  const pa = { ...msg.pendingAction, dateType };\n  delete pa.clarifyDateType;\n  return [{ json: { ...msg, cbAction: 'confirm', pendingAction: pa } }];\n}\n\n// Delay reason selection\nif (cbAction.startsWith('rsn_') && msg.pendingFound && !msg.pendingExpired) {\n  const code = cbAction.slice(4); // mat | sub | proj | weather | skip\n  const REASONS = {\n    mat:     'Задержка материалов',\n    sub:     'Задержка подрядчика',\n    proj:    'Изменения по проекту',\n    weather: 'Погодные условия',\n    skip:    ''\n  };\n  const reason = REASONS[code] !== undefined ? REASONS[code] : '';\n  const pa = { ...msg.pendingAction, reason };\n  delete pa.awaitingReason;\n  return [{ json: { ...msg, cbAction: 'confirm', pendingAction: pa } }];\n}\n\nreturn [{ json: msg }];"
+      }
+    },
+    {
+      "id": "is-cron-cb-01",
+      "name": "IsCronCallback",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1500,
+        580
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.isCronCallback }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "answer-cb-query-01",
+      "name": "AnswerCbQuery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1500,
+        440
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8770380445:AAFUpBDNnQtEDCIW5fX2FUBdeCpTCsxZ8yU/answerCallbackQuery",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "callback_query_id",
+              "value": "={{ $json.callbackQueryId }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "handle-cron-cb-01",
+      "name": "HandleCronCallback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        440
+      ],
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nconst cbAction = msg.cbAction;\nconst taskId   = msg.cbConfirmId;\n\nconst segs = cbAction.split('_'); // [\"cron\",\"start\",\"ok\"] etc.\nconst notifType = segs[1]; // start | end | done\nconst outcome   = segs[2]; // ok | shift | undefined\nconst days      = segs[3] ? Number(segs[3]) : null;\n\nconst today = new Date().toISOString().slice(0, 10);\nconst GANTT = 'https://cyfr-schedule-app.vercel.app/';\n\nlet pendingAction = null;\nlet cronResponseText = '';\nlet awaitingReason = false;\nlet responseText = '';\n\nif (notifType === 'done') {\n  pendingAction = { type: 'mark_complete', taskId, taskName: 'задача', date: today };\n  cronResponseText = `🏆 Принято! Работа отмечена завершённой.\\n\\n🔗 ${GANTT}`;\n\n} else if (notifType === 'start') {\n  if (outcome === 'ok') {\n    pendingAction = { type: 'mark_started', taskId, taskName: 'задача', date: today };\n    cronResponseText = `✅ Принято! Зафиксировали: начало в срок.\\nОтметь по факту когда команда приступит. 🔗 ${GANTT}`;\n  } else if (outcome === 'shift') {\n    pendingAction = { type: 'shift_dates', taskId, taskName: 'задача', days, dateType: 'plan', shiftStart: true, awaitingReason: true };\n    awaitingReason = true;\n    responseText = `📆 ОК, плановый старт сдвинем на +${days} дн.\\n\\nКакая причина задержки?`;\n  }\n\n} else if (notifType === 'end') {\n  if (outcome === 'ok') {\n    cronResponseText = `✅ Принято! Ждём закрытия в срок.\\nНе забудь отметить «готово» когда закончите 🔗 ${GANTT}`;\n  } else if (outcome === 'shift') {\n    pendingAction = { type: 'shift_dates', taskId, taskName: 'задача', days, dateType: 'plan', shiftStart: false, awaitingReason: true };\n    awaitingReason = true;\n    responseText = `📆 ОК, дедлайн сдвинем на +${days} дн.\\n\\nКакая причина задержки?`;\n  }\n}\n\nreturn [{ json: {\n  ...msg,\n  pendingAction,\n  cronResponseText: cronResponseText || '✅ Принято!',\n  responseText,\n  hasCronAction: pendingAction !== null && !awaitingReason,\n  awaitingReason\n} }];"
+      }
+    },
+    {
+      "id": "is-cron-action-01",
+      "name": "IsCronAction",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1900,
+        440
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.hasCronAction }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "cron-exec-patch-01",
+      "name": "CronExecutePatch",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        2100,
+        400
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "RYfACqNNTFnaqNZC",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "={{ $json.pendingAction }}",
+            "author": "={{ $('HandleCronCallback').first().json.userFields?.Name || $('HandleCronCallback').first().json.username || 'Bot (cron)' }}"
+          },
+          "schema": [
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "type": "object"
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "cron-send-done-01",
+      "name": "CronSendDone",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2300,
+        440
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8770380445:AAFUpBDNnQtEDCIW5fX2FUBdeCpTCsxZ8yU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('HandleCronCallback').first().json.chatId }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $('HandleCronCallback').first().json.cronResponseText }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "is-awaiting-reason-01",
+      "name": "IsAwaitingReason",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1900,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.awaitingReason }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -1220,6 +1492,11 @@
         [
           {
             "node": "Route Type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SendTyping",
             "type": "main",
             "index": 0
           }
@@ -1402,18 +1679,7 @@
       "main": [
         [
           {
-            "node": "SendWithKeyboard",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SendWithKeyboard": {
-      "main": [
-        [
-          {
-            "node": "LogAudit",
+            "node": "BuildKeyboard",
             "type": "main",
             "index": 0
           }
@@ -1435,7 +1701,12 @@
       "main": [
         [
           {
-            "node": "LookupPending",
+            "node": "IsCronCallback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AnswerCbQuery",
             "type": "main",
             "index": 0
           }
@@ -1457,7 +1728,7 @@
       "main": [
         [
           {
-            "node": "Route Callback",
+            "node": "ResolveDateType",
             "type": "main",
             "index": 0
           }
@@ -1527,6 +1798,115 @@
         [
           {
             "node": "BuildGPTBody",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuildKeyboard": {
+      "main": [
+        [
+          {
+            "node": "SendMsg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendMsg": {
+      "main": [
+        [
+          {
+            "node": "LogAudit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResolveDateType": {
+      "main": [
+        [
+          {
+            "node": "Route Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsCronCallback": {
+      "main": [
+        [
+          {
+            "node": "HandleCronCallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LookupPending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HandleCronCallback": {
+      "main": [
+        [
+          {
+            "node": "IsAwaitingReason",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsCronAction": {
+      "main": [
+        [
+          {
+            "node": "CronExecutePatch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CronSendDone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CronExecutePatch": {
+      "main": [
+        [
+          {
+            "node": "CronSendDone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsAwaitingReason": {
+      "main": [
+        [
+          {
+            "node": "StageConfirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IsCronAction",
             "type": "main",
             "index": 0
           }
