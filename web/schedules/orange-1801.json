@@ -16,7 +16,7 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-25T20:34:37.154Z",
+    "lastUpdated": "2026-04-26T07:50:11.562Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -290,14 +290,20 @@
       "costIncVat": 0,
       "planStart": "2026-03-16",
       "planEnd": "2026-05-02",
-      "actualStart": "2026-03-11",
-      "actualEnd": "2026-05-07",
+      "actualStart": "2026-03-18",
+      "actualEnd": "2026-05-14",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -311,14 +317,20 @@
       "costIncVat": 0,
       "planStart": "2026-03-16",
       "planEnd": "2026-03-20",
-      "actualStart": "2026-03-11",
-      "actualEnd": "2026-03-25",
+      "actualStart": "2026-03-18",
+      "actualEnd": "2026-04-01",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -332,8 +344,8 @@
       "costIncVat": 0,
       "planStart": "2026-03-16",
       "planEnd": "2026-03-25",
-      "actualStart": "2026-03-14",
-      "actualEnd": "2026-04-02",
+      "actualStart": "2026-03-21",
+      "actualEnd": "2026-04-09",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
@@ -346,6 +358,12 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Закупка воздуховодов и фасонных изделий» [факт]: +3 дн. 14 мар — 2 апр"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -359,14 +377,20 @@
       "costIncVat": 0,
       "planStart": "2026-03-19",
       "planEnd": "2026-04-27",
-      "actualStart": "2026-03-14",
-      "actualEnd": "2026-05-02",
+      "actualStart": "2026-03-21",
+      "actualEnd": "2026-05-09",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -393,14 +417,20 @@
       "costIncVat": 0,
       "planStart": "2026-03-21",
       "planEnd": "2026-03-28",
-      "actualStart": "2026-03-16",
-      "actualEnd": "2026-04-02",
+      "actualStart": "2026-03-23",
+      "actualEnd": "2026-04-09",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -462,14 +492,20 @@
       "costIncVat": 0,
       "planStart": "2026-03-29",
       "planEnd": "2026-04-21",
-      "actualStart": "2026-04-03",
-      "actualEnd": "2026-04-26",
+      "actualStart": "2026-04-10",
+      "actualEnd": "2026-05-03",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -483,14 +519,20 @@
       "costIncVat": 0,
       "planStart": "2026-04-09",
       "planEnd": "2026-04-12",
-      "actualStart": "2026-04-14",
-      "actualEnd": "2026-04-17",
+      "actualStart": "2026-04-21",
+      "actualEnd": "2026-04-24",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -545,14 +587,20 @@
       "costIncVat": 0,
       "planStart": "2026-04-13",
       "planEnd": "2026-04-25",
-      "actualStart": "2026-04-18",
-      "actualEnd": "2026-04-30",
+      "actualStart": "2026-04-25",
+      "actualEnd": "2026-05-07",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -587,7 +635,7 @@
       "costIncVat": 0,
       "planStart": "2026-05-06",
       "planEnd": "2026-05-12",
-      "actualStart": "2026-04-21",
+      "actualStart": "2026-04-28",
       "progress": 0.9,
       "subtasks": [
         {
@@ -597,13 +645,19 @@
           "duration_days": 14
         }
       ],
-      "actualEnd": "2026-05-17",
+      "actualEnd": "2026-05-24",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
+        },
+        {
+          "at": "2026-04-26T07:50:11.562Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -808,6 +862,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Закупка воздуховодов и фасонных изделий» [факт]: +3 дн. 14 мар — 2 апр"
+    },
+    {
+      "at": "2026-04-26T07:50:11.562Z",
+      "by": "Sergei Grishenkov",
+      "type": "bulk_shift_section",
+      "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
     }
   ]
 }
