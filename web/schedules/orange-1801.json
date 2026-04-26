@@ -16,8 +16,8 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-26T14:18:45.340Z",
-    "lastUpdatedBy": "Sergei Grishenkov (cost backfill)",
+    "lastUpdated": "2026-04-26T20:32:05.765Z",
+    "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
         "id": "P1",
@@ -287,7 +287,7 @@
       "name": "Работы по вентиляционным системам Frost",
       "qty": null,
       "unit": "",
-      "costIncVat": 5250.0,
+      "costIncVat": 5250,
       "planStart": "2026-03-16",
       "planEnd": "2026-05-02",
       "actualStart": "2026-03-11",
@@ -711,7 +711,7 @@
       "name": "FAS · укладка кабелей пожарной безопасности",
       "qty": null,
       "unit": "",
-      "costIncVat": 7350.0,
+      "costIncVat": 7350,
       "planStart": "2026-03-30",
       "planEnd": "2026-03-31",
       "actualStart": null,
@@ -795,6 +795,27 @@
       "actualStart": null,
       "actualEnd": null,
       "costIncVat": 20581.23
+    },
+    {
+      "id": "34",
+      "name": "Чистка системы кондиционирования",
+      "section": "hvac",
+      "planStart": "2026-05-01",
+      "planEnd": "2026-05-08",
+      "start": "2026-05-01",
+      "end": "2026-05-08",
+      "progress": 0,
+      "contractor": "CYFR",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-26T20:32:05.765Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Чистка системы кондиционирования»"
+        }
+      ]
     }
   ],
   "history": [
@@ -821,6 +842,12 @@
       "by": "system",
       "kind": "cost_backfill",
       "note": "Распределена сметная стоимость 799,675.39 AED по работам (Annex 1 to Supp. Agreement No. 2)"
+    },
+    {
+      "at": "2026-04-26T20:32:05.765Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Чистка системы кондиционирования»"
     }
   ]
 }
