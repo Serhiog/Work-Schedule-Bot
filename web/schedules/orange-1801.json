@@ -16,8 +16,8 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-26T20:32:05.765Z",
-    "lastUpdatedBy": "Sergei Grishenkov",
+    "lastUpdated": "2026-04-27T00:00:00.000Z",
+    "lastUpdatedBy": "Sergei Grishenkov (rebuild from contract estimate)",
     "paymentStages": [
       {
         "id": "P1",
@@ -47,96 +47,76 @@
   },
   "sections": [
     {
+      "id": "preparation",
+      "name": "Подготовка",
+      "color": "#94a3b8"
+    },
+    {
       "id": "demolition",
       "name": "Демонтаж",
       "color": "#64748b"
     },
     {
-      "id": "plumbing",
-      "name": "Сантехника",
-      "color": "#3b82f6",
-      "sub": true
+      "id": "walls",
+      "name": "Стены (ГКЛ + покраска)",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "ceilings",
+      "name": "Потолки",
+      "color": "#0ea5e9"
+    },
+    {
+      "id": "floors",
+      "name": "Полы",
+      "color": "#a16207"
+    },
+    {
+      "id": "bathrooms",
+      "name": "Санузлы",
+      "color": "#0d9488"
     },
     {
       "id": "electrical",
       "name": "Электрика",
-      "color": "#eab308",
-      "sub": true
+      "color": "#f97316"
     },
     {
       "id": "fire_safety",
       "name": "Пожаробезопасность",
-      "color": "#dc2626",
-      "sub": true
+      "color": "#dc2626"
     },
     {
       "id": "hvac",
-      "name": "ОВиК (вентиляция)",
-      "color": "#06b6d4",
-      "sub": true
+      "name": "ОВиК (сопровождение)",
+      "color": "#06b6d4"
     },
     {
-      "id": "flooring",
-      "name": "Полы",
-      "color": "#f97316"
-    },
-    {
-      "id": "drywall",
-      "name": "Гипсокартонные работы",
-      "color": "#ec4899"
-    },
-    {
-      "id": "finishing",
-      "name": "Штукатурно-малярные",
-      "color": "#a855f7"
-    },
-    {
-      "id": "paint",
-      "name": "Покраска",
-      "color": "#22c55e"
-    },
-    {
-      "id": "glass",
-      "name": "Стеклянные перегородки",
-      "color": "#14b8a6",
-      "sub": true
-    },
-    {
-      "id": "furniture",
-      "name": "Мебель и декор",
-      "color": "#475569"
+      "id": "logistics",
+      "name": "Транспорт/логистика",
+      "color": "#8b5cf6"
     },
     {
       "id": "cleaning",
-      "name": "Уборка",
-      "color": "#84cc16"
-    },
-    {
-      "id": "materials",
-      "name": "Логистика и материалы",
-      "color": "#d4a017"
+      "name": "Уборка / вывоз мусора",
+      "color": "#16a34a"
     }
   ],
   "stages": [
     {
       "id": "ST1",
-      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "name": "Этап 1 · Черновые работы (40%)",
       "color": "#1e3b60"
     },
     {
       "id": "ST2",
-      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
-      "color": "#2d6a8f"
+      "name": "Этап 2 · Чистовые работы (35%)",
+      "color": "#d97706"
     },
     {
       "id": "ST3",
-      "name": "Этап 3 · Чистовые (отделка)",
-      "color": "#c9a96e"
-    },
-    {
-      "id": "ST4",
-      "name": "Этап 4 · Сдача (мебель, уборка)",
-      "color": "#8a5a44"
+      "name": "Этап 3 · Сдача-приёмка (10%)",
+      "color": "#16a34a"
     }
   ],
   "milestones": [
@@ -208,614 +188,535 @@
   "tasks": [
     {
       "id": "1",
-      "section": "demolition",
+      "estimateRef": "5.4",
+      "section": "preparation",
       "stage": "ST1",
-      "name": "Демонтажные работы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 76327.25,
-      "planStart": "2026-02-24",
-      "planEnd": "2026-03-11",
-      "actualStart": "2026-02-24",
-      "actualEnd": "2026-03-11"
-    },
-    {
-      "id": "5",
-      "section": "plumbing",
-      "stage": "ST1",
-      "name": "Сантехнические работы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 26194.29,
-      "planStart": "2026-03-16",
-      "planEnd": "2026-05-02",
-      "actualStart": "2026-03-02",
-      "actualEnd": "2026-04-18",
-      "subtasks": [
-        {
-          "name": "Закладные сантехнических приборов",
-          "start": "2026-03-01",
-          "finish": "2026-03-09",
-          "duration_days": 9
-        }
-      ]
-    },
-    {
-      "id": "3",
-      "section": "electrical",
-      "stage": "ST1",
-      "name": "Электромонтажные работы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 49478.1,
-      "planStart": "2026-03-03",
-      "planEnd": "2026-04-08",
-      "actualStart": "2026-03-03",
-      "actualEnd": "2026-04-08",
-      "subtasks": [
-        {
-          "name": "Напольные розетки",
-          "start": "2026-03-01",
-          "finish": "2026-03-17",
-          "duration_days": 17
-        },
-        {
-          "name": "Закладные детали подсветка",
-          "start": "2026-03-01",
-          "finish": "2026-03-28",
-          "duration_days": 28
-        }
-      ]
-    },
-    {
-      "id": "19",
-      "section": "drywall",
-      "stage": "ST2",
-      "name": "Монтаж гипсокартоновых стен и перегородок",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 199726.07,
-      "planStart": "2026-03-06",
-      "planEnd": "2026-04-11",
-      "actualStart": "2026-03-06",
-      "actualEnd": "2026-04-11"
-    },
-    {
-      "id": "7",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Работы по вентиляционным системам Frost",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 5250,
-      "planStart": "2026-03-16",
-      "planEnd": "2026-05-02",
-      "actualStart": "2026-03-11",
-      "actualEnd": "2026-05-07",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "8",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Закуп фанкоилов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-16",
-      "planEnd": "2026-03-20",
-      "actualStart": "2026-03-11",
-      "actualEnd": "2026-03-25",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "9",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Закупка воздуховодов и фасонных изделий",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-16",
-      "planEnd": "2026-03-25",
-      "actualStart": "2026-03-14",
-      "actualEnd": "2026-04-02",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-25T20:34:37.154Z",
-          "by": "Sergei Grishenkov",
-          "type": "shift_dates",
-          "summary": "«Закупка воздуховодов и фасонных изделий» [факт]: +3 дн. 14 мар — 2 апр"
-        }
-      ]
-    },
-    {
-      "id": "14",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Сборка и монтаж воздуховодов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-19",
-      "planEnd": "2026-04-27",
-      "actualStart": "2026-03-14",
-      "actualEnd": "2026-05-02",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "17",
-      "section": "flooring",
-      "stage": "ST2",
-      "name": "Демонтаж старой стяжки пола",
+      "name": "Подготовительные работы",
       "qty": null,
       "unit": "",
       "costIncVat": 51972.8,
-      "planStart": "2026-03-09",
-      "planEnd": "2026-03-14",
-      "actualStart": "2026-03-09",
-      "actualEnd": "2026-03-14"
-    },
-    {
-      "id": "10",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Установка фанкоилов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-21",
-      "planEnd": "2026-03-28",
-      "actualStart": "2026-03-16",
-      "actualEnd": "2026-04-02",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "18",
-      "section": "flooring",
-      "stage": "ST2",
-      "name": "Устройство наливного пола",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 52695.32,
-      "planStart": "2026-03-16",
-      "planEnd": "2026-03-28",
+      "planStart": "2026-02-24",
+      "planEnd": "2026-03-08",
       "actualStart": null,
       "actualEnd": null
     },
     {
-      "id": "21",
-      "section": "finishing",
-      "stage": "ST3",
-      "name": "Штукатурно-малярные работы",
+      "id": "2",
+      "estimateRef": "5.6",
+      "section": "preparation",
+      "stage": "ST1",
+      "name": "Защита поверхностей ПВХ-материалом",
+      "qty": 1700.0,
+      "unit": "м²",
+      "costIncVat": 17494.04,
+      "planStart": "2026-02-27",
+      "planEnd": "2026-03-10",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "estimateRef": "5.3",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтажные работы (на протяжении ремонта)",
       "qty": null,
       "unit": "",
-      "costIncVat": 44720.47,
-      "planStart": "2026-03-17",
-      "planEnd": "2026-04-01",
+      "costIncVat": 41162.46,
+      "planStart": "2026-02-27",
+      "planEnd": "2026-03-15",
       "actualStart": null,
       "actualEnd": null
     },
     {
       "id": "4",
-      "section": "electrical",
+      "estimateRef": "5.5",
+      "section": "logistics",
       "stage": "ST1",
-      "name": "Установка чистовых электроприборов",
+      "name": "Транспортные расходы",
       "qty": null,
       "unit": "",
-      "costIncVat": 43657.15,
-      "planStart": "2026-03-18",
-      "planEnd": "2026-06-05",
-      "actualStart": "2026-03-18",
-      "actualEnd": null,
-      "progress": 0.45,
-      "subtasks": [
-        {
-          "name": "Электроприборы",
-          "start": "2026-03-02",
-          "finish": "2026-05-17",
-          "duration_days": 77
-        }
-      ]
-    },
-    {
-      "id": "11",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Монтаж очень хорошей системы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-29",
-      "planEnd": "2026-04-21",
-      "actualStart": "2026-04-03",
-      "actualEnd": "2026-04-26",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "12",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Монтаж узлов обвязки фанкоилов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-04-09",
-      "planEnd": "2026-04-12",
-      "actualStart": "2026-04-14",
-      "actualEnd": "2026-04-17",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "20",
-      "section": "drywall",
-      "stage": "ST2",
-      "name": "Монтаж гипсокартоновых потолков",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 54668.74,
-      "planStart": "2026-03-30",
-      "planEnd": "2026-04-13",
+      "costIncVat": 17670.75,
+      "planStart": "2026-02-24",
+      "planEnd": "2026-06-15",
       "actualStart": null,
       "actualEnd": null
     },
     {
-      "id": "24",
-      "section": "paint",
-      "stage": "ST3",
-      "name": "Покрасочные работы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 42387.3,
-      "planStart": "2026-03-31",
-      "planEnd": "2026-05-19",
-      "actualStart": "2026-03-31",
-      "actualEnd": "2026-05-01",
-      "progress": 0.4,
-      "subtasks": [
-        {
-          "name": "Краска",
-          "start": "2026-03-09",
-          "finish": "2026-03-19",
-          "duration_days": 11
-        },
-        {
-          "name": "Декоративная штукатурка",
-          "start": "2026-03-09",
-          "finish": "2026-04-05",
-          "duration_days": 28
-        }
-      ]
-    },
-    {
-      "id": "13",
-      "section": "hvac",
+      "id": "5",
+      "estimateRef": "5.8",
+      "section": "fire_safety",
       "stage": "ST1",
-      "name": "Опрессовка, промывка и хим обработка труб хладоснабжения",
+      "name": "Разработка и согласование чертежей системы пожаротушения",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-04-13",
-      "planEnd": "2026-04-25",
-      "actualStart": "2026-04-18",
-      "actualEnd": "2026-04-30",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "15",
-      "section": "electrical",
-      "stage": "ST1",
-      "name": "Подключение слаботочной электрики и установка термостатов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-04-08",
-      "planEnd": "2026-04-18",
+      "costIncVat": 7350.0,
+      "planStart": "2026-02-24",
+      "planEnd": "2026-03-20",
       "actualStart": null,
-      "actualEnd": null,
-      "subtasks": [
-        {
-          "name": "Изоляция воздуховодов",
-          "start": null,
-          "finish": "2026-04-20",
-          "duration_days": null
-        }
-      ]
-    },
-    {
-      "id": "16",
-      "section": "hvac",
-      "stage": "ST1",
-      "name": "Пусконаладочные работы, акты приемки",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-05-06",
-      "planEnd": "2026-05-12",
-      "actualStart": "2026-04-21",
-      "progress": 0.9,
-      "subtasks": [
-        {
-          "name": "Терморегуляторы, решетки радиаторов",
-          "start": "2026-03-01",
-          "finish": "2026-03-14",
-          "duration_days": 14
-        }
-      ],
-      "actualEnd": "2026-05-17",
-      "history": [
-        {
-          "at": "2026-04-25T20:33:31.498Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        }
-      ]
-    },
-    {
-      "id": "23",
-      "section": "glass",
-      "stage": "ST3",
-      "name": "Монтаж стеклянных перегородок",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-04-21",
-      "planEnd": "2026-05-11",
-      "actualStart": "2026-04-21",
-      "actualEnd": null,
-      "progress": 0.15,
-      "subtasks": [
-        {
-          "name": "Стеклянные перегородки",
-          "start": "2026-03-05",
-          "finish": "2026-05-27",
-          "duration_days": 84
-        }
-      ]
-    },
-    {
-      "id": "22",
-      "section": "flooring",
-      "stage": "ST2",
-      "name": "Укладка плитки",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 53108.38,
-      "planStart": "2026-04-23",
-      "planEnd": "2026-04-24",
-      "actualStart": null,
-      "actualEnd": null,
-      "subtasks": [
-        {
-          "name": "Плитка фоновая для санузлов",
-          "start": "2026-02-26",
-          "finish": "2026-03-09",
-          "duration_days": 12
-        },
-        {
-          "name": "Плитка акцентная для санузлов",
-          "start": "2026-02-26",
-          "finish": "2026-06-11",
-          "duration_days": 106
-        },
-        {
-          "name": "Плитка акцентная для кухни",
-          "start": null,
-          "finish": null,
-          "duration_days": null
-        }
-      ]
-    },
-    {
-      "id": "26",
-      "section": "flooring",
-      "stage": "ST2",
-      "name": "Укладка ковролина",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 41621.96,
-      "planStart": "2026-05-05",
-      "planEnd": "2026-05-18",
-      "actualStart": null,
-      "actualEnd": null,
-      "subtasks": [
-        {
-          "name": "Ковролин",
-          "start": "2026-03-01",
-          "finish": "2026-05-01",
-          "duration_days": 62
-        }
-      ]
-    },
-    {
-      "id": "25",
-      "section": "plumbing",
-      "stage": "ST1",
-      "name": "Монтаж сантехнического оборудования",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 29936.33,
-      "planStart": "2026-06-01",
-      "planEnd": "2026-06-06",
-      "actualStart": null,
-      "actualEnd": null,
-      "subtasks": [
-        {
-          "name": "Сантехническое оборудование",
-          "start": "2026-03-05",
-          "finish": "2026-05-04",
-          "duration_days": 61
-        }
-      ]
+      "actualEnd": null
     },
     {
       "id": "6",
-      "section": "fire_safety",
+      "estimateRef": "5.9",
+      "section": "hvac",
       "stage": "ST1",
-      "name": "FAS · укладка кабелей пожарной безопасности",
+      "name": "Сопровождение работ подрядчика по вентиляции и кондиционированию",
       "qty": null,
       "unit": "",
-      "costIncVat": 7350,
-      "planStart": "2026-03-30",
-      "planEnd": "2026-03-31",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
-      "id": "28",
-      "section": "furniture",
-      "stage": "ST4",
-      "name": "Изделия на заказ (металл, стекло, панели, зеркала)",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-15",
+      "costIncVat": 5250.0,
+      "planStart": "2026-03-01",
       "planEnd": "2026-05-30",
       "actualStart": null,
       "actualEnd": null
     },
     {
-      "id": "29",
-      "section": "furniture",
-      "stage": "ST4",
-      "name": "Мебель заказная отдельностоящая",
+      "id": "7",
+      "estimateRef": "1.1",
+      "section": "walls",
+      "stage": "ST1",
+      "name": "Возведение конструкций ГКЛ (2 слоя) с металлокаркасом",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 143200.0,
+      "planStart": "2026-03-08",
+      "planEnd": "2026-03-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "estimateRef": "1.4",
+      "section": "walls",
+      "stage": "ST1",
+      "name": "Монтаж утеплителя (2 слоя)",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 28263.03,
+      "planStart": "2026-03-18",
+      "planEnd": "2026-03-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "estimateRef": "2.4",
+      "section": "ceilings",
+      "stage": "ST1",
+      "name": "Возведение конструкций ГКЛ потолки с металлокаркасом",
+      "qty": 116.23,
+      "unit": "м²",
+      "costIncVat": 28994.05,
+      "planStart": "2026-03-15",
+      "planEnd": "2026-04-02",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "estimateRef": "2.5",
+      "section": "ceilings",
+      "stage": "ST1",
+      "name": "Монтаж шумоизоляции (минвата 50 мм)",
+      "qty": 116.23,
+      "unit": "м²",
+      "costIncVat": 10872.77,
+      "planStart": "2026-03-22",
+      "planEnd": "2026-04-02",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "11",
+      "estimateRef": "5.1",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Черновые электромонтажные работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-01",
-      "planEnd": "2026-06-13",
+      "costIncVat": 49478.1,
+      "planStart": "2026-03-10",
+      "planEnd": "2026-04-05",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "12",
+      "estimateRef": "4.9",
+      "section": "bathrooms",
+      "stage": "ST1",
+      "name": "Черновые работы по сантехнике (3 санузла)",
+      "qty": 3,
+      "unit": "СУ",
+      "costIncVat": 26194.29,
+      "planStart": "2026-03-12",
+      "planEnd": "2026-04-02",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "13",
+      "estimateRef": "4.1",
+      "section": "bathrooms",
+      "stage": "ST1",
+      "name": "Грунтовка перед штукатуркой (СУ)",
+      "qty": 86.62,
+      "unit": "м²",
+      "costIncVat": 1350.6,
+      "planStart": "2026-04-02",
+      "planEnd": "2026-04-04",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "14",
+      "estimateRef": "4.2",
+      "section": "bathrooms",
+      "stage": "ST1",
+      "name": "Штукатурка по маякам до 30 мм (СУ)",
+      "qty": 86.62,
+      "unit": "м²",
+      "costIncVat": 8103.63,
+      "planStart": "2026-04-04",
+      "planEnd": "2026-04-12",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "15",
+      "estimateRef": "4.6",
+      "section": "bathrooms",
+      "stage": "ST1",
+      "name": "Наклеивание гидроизоляционной ленты",
+      "qty": 216.56,
+      "unit": "м.п.",
+      "costIncVat": 6753.02,
+      "planStart": "2026-04-08",
+      "planEnd": "2026-04-13",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "16",
+      "estimateRef": "4.7",
+      "section": "bathrooms",
+      "stage": "ST1",
+      "name": "Нанесение гидроизоляционного состава",
+      "qty": 216.56,
+      "unit": "м²",
+      "costIncVat": 6753.02,
+      "planStart": "2026-04-10",
+      "planEnd": "2026-04-15",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "17",
+      "estimateRef": "3.1",
+      "section": "floors",
+      "stage": "ST1",
+      "name": "Устройство слоя нивелира под плитку и ковролин",
+      "qty": 375.51,
+      "unit": "м²",
+      "costIncVat": 52695.32,
+      "planStart": "2026-04-01",
+      "planEnd": "2026-04-15",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "18",
+      "estimateRef": "1.2",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Проклейка стыков ГКЛ (стены)",
+      "qty": 755.28,
+      "unit": "м.п.",
+      "costIncVat": 14131.52,
+      "planStart": "2026-04-01",
+      "planEnd": "2026-04-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "19",
+      "estimateRef": "1.3",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Установка угловых профилей (стены)",
+      "qty": 755.28,
+      "unit": "м.п.",
+      "costIncVat": 14131.52,
+      "planStart": "2026-04-01",
+      "planEnd": "2026-04-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "20",
+      "estimateRef": "1.5",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Шпатлёвка стен (2 слоя)",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 18842.02,
+      "planStart": "2026-04-07",
+      "planEnd": "2026-04-16",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "21",
+      "estimateRef": "1.6",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Шлифовка стен",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 5652.61,
+      "planStart": "2026-04-17",
+      "planEnd": "2026-04-19",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "22",
+      "estimateRef": "1.7",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Грунтовка стен перед покраской",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 9421.01,
+      "planStart": "2026-04-20",
+      "planEnd": "2026-04-22",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "23",
+      "estimateRef": "1.8",
+      "section": "walls",
+      "stage": "ST2",
+      "name": "Покраска стен (2 слоя водной краской)",
+      "qty": 302.11,
+      "unit": "м²",
+      "costIncVat": 14131.52,
+      "planStart": "2026-04-23",
+      "planEnd": "2026-05-04",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "24",
+      "estimateRef": "2.6",
+      "section": "ceilings",
+      "stage": "ST2",
+      "name": "Проклейка стыков ГКЛ (потолки)",
+      "qty": 290.58,
+      "unit": "м.п.",
+      "costIncVat": 5436.39,
+      "planStart": "2026-04-04",
+      "planEnd": "2026-04-08",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "25",
+      "estimateRef": "2.7",
+      "section": "ceilings",
+      "stage": "ST2",
+      "name": "Установка угловых профилей (потолки)",
+      "qty": 290.58,
+      "unit": "м.п.",
+      "costIncVat": 5436.39,
+      "planStart": "2026-04-04",
+      "planEnd": "2026-04-08",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "26",
+      "estimateRef": "2.1",
+      "section": "ceilings",
+      "stage": "ST2",
+      "name": "Грунтовка потолков перед покраской",
+      "qty": 393.96,
+      "unit": "м²",
+      "costIncVat": 7371.07,
+      "planStart": "2026-04-22",
+      "planEnd": "2026-04-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "27",
+      "estimateRef": "2.2",
+      "section": "ceilings",
+      "stage": "ST2",
+      "name": "Покраска потолков",
+      "qty": 393.96,
+      "unit": "м²",
+      "costIncVat": 20884.71,
+      "planStart": "2026-04-26",
+      "planEnd": "2026-05-08",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "28",
+      "estimateRef": "2.3",
+      "section": "ceilings",
+      "stage": "ST2",
+      "name": "Установка ревизионных люков с финишной отделкой",
+      "qty": 6,
+      "unit": "шт.",
+      "costIncVat": 3929.14,
+      "planStart": "2026-05-04",
+      "planEnd": "2026-05-10",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "29",
+      "estimateRef": "4.3",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Грунтовка перед облицовкой керамогранитом",
+      "qty": 86.62,
+      "unit": "м²",
+      "costIncVat": 1350.6,
+      "planStart": "2026-04-15",
+      "planEnd": "2026-04-17",
       "actualStart": null,
       "actualEnd": null
     },
     {
       "id": "30",
-      "section": "furniture",
-      "stage": "ST4",
-      "name": "Мебель заказная встраиваемая",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-03-01",
-      "planEnd": "2026-06-09",
+      "estimateRef": "4.5",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Запил углов плитки под 45°",
+      "qty": 17.5,
+      "unit": "м.п.",
+      "costIncVat": 3820.01,
+      "planStart": "2026-04-22",
+      "planEnd": "2026-04-30",
       "actualStart": null,
       "actualEnd": null
     },
     {
       "id": "31",
-      "section": "furniture",
-      "stage": "ST4",
-      "name": "Мебель из наличия",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-05-04",
-      "planEnd": "2026-06-13",
+      "estimateRef": "4.4",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Высверливание отверстий в плитке",
+      "qty": 54,
+      "unit": "шт.",
+      "costIncVat": 3367.83,
+      "planStart": "2026-04-28",
+      "planEnd": "2026-05-04",
       "actualStart": null,
       "actualEnd": null
     },
     {
       "id": "32",
-      "section": "furniture",
-      "stage": "ST4",
-      "name": "Декор",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "planStart": "2026-05-13",
-      "planEnd": "2026-06-23",
+      "estimateRef": "4.8",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Облицовка поверхностей керамогранитом",
+      "qty": 86.62,
+      "unit": "м²",
+      "costIncVat": 32414.5,
+      "planStart": "2026-04-18",
+      "planEnd": "2026-05-12",
       "actualStart": null,
       "actualEnd": null
     },
     {
       "id": "33",
-      "name": "Финальная чистка",
-      "section": "cleaning",
-      "planStart": "2026-05-10",
-      "planEnd": "2026-05-15",
-      "start": "2026-05-10",
-      "end": "2026-05-15",
-      "progress": 0,
-      "contractor": "CYFR",
+      "estimateRef": "4.10",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Чистовые работы по сантехнике (3 санузла)",
+      "qty": 3,
+      "unit": "СУ",
+      "costIncVat": 17462.85,
+      "planStart": "2026-05-13",
+      "planEnd": "2026-05-22",
       "actualStart": null,
-      "actualEnd": null,
-      "costIncVat": 20581.23
+      "actualEnd": null
     },
     {
       "id": "34",
-      "name": "Чистка системы кондиционирования",
-      "section": "hvac",
-      "planStart": "2026-05-01",
-      "planEnd": "2026-05-08",
-      "start": "2026-05-01",
-      "end": "2026-05-08",
-      "progress": 0,
-      "contractor": "CYFR",
+      "estimateRef": "4.11",
+      "section": "bathrooms",
+      "stage": "ST2",
+      "name": "Установка всех аксессуаров (СУ)",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 12473.48,
+      "planStart": "2026-05-23",
+      "planEnd": "2026-05-30",
       "actualStart": null,
-      "actualEnd": null,
-      "history": [
-        {
-          "at": "2026-04-26T20:32:05.765Z",
-          "by": "Sergei Grishenkov",
-          "type": "add_task",
-          "summary": "Добавлена задача «Чистка системы кондиционирования»"
-        }
-      ]
+      "actualEnd": null
+    },
+    {
+      "id": "35",
+      "estimateRef": "3.2",
+      "section": "floors",
+      "stage": "ST2",
+      "name": "Укладка ковролина на существующее покрытие",
+      "qty": 201.87,
+      "unit": "м²",
+      "costIncVat": 28328.42,
+      "planStart": "2026-05-06",
+      "planEnd": "2026-05-18",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "36",
+      "estimateRef": "3.3",
+      "section": "floors",
+      "stage": "ST2",
+      "name": "Установка плинтуса МДФ",
+      "qty": 213.14,
+      "unit": "м.п.",
+      "costIncVat": 13293.54,
+      "planStart": "2026-05-18",
+      "planEnd": "2026-05-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "37",
+      "estimateRef": "5.2",
+      "section": "electrical",
+      "stage": "ST2",
+      "name": "Чистовые электромонтажные работы (приборы и техосвещение)",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 43657.15,
+      "planStart": "2026-05-08",
+      "planEnd": "2026-05-28",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "38",
+      "estimateRef": "5.7",
+      "section": "cleaning",
+      "stage": "ST3",
+      "name": "Вывоз мусора (22 рейса, на протяжении ремонта)",
+      "qty": 22,
+      "unit": "рейс",
+      "costIncVat": 20581.23,
+      "planStart": "2026-02-24",
+      "planEnd": "2026-06-20",
+      "actualStart": null,
+      "actualEnd": null
     }
   ],
   "history": [
@@ -848,6 +749,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Чистка системы кондиционирования»"
+    },
+    {
+      "date": "2026-04-27",
+      "author": "Sergei Grishenkov",
+      "action": "rebuild",
+      "note": "Полная пересборка графика по смете Доп.соглашения №2 (38 позиций, 3 этапа по контракту)."
     }
   ]
 }
