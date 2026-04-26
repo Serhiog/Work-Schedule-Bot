@@ -16,8 +16,8 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-26T07:53:28.779Z",
-    "lastUpdatedBy": "Sergei Grishenkov",
+    "lastUpdated": "2026-04-26T14:18:45.340Z",
+    "lastUpdatedBy": "Sergei Grishenkov (cost backfill)",
     "paymentStages": [
       {
         "id": "P1",
@@ -213,7 +213,7 @@
       "name": "Демонтажные работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 76327.25,
       "planStart": "2026-02-24",
       "planEnd": "2026-03-11",
       "actualStart": "2026-02-24",
@@ -226,7 +226,7 @@
       "name": "Сантехнические работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 26194.29,
       "planStart": "2026-03-16",
       "planEnd": "2026-05-02",
       "actualStart": "2026-03-02",
@@ -247,7 +247,7 @@
       "name": "Электромонтажные работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 49478.1,
       "planStart": "2026-03-03",
       "planEnd": "2026-04-08",
       "actualStart": "2026-03-03",
@@ -274,7 +274,7 @@
       "name": "Монтаж гипсокартоновых стен и перегородок",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 199726.07,
       "planStart": "2026-03-06",
       "planEnd": "2026-04-11",
       "actualStart": "2026-03-06",
@@ -287,35 +287,17 @@
       "name": "Работы по вентиляционным системам Frost",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 5250.0,
       "planStart": "2026-03-16",
-      "planEnd": "2026-05-16",
-      "actualStart": "2026-03-18",
-      "actualEnd": "2026-05-14",
+      "planEnd": "2026-05-02",
+      "actualStart": "2026-03-11",
+      "actualEnd": "2026-05-07",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -328,33 +310,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-03-16",
-      "planEnd": "2026-04-03",
-      "actualStart": "2026-03-18",
-      "actualEnd": "2026-04-01",
+      "planEnd": "2026-03-20",
+      "actualStart": "2026-03-11",
+      "actualEnd": "2026-03-25",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -367,9 +331,9 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-03-16",
-      "planEnd": "2026-04-08",
-      "actualStart": "2026-03-21",
-      "actualEnd": "2026-04-09",
+      "planEnd": "2026-03-25",
+      "actualStart": "2026-03-14",
+      "actualEnd": "2026-04-02",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
@@ -382,24 +346,6 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Закупка воздуховодов и фасонных изделий» [факт]: +3 дн. 14 мар — 2 апр"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -412,33 +358,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-03-19",
-      "planEnd": "2026-05-11",
-      "actualStart": "2026-03-21",
-      "actualEnd": "2026-05-09",
+      "planEnd": "2026-04-27",
+      "actualStart": "2026-03-14",
+      "actualEnd": "2026-05-02",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -449,7 +377,7 @@
       "name": "Демонтаж старой стяжки пола",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 51972.8,
       "planStart": "2026-03-09",
       "planEnd": "2026-03-14",
       "actualStart": "2026-03-09",
@@ -464,33 +392,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-03-21",
-      "planEnd": "2026-04-11",
-      "actualStart": "2026-03-23",
-      "actualEnd": "2026-04-09",
+      "planEnd": "2026-03-28",
+      "actualStart": "2026-03-16",
+      "actualEnd": "2026-04-02",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -501,7 +411,7 @@
       "name": "Устройство наливного пола",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 52695.32,
       "planStart": "2026-03-16",
       "planEnd": "2026-03-28",
       "actualStart": null,
@@ -514,7 +424,7 @@
       "name": "Штукатурно-малярные работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 44720.47,
       "planStart": "2026-03-17",
       "planEnd": "2026-04-01",
       "actualStart": null,
@@ -527,7 +437,7 @@
       "name": "Установка чистовых электроприборов",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 43657.15,
       "planStart": "2026-03-18",
       "planEnd": "2026-06-05",
       "actualStart": "2026-03-18",
@@ -551,33 +461,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-03-29",
-      "planEnd": "2026-05-05",
-      "actualStart": "2026-04-10",
-      "actualEnd": "2026-05-03",
+      "planEnd": "2026-04-21",
+      "actualStart": "2026-04-03",
+      "actualEnd": "2026-04-26",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -590,33 +482,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-04-09",
-      "planEnd": "2026-04-26",
-      "actualStart": "2026-04-21",
-      "actualEnd": "2026-04-24",
+      "planEnd": "2026-04-12",
+      "actualStart": "2026-04-14",
+      "actualEnd": "2026-04-17",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -627,7 +501,7 @@
       "name": "Монтаж гипсокартоновых потолков",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 54668.74,
       "planStart": "2026-03-30",
       "planEnd": "2026-04-13",
       "actualStart": null,
@@ -640,7 +514,7 @@
       "name": "Покрасочные работы",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 42387.3,
       "planStart": "2026-03-31",
       "planEnd": "2026-05-19",
       "actualStart": "2026-03-31",
@@ -670,33 +544,15 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-04-13",
-      "planEnd": "2026-05-09",
-      "actualStart": "2026-04-25",
-      "actualEnd": "2026-05-07",
+      "planEnd": "2026-04-25",
+      "actualStart": "2026-04-18",
+      "actualEnd": "2026-04-30",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -730,8 +586,8 @@
       "unit": "",
       "costIncVat": 0,
       "planStart": "2026-05-06",
-      "planEnd": "2026-05-26",
-      "actualStart": "2026-04-28",
+      "planEnd": "2026-05-12",
+      "actualStart": "2026-04-21",
       "progress": 0.9,
       "subtasks": [
         {
@@ -741,31 +597,13 @@
           "duration_days": 14
         }
       ],
-      "actualEnd": "2026-05-24",
+      "actualEnd": "2026-05-17",
       "history": [
         {
           "at": "2026-04-25T20:33:31.498Z",
           "by": "Sergei Grishenkov",
           "type": "bulk_shift_section",
           "summary": "Раздел «ОВиК (вентиляция)» [факт]: +5 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:50:11.562Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:52:01.844Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-        },
-        {
-          "at": "2026-04-26T07:53:28.779Z",
-          "by": "Sergei Grishenkov",
-          "type": "bulk_shift_section",
-          "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
         }
       ]
     },
@@ -798,7 +636,7 @@
       "name": "Укладка плитки",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 53108.38,
       "planStart": "2026-04-23",
       "planEnd": "2026-04-24",
       "actualStart": null,
@@ -831,7 +669,7 @@
       "name": "Укладка ковролина",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 41621.96,
       "planStart": "2026-05-05",
       "planEnd": "2026-05-18",
       "actualStart": null,
@@ -852,7 +690,7 @@
       "name": "Монтаж сантехнического оборудования",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 29936.33,
       "planStart": "2026-06-01",
       "planEnd": "2026-06-06",
       "actualStart": null,
@@ -873,7 +711,7 @@
       "name": "FAS · укладка кабелей пожарной безопасности",
       "qty": null,
       "unit": "",
-      "costIncVat": 0,
+      "costIncVat": 7350.0,
       "planStart": "2026-03-30",
       "planEnd": "2026-03-31",
       "actualStart": null,
@@ -955,7 +793,8 @@
       "progress": 0,
       "contractor": "CYFR",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "costIncVat": 20581.23
     }
   ],
   "history": [
@@ -972,22 +811,16 @@
       "summary": "«Закупка воздуховодов и фасонных изделий» [факт]: +3 дн. 14 мар — 2 апр"
     },
     {
-      "at": "2026-04-26T07:50:11.562Z",
-      "by": "Sergei Grishenkov",
-      "type": "bulk_shift_section",
-      "summary": "Раздел «ОВиК (вентиляция)» [факт]: +7 дн. — 9 задач"
+      "at": "2026-04-26T14:17:42.149Z",
+      "by": "system",
+      "kind": "cost_backfill",
+      "note": "Распределена сметная стоимость 799,675.39 AED по работам (Annex 1 to Supp. Agreement No. 2)"
     },
     {
-      "at": "2026-04-26T07:52:01.844Z",
-      "by": "Sergei Grishenkov",
-      "type": "bulk_shift_section",
-      "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
-    },
-    {
-      "at": "2026-04-26T07:53:28.779Z",
-      "by": "Sergei Grishenkov",
-      "type": "bulk_shift_section",
-      "summary": "Раздел «ОВиК (вентиляция)» [план]: +7 дн. — 9 задач"
+      "at": "2026-04-26T14:18:45.340Z",
+      "by": "system",
+      "kind": "cost_backfill",
+      "note": "Распределена сметная стоимость 799,675.39 AED по работам (Annex 1 to Supp. Agreement No. 2)"
     }
   ]
 }
