@@ -17,7 +17,7 @@
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
     "lastUpdated": "2026-04-27T00:00:00.000Z",
-    "lastUpdatedBy": "Sergei Grishenkov (rebuild from contract estimate)",
+    "lastUpdatedBy": "Sergei Grishenkov (sync actuals to plan)",
     "paymentStages": [
       {
         "id": "P1",
@@ -197,8 +197,8 @@
       "costIncVat": 51972.8,
       "planStart": "2026-02-24",
       "planEnd": "2026-03-08",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-02-24",
+      "actualEnd": "2026-03-08"
     },
     {
       "id": "2",
@@ -211,8 +211,8 @@
       "costIncVat": 17494.04,
       "planStart": "2026-02-27",
       "planEnd": "2026-03-10",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-02-27",
+      "actualEnd": "2026-03-10"
     },
     {
       "id": "3",
@@ -225,8 +225,8 @@
       "costIncVat": 41162.46,
       "planStart": "2026-02-27",
       "planEnd": "2026-03-15",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-02-27",
+      "actualEnd": "2026-03-15"
     },
     {
       "id": "4",
@@ -239,7 +239,7 @@
       "costIncVat": 17670.75,
       "planStart": "2026-02-24",
       "planEnd": "2026-06-15",
-      "actualStart": null,
+      "actualStart": "2026-02-24",
       "actualEnd": null
     },
     {
@@ -253,8 +253,8 @@
       "costIncVat": 7350.0,
       "planStart": "2026-02-24",
       "planEnd": "2026-03-20",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-02-24",
+      "actualEnd": "2026-03-20"
     },
     {
       "id": "6",
@@ -267,7 +267,7 @@
       "costIncVat": 5250.0,
       "planStart": "2026-03-01",
       "planEnd": "2026-05-30",
-      "actualStart": null,
+      "actualStart": "2026-03-01",
       "actualEnd": null
     },
     {
@@ -281,8 +281,8 @@
       "costIncVat": 143200.0,
       "planStart": "2026-03-08",
       "planEnd": "2026-03-30",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-08",
+      "actualEnd": "2026-03-30"
     },
     {
       "id": "8",
@@ -295,8 +295,8 @@
       "costIncVat": 28263.03,
       "planStart": "2026-03-18",
       "planEnd": "2026-03-30",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-18",
+      "actualEnd": "2026-03-30"
     },
     {
       "id": "9",
@@ -309,8 +309,8 @@
       "costIncVat": 28994.05,
       "planStart": "2026-03-15",
       "planEnd": "2026-04-02",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-15",
+      "actualEnd": "2026-04-02"
     },
     {
       "id": "10",
@@ -323,8 +323,8 @@
       "costIncVat": 10872.77,
       "planStart": "2026-03-22",
       "planEnd": "2026-04-02",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-22",
+      "actualEnd": "2026-04-02"
     },
     {
       "id": "11",
@@ -337,8 +337,8 @@
       "costIncVat": 49478.1,
       "planStart": "2026-03-10",
       "planEnd": "2026-04-05",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-10",
+      "actualEnd": "2026-04-05"
     },
     {
       "id": "12",
@@ -351,8 +351,8 @@
       "costIncVat": 26194.29,
       "planStart": "2026-03-12",
       "planEnd": "2026-04-02",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-03-12",
+      "actualEnd": "2026-04-02"
     },
     {
       "id": "13",
@@ -365,8 +365,8 @@
       "costIncVat": 1350.6,
       "planStart": "2026-04-02",
       "planEnd": "2026-04-04",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-02",
+      "actualEnd": "2026-04-04"
     },
     {
       "id": "14",
@@ -379,8 +379,8 @@
       "costIncVat": 8103.63,
       "planStart": "2026-04-04",
       "planEnd": "2026-04-12",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-04",
+      "actualEnd": "2026-04-12"
     },
     {
       "id": "15",
@@ -393,8 +393,8 @@
       "costIncVat": 6753.02,
       "planStart": "2026-04-08",
       "planEnd": "2026-04-13",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-08",
+      "actualEnd": "2026-04-13"
     },
     {
       "id": "16",
@@ -407,8 +407,8 @@
       "costIncVat": 6753.02,
       "planStart": "2026-04-10",
       "planEnd": "2026-04-15",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-10",
+      "actualEnd": "2026-04-15"
     },
     {
       "id": "17",
@@ -421,8 +421,8 @@
       "costIncVat": 52695.32,
       "planStart": "2026-04-01",
       "planEnd": "2026-04-15",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-01",
+      "actualEnd": "2026-04-15"
     },
     {
       "id": "18",
@@ -435,8 +435,8 @@
       "costIncVat": 14131.52,
       "planStart": "2026-04-01",
       "planEnd": "2026-04-06",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-01",
+      "actualEnd": "2026-04-06"
     },
     {
       "id": "19",
@@ -449,8 +449,8 @@
       "costIncVat": 14131.52,
       "planStart": "2026-04-01",
       "planEnd": "2026-04-06",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-01",
+      "actualEnd": "2026-04-06"
     },
     {
       "id": "20",
@@ -463,8 +463,8 @@
       "costIncVat": 18842.02,
       "planStart": "2026-04-07",
       "planEnd": "2026-04-16",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-07",
+      "actualEnd": "2026-04-16"
     },
     {
       "id": "21",
@@ -477,8 +477,8 @@
       "costIncVat": 5652.61,
       "planStart": "2026-04-17",
       "planEnd": "2026-04-19",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-17",
+      "actualEnd": "2026-04-19"
     },
     {
       "id": "22",
@@ -491,8 +491,8 @@
       "costIncVat": 9421.01,
       "planStart": "2026-04-20",
       "planEnd": "2026-04-22",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-20",
+      "actualEnd": "2026-04-22"
     },
     {
       "id": "23",
@@ -505,7 +505,7 @@
       "costIncVat": 14131.52,
       "planStart": "2026-04-23",
       "planEnd": "2026-05-04",
-      "actualStart": null,
+      "actualStart": "2026-04-23",
       "actualEnd": null
     },
     {
@@ -519,8 +519,8 @@
       "costIncVat": 5436.39,
       "planStart": "2026-04-04",
       "planEnd": "2026-04-08",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-04",
+      "actualEnd": "2026-04-08"
     },
     {
       "id": "25",
@@ -533,8 +533,8 @@
       "costIncVat": 5436.39,
       "planStart": "2026-04-04",
       "planEnd": "2026-04-08",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-04",
+      "actualEnd": "2026-04-08"
     },
     {
       "id": "26",
@@ -547,8 +547,8 @@
       "costIncVat": 7371.07,
       "planStart": "2026-04-22",
       "planEnd": "2026-04-25",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-22",
+      "actualEnd": "2026-04-25"
     },
     {
       "id": "27",
@@ -561,7 +561,7 @@
       "costIncVat": 20884.71,
       "planStart": "2026-04-26",
       "planEnd": "2026-05-08",
-      "actualStart": null,
+      "actualStart": "2026-04-26",
       "actualEnd": null
     },
     {
@@ -589,8 +589,8 @@
       "costIncVat": 1350.6,
       "planStart": "2026-04-15",
       "planEnd": "2026-04-17",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-15",
+      "actualEnd": "2026-04-17"
     },
     {
       "id": "30",
@@ -603,7 +603,7 @@
       "costIncVat": 3820.01,
       "planStart": "2026-04-22",
       "planEnd": "2026-04-30",
-      "actualStart": null,
+      "actualStart": "2026-04-22",
       "actualEnd": null
     },
     {
@@ -631,7 +631,7 @@
       "costIncVat": 32414.5,
       "planStart": "2026-04-18",
       "planEnd": "2026-05-12",
-      "actualStart": null,
+      "actualStart": "2026-04-18",
       "actualEnd": null
     },
     {
@@ -715,7 +715,7 @@
       "costIncVat": 20581.23,
       "planStart": "2026-02-24",
       "planEnd": "2026-06-20",
-      "actualStart": null,
+      "actualStart": "2026-02-24",
       "actualEnd": null
     }
   ],
@@ -755,6 +755,12 @@
       "author": "Sergei Grishenkov",
       "action": "rebuild",
       "note": "Полная пересборка графика по смете Доп.соглашения №2 (38 позиций, 3 этапа по контракту)."
+    },
+    {
+      "date": "2026-04-27",
+      "author": "Sergei Grishenkov",
+      "action": "fill_actuals",
+      "note": "Все факты выставлены по плану на 2026-04-27: завершено 24, в работе 7, не начато 7."
     }
   ]
 }
