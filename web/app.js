@@ -44,9 +44,14 @@ const state = {
     ticketMeetingNotes: {}, // { ticketId: [{id,text,meetingDate,at}] }
     taskMeetingNotes: {},   // { taskId: [{id,text,meetingDate,at}] }
     taskResources: {},      // { taskId: [{type,count}] }
-    taskMaterials: {}       // { taskId: [{name,leadTime,ordered,expectedDate,note}] }
+    taskMaterials: {},      // { taskId: [{name,leadTime,ordered,expectedDate,note}] }
+    taskDependencies: []    // [{id, taskId, dependsOnTaskId, source: 'auto'|'manual', rationale, at}]
   },
   dataLoaded: false,
+  // Cached graph derived from taskDependencies
+  depsGraph: { byTask: new Map(), byDependency: new Map() },
+  // Persisted positions for the dependencies modal (per project, in localStorage)
+  depPositions: {},
 };
 
 function getProjectSlug() {
@@ -181,14 +186,16 @@ async function init() {
   attachStatHandlers();
   attachTasksSheetHandlers();
   attachToolbarHandlers();
+  bindKpPopover();
+  bindTaskTooltip();
   fetchTickets();
   loadProjectData(state.projectSlug)
     .then(() => migrateLocalToAirtable(state.projectSlug))
     .then(() => {
-      // После загрузки shared-данных перерендерить чтобы badge'и/счётчики появились
-      if (typeof renderGantt === 'function') {
-        try { renderGantt(); } catch (_) {}
-      }
+      // После загрузки shared-данных и зависимостей пересчитать CPM
+      // (изначально CPM считался по stage-chain без deps → давал ложные критические).
+      try { renderProjectAnalytics(); } catch (_) {}
+      try { renderGantt(); } catch (_) {}
     });
   attachGanttGestures();
   attachPrintHandlers();
@@ -289,8 +296,10 @@ async function loadProjectData(slug) {
         ticketMeetingNotes: json.data.ticketMeetingNotes || {},
         taskMeetingNotes: json.data.taskMeetingNotes || {},
         taskResources: json.data.taskResources || {},
-        taskMaterials: json.data.taskMaterials || {}
+        taskMaterials: json.data.taskMaterials || {},
+        taskDependencies: Array.isArray(json.data.taskDependencies) ? json.data.taskDependencies : []
       };
+      rebuildDepsGraph();
     }
     state.dataLoaded = true;
   } catch (e) {
@@ -585,53 +594,141 @@ function fmtRelative(date) {
 
 const CANONICAL_STAGE_ORDER = ['ST1', 'ST2', 'ST3', 'ST4'];
 
-// CPM: forward+backward pass по stages (упрощённая модель — используем
-// canonical fit-out order вместо явных dependencies, которых в данных нет).
-// Возвращает Set id-ов задач на критическом пути.
+// Восстанавливает state.depsGraph из state.dataCache.taskDependencies
+function rebuildDepsGraph() {
+  const byTask = new Map();        // taskId → Set<dependsOnTaskId> (предшественники)
+  const byDependency = new Map();  // dependsOnTaskId → Set<taskId> (последователи)
+  const list = (state.dataCache && state.dataCache.taskDependencies) || [];
+  for (const d of list) {
+    if (!d.taskId || !d.dependsOnTaskId) continue;
+    if (!byTask.has(d.taskId)) byTask.set(d.taskId, new Map());
+    byTask.get(d.taskId).set(d.dependsOnTaskId, d);
+    if (!byDependency.has(d.dependsOnTaskId)) byDependency.set(d.dependsOnTaskId, new Set());
+    byDependency.get(d.dependsOnTaskId).add(d.taskId);
+  }
+  state.depsGraph = { byTask, byDependency };
+}
+
+function depsForTask(taskId) {
+  const m = state.depsGraph?.byTask?.get(taskId);
+  return m ? Array.from(m.values()) : [];
+}
+function dependentsOfTask(taskId) {
+  const s = state.depsGraph?.byDependency?.get(taskId);
+  return s ? Array.from(s) : [];
+}
+function hasAnyDeps() {
+  return (state.dataCache?.taskDependencies?.length || 0) > 0;
+}
+
+// CPM: forward+backward pass.
+// Если в проекте есть явные зависимости (taskDependencies) — используем их.
+// Иначе fallback к stage-chain (упрощённая модель).
+// Возвращает { critical: Set<taskId>, slack: Map, predecessors: Map<taskId, Set<taskId>> }
 function computeCriticalPath(schedule) {
   const tasks = schedule.tasks || [];
-  if (!tasks.length) return { critical: new Set(), slack: new Map() };
+  if (!tasks.length) return { critical: new Set(), slack: new Map(), predecessors: new Map() };
   const projectStart = parseISO(schedule.project.startDate);
   const projectEnd = parseISO(schedule.project.endDate);
 
-  // Сортируем stages по канону, добавляем непредусмотренные в конец
-  const stagesPresent = [...new Set(tasks.map(t => t.stage).filter(Boolean))];
-  const ordered = [
-    ...CANONICAL_STAGE_ORDER.filter(s => stagesPresent.includes(s)),
-    ...stagesPresent.filter(s => !CANONICAL_STAGE_ORDER.includes(s))
-  ];
-  const byStage = Object.fromEntries(ordered.map(s => [s, []]));
-  for (const t of tasks) if (byStage[t.stage]) byStage[t.stage].push(t);
+  const taskById = new Map(tasks.map(t => [t.id, t]));
+  const useExplicit = hasAnyDeps();
 
-  const efMap = new Map(); // taskId → {es, ef, dur}
-  let prevStageMaxEF = projectStart.getTime();
-  for (const stage of ordered) {
-    let stageMaxEF = prevStageMaxEF;
-    for (const t of byStage[stage]) {
-      const ps = parseISO(t.planStart).getTime();
-      const pe = parseISO(t.planEnd).getTime();
-      const dur = Math.max(1, (pe - ps) / 86400000 + 1);
-      const es = Math.max(ps, prevStageMaxEF);
-      const ef = es + (dur - 1) * 86400000;
-      efMap.set(t.id, { es, ef, dur });
-      if (ef > stageMaxEF) stageMaxEF = ef;
+  // Build predecessors map
+  const preds = new Map();
+  for (const t of tasks) preds.set(t.id, new Set());
+
+  if (useExplicit) {
+    for (const d of state.dataCache.taskDependencies) {
+      if (taskById.has(d.taskId) && taskById.has(d.dependsOnTaskId) && d.taskId !== d.dependsOnTaskId) {
+        preds.get(d.taskId).add(d.dependsOnTaskId);
+      }
     }
-    prevStageMaxEF = stageMaxEF;
+  } else {
+    // Fallback: stage-chain. Каждая работа этапа N зависит от ВСЕХ работ этапа N-1.
+    const stagesPresent = [...new Set(tasks.map(t => t.stage).filter(Boolean))];
+    const ordered = [
+      ...CANONICAL_STAGE_ORDER.filter(s => stagesPresent.includes(s)),
+      ...stagesPresent.filter(s => !CANONICAL_STAGE_ORDER.includes(s))
+    ];
+    const byStage = Object.fromEntries(ordered.map(s => [s, []]));
+    for (const t of tasks) if (byStage[t.stage]) byStage[t.stage].push(t.id);
+    for (let i = 1; i < ordered.length; i++) {
+      const prev = byStage[ordered[i - 1]];
+      for (const tid of byStage[ordered[i]]) {
+        for (const pid of prev) preds.get(tid).add(pid);
+      }
+    }
   }
 
-  const lfMap = new Map();
-  let nextStageMinLS = projectEnd.getTime();
-  for (let i = ordered.length - 1; i >= 0; i--) {
-    let stageMinLS = nextStageMinLS;
-    for (const t of byStage[ordered[i]]) {
-      const e = efMap.get(t.id);
-      if (!e) continue;
-      const lf = nextStageMinLS;
-      const ls = lf - (e.dur - 1) * 86400000;
-      lfMap.set(t.id, { lf, ls });
-      if (ls < stageMinLS) stageMinLS = ls;
+  // Topological order via Kahn
+  const indeg = new Map();
+  for (const t of tasks) indeg.set(t.id, preds.get(t.id).size);
+  const queue = [];
+  for (const [k, v] of indeg) if (v === 0) queue.push(k);
+  const order = [];
+  // successors lookup
+  const succ = new Map();
+  for (const t of tasks) succ.set(t.id, new Set());
+  for (const [tid, ps] of preds) for (const p of ps) succ.get(p)?.add(tid);
+  const indegCopy = new Map(indeg);
+  while (queue.length) {
+    const id = queue.shift();
+    order.push(id);
+    for (const s of succ.get(id) || []) {
+      indegCopy.set(s, indegCopy.get(s) - 1);
+      if (indegCopy.get(s) === 0) queue.push(s);
     }
-    nextStageMinLS = stageMinLS;
+  }
+  // If cycle (shouldn't happen — server validates), include rest in original order
+  if (order.length < tasks.length) {
+    const seen = new Set(order);
+    for (const t of tasks) if (!seen.has(t.id)) order.push(t.id);
+  }
+
+  // Forward pass: ES = max(planStart, max(EF of preds) + 1 day)
+  const efMap = new Map();
+  for (const id of order) {
+    const t = taskById.get(id);
+    if (!t) continue;
+    const ps = parseISO(t.planStart).getTime();
+    const pe = parseISO(t.planEnd).getTime();
+    const dur = Math.max(1, (pe - ps) / DAY_MS + 1);
+    let predMaxEF = projectStart.getTime() - DAY_MS;
+    for (const pid of preds.get(id)) {
+      const pe2 = efMap.get(pid);
+      if (pe2 && pe2.ef > predMaxEF) predMaxEF = pe2.ef;
+    }
+    const es = Math.max(ps, predMaxEF + DAY_MS);
+    const ef = es + (dur - 1) * DAY_MS;
+    efMap.set(id, { es, ef, dur });
+  }
+
+  // Backward pass (стандартный CPM):
+  //   LF = min(LS успешников) - 1 день, для leaf-задач LF = projectEnd
+  // Если у задачи нет успешников и она заканчивается задолго до конца проекта,
+  // её запас будет большим — это математически корректно: её действительно
+  // можно сдвинуть, и проект не пострадает.
+  const lfMap = new Map();
+  for (let i = order.length - 1; i >= 0; i--) {
+    const id = order[i];
+    const e = efMap.get(id);
+    if (!e) continue;
+    const successors = succ.get(id) || new Set();
+    let lf;
+    if (successors.size === 0) {
+      lf = projectEnd.getTime();
+    } else {
+      lf = Number.POSITIVE_INFINITY;
+      for (const sid of successors) {
+        const sl = lfMap.get(sid);
+        if (sl && sl.ls - DAY_MS < lf) lf = sl.ls - DAY_MS;
+      }
+      // если у leaf-успешников был projectEnd, lf может остаться projectEnd
+      if (!isFinite(lf)) lf = projectEnd.getTime();
+    }
+    const ls = lf - (e.dur - 1) * DAY_MS;
+    lfMap.set(id, { lf, ls });
   }
 
   const critical = new Set();
@@ -639,15 +736,81 @@ function computeCriticalPath(schedule) {
   for (const t of tasks) {
     const e = efMap.get(t.id), l = lfMap.get(t.id);
     if (!e || !l) continue;
-    const slackDays = Math.round((l.lf - e.ef) / 86400000);
+    const slackDays = Math.round((l.lf - e.ef) / DAY_MS);
     slackMap.set(t.id, slackDays);
     if (slackDays <= 1) critical.add(t.id);
   }
-  return { critical, slack: slackMap };
+  return { critical, slack: slackMap, predecessors: preds, successors: succ };
+}
+
+// Возвращает цепочку задач от данной до конца проекта по критическому пути.
+// Используется в попапе бейджа КП.
+function getCriticalChain(taskId) {
+  if (!state.cpmCritical || !state.cpmCritical.has(taskId)) return [];
+  const succ = state.cpmSuccessors;
+  if (!succ) return [taskId];
+  const chain = [taskId];
+  const seen = new Set([taskId]);
+  let cur = taskId;
+  while (true) {
+    const next = succ.get(cur);
+    if (!next || next.size === 0) break;
+    // pick the critical successor (any)
+    let picked = null;
+    for (const s of next) {
+      if (state.cpmCritical.has(s)) { picked = s; break; }
+    }
+    if (!picked || seen.has(picked)) break;
+    chain.push(picked);
+    seen.add(picked);
+    cur = picked;
+  }
+  return chain;
 }
 
 // EVM: Schedule Performance Index (SPI), Earned Value (EV), Planned Value (PV),
 // прогноз сдачи (EAC). CPI/AC опускаем — actual cost у нас нет.
+// Per-task EVM contribution: cost-weighted PV, EV, SPI for one task. Same формула как в computeEVM.
+function computeTaskMetrics(t, asOfDate) {
+  const today = asOfDate.getTime();
+  const cost = Number(t.costIncVat) || 0;
+  const ps = parseISO(t.planStart).getTime();
+  const pe = parseISO(t.planEnd).getTime();
+  const dur = Math.max(1, (pe - ps) / 86400000 + 1);
+  let pP = 0;
+  if (today >= pe) pP = 1;
+  else if (today > ps) pP = ((today - ps) / 86400000) / dur;
+  // Гибрид: ручной % из weekly_report + календарный штраф за просрочку.
+  // Если работа не закрыта (нет actualEnd), но planEnd прошёл — каждый день
+  // без отметки готовности гнобит EV: эффективный_прогресс = manual_% × (pDur / max(pDur, elapsed)).
+  let aP = 0;
+  if (t.actualEnd) {
+    aP = 1;
+  } else {
+    const baseProgress = (typeof t.progress === 'number' && t.progress >= 0)
+      ? Math.min(1, Math.max(0, t.progress))
+      : (t.actualStart
+          ? (() => {
+              const as = parseISO(t.actualStart).getTime();
+              if (today < as) return 0;
+              const elapsed = (today - as) / 86400000;
+              return Math.min(1, elapsed / dur);
+            })()
+          : 0);
+    // Если работа уже должна была закрыться — применяем PMI-decay.
+    // Базовая длительность с фактического старта (или планового, если факт-старт не отмечен).
+    const refStart = t.actualStart ? parseISO(t.actualStart).getTime() : ps;
+    const elapsedSinceRef = Math.max(0, (today - refStart) / 86400000);
+    const overdueDecay = (today >= pe && elapsedSinceRef > dur)
+      ? dur / elapsedSinceRef
+      : 1;
+    aP = baseProgress * overdueDecay;
+  }
+  const PV = cost * pP;
+  const EV = cost * aP;
+  return { cost, pP, aP, PV, EV, spi: PV > 0 ? EV / PV : null };
+}
+
 function computeEVM(schedule, asOfDate) {
   const tasks = schedule.tasks || [];
   const projectStart = parseISO(schedule.project.startDate);
@@ -657,25 +820,10 @@ function computeEVM(schedule, asOfDate) {
 
   let PV = 0, EV = 0;
   for (const t of tasks) {
-    const cost = Number(t.costIncVat) || 0;
-    if (!cost) continue;
-    const ps = parseISO(t.planStart).getTime();
-    const pe = parseISO(t.planEnd).getTime();
-    const pDur = Math.max(1, (pe - ps) / 86400000 + 1);
-
-    let pProgress = 0;
-    if (today >= pe) pProgress = 1;
-    else if (today > ps) pProgress = ((today - ps) / 86400000) / pDur;
-
-    let aProgress = 0;
-    if (t.actualEnd) aProgress = 1;
-    else if (t.actualStart) {
-      const as = parseISO(t.actualStart).getTime();
-      if (today >= as) aProgress = Math.min(1, ((today - as) / 86400000) / pDur);
-    }
-
-    PV += cost * pProgress;
-    EV += cost * aProgress;
+    const m = computeTaskMetrics(t, asOfDate);
+    if (!m.cost) continue;
+    PV += m.PV;
+    EV += m.EV;
   }
 
   const SPI = PV > 0 ? EV / PV : 1;
@@ -686,6 +834,7 @@ function computeEVM(schedule, asOfDate) {
   return {
     PV, EV, SPI,
     totalCost,
+    hasCostData: totalCost > 0,
     completionRatio: totalCost > 0 ? EV / totalCost : 0,
     plannedRatio: totalCost > 0 ? PV / totalCost : 0,
     eacDate, slipDays
@@ -848,7 +997,18 @@ function renderProjectAnalytics() {
   const today = effectiveToday();
   const cpm = computeCriticalPath(sched);
   const evm = computeEVM(sched, today);
-  state.cpmCritical = cpm.critical;
+  // Активный КП — только незавершённые работы. Готовые не подсвечиваем
+  // и не считаем в счётчике: задержать их уже нельзя, в проекте они закрыты.
+  const taskById = new Map(sched.tasks.map((t) => [t.id, t]));
+  const activeCritical = new Set();
+  for (const id of cpm.critical) {
+    const t = taskById.get(id);
+    if (t && !t.actualEnd) activeCritical.add(id);
+  }
+  state.cpmCritical = activeCritical;
+  state.cpmSuccessors = cpm.successors;
+  state.cpmPredecessors = cpm.predecessors;
+  state.cpmSlack = cpm.slack;
 
   const spiPct = (evm.SPI * 100).toFixed(0);
   const earnedPct = Math.round(evm.completionRatio * 100);
@@ -859,13 +1019,14 @@ function renderProjectAnalytics() {
     : slip < -1
     ? `<span class="analytics-slip analytics-slip--early">${slip} дн. к плану</span>`
     : `<span class="analytics-slip analytics-slip--ok">в графике</span>`;
-  const spiCls = spiClass(evm.SPI);
-  const spiLbl = evm.SPI >= 0.97 ? 'идём по плану'
+  const spiCls = evm.hasCostData ? spiClass(evm.SPI) : 'spi-na';
+  const spiLbl = !evm.hasCostData ? 'нет данных по стоимости'
+              : evm.SPI >= 0.97 ? 'идём по плану'
               : evm.SPI >= 0.88 ? 'небольшое отставание'
               : 'серьёзное отставание';
 
-  const onCritical = cpm.critical.size;
-  const totalTasks = sched.tasks.length;
+  const onCritical = activeCritical.size;
+  const remainingTasks = sched.tasks.filter((t) => !t.actualEnd).length;
 
   // Materials risk summary
   let matRiskTasks = 0;
@@ -881,45 +1042,68 @@ function renderProjectAnalytics() {
   // Resources peak
   const resPeak = computeResourcePeak(sched);
 
+  const cpmActiveCls = state.filterCriticalOnly ? ' is-active' : '';
   cont.innerHTML = `
-    <button type="button" class="analytics-card analytics-card--spi ${spiCls}" data-analytics="spi" title="Schedule Performance Index — насколько идём по графику">
-      <div class="analytics-card-label">SPI · ${spiLbl}</div>
-      <div class="analytics-card-value">${spiPct}<span class="analytics-card-unit">%</span></div>
-      <div class="analytics-card-meta">освоено ${earnedPct}% · план ${planPct}%</div>
-    </button>
-    <button type="button" class="analytics-card analytics-card--eac" data-analytics="eac" title="Прогноз даты завершения по текущему темпу">
-      <div class="analytics-card-label">Прогноз сдачи</div>
-      <div class="analytics-card-value">${escapeHtml(fmtDate(toISO(evm.eacDate)))}</div>
-      <div class="analytics-card-meta">${slipLbl}</div>
-    </button>
-    <button type="button" class="analytics-card analytics-card--cpm" data-analytics="cpm" title="Задачи на критическом пути — задержка любой сдвигает срок проекта">
-      <div class="analytics-card-label">Критический путь</div>
-      <div class="analytics-card-value">${onCritical}<span class="analytics-card-unit"> / ${totalTasks}</span></div>
-      <div class="analytics-card-meta">${onCritical === 0 ? 'нет критичных' : 'задержки сдвигают срок'}</div>
-    </button>
-    <button type="button" class="analytics-card analytics-card--mat${matRiskTasks > 0 ? ' analytics-card--alert' : ''}" data-analytics="materials" title="Материалы с риском по lead-time">
-      <div class="analytics-card-label">Материалы в риске</div>
-      <div class="analytics-card-value">${matRiskTasks}<span class="analytics-card-unit"> работ</span></div>
-      <div class="analytics-card-meta">${nearestOrderBy ? 'ближайший заказ до ' + escapeHtml(fmtDate(toISO(nearestOrderBy))) : 'всё под контролем'}</div>
-    </button>
-    <button type="button" class="analytics-card analytics-card--res" data-analytics="resources" title="Пиковая загрузка людей по дням">
-      <div class="analytics-card-label">Пик людей</div>
-      <div class="analytics-card-value">${resPeak.peak}<span class="analytics-card-unit"> чел.</span></div>
-      <div class="analytics-card-meta">${resPeak.peakDate ? 'на ' + escapeHtml(fmtDate(toISO(resPeak.peakDate))) : 'нет данных'}</div>
-    </button>`;
+    <div class="analytics-head">
+      <span class="analytics-head-line"></span>
+      <span class="analytics-head-text">Аналитика на сегодня</span>
+      <span class="analytics-head-line"></span>
+    </div>
+    <div class="analytics-grid">
+      <button type="button" class="analytics-card analytics-card--spi ${spiCls}" data-analytics="spi" title="Schedule Performance Index — насколько идём по графику">
+        <span class="analytics-card-ico" aria-hidden="true">📊</span>
+        <span class="analytics-card-body">
+          <span class="analytics-card-label">SPI · ${spiLbl}</span>
+          <span class="analytics-card-value">${evm.hasCostData ? spiPct : '—'}${evm.hasCostData ? '<span class="analytics-card-unit">%</span>' : ''}</span>
+          <span class="analytics-card-meta">${evm.hasCostData ? `освоено ${earnedPct}% · план ${planPct}%` : 'у работ не задана стоимость'}</span>
+        </span>
+      </button>
+      <button type="button" class="analytics-card analytics-card--eac" data-analytics="eac" title="Прогноз даты завершения по текущему темпу">
+        <span class="analytics-card-ico" aria-hidden="true">📅</span>
+        <span class="analytics-card-body">
+          <span class="analytics-card-label">Прогноз сдачи</span>
+          <span class="analytics-card-value">${escapeHtml(fmtDate(toISO(evm.eacDate)))}</span>
+          <span class="analytics-card-meta">${slipLbl}</span>
+        </span>
+      </button>
+      <button type="button" class="analytics-card analytics-card--cpm${cpmActiveCls}" data-analytics="cpm" title="Задачи на критическом пути — задержка любой сдвигает срок проекта">
+        <span class="analytics-card-ico" aria-hidden="true">⚠️</span>
+        <span class="analytics-card-body">
+          <span class="analytics-card-label">Критический путь</span>
+          <span class="analytics-card-value">${onCritical}<span class="analytics-card-unit"> / ${remainingTasks}</span></span>
+          <span class="analytics-card-meta">${onCritical === 0 ? 'нет критичных' : 'задержки сдвигают срок'}</span>
+        </span>
+      </button>
+      <button type="button" class="analytics-card analytics-card--mat${matRiskTasks > 0 ? ' analytics-card--alert' : ''}" data-analytics="materials" title="Материалы с риском по lead-time">
+        <span class="analytics-card-ico" aria-hidden="true">📦</span>
+        <span class="analytics-card-body">
+          <span class="analytics-card-label">Материалы в риске</span>
+          <span class="analytics-card-value">${matRiskTasks}<span class="analytics-card-unit"> работ</span></span>
+          <span class="analytics-card-meta">${nearestOrderBy ? 'ближайший заказ до ' + escapeHtml(fmtDate(toISO(nearestOrderBy))) : 'всё под контролем'}</span>
+        </span>
+      </button>
+      <button type="button" class="analytics-card analytics-card--res" data-analytics="resources" title="Пиковая загрузка людей по дням">
+        <span class="analytics-card-ico" aria-hidden="true">👥</span>
+        <span class="analytics-card-body">
+          <span class="analytics-card-label">Пик людей</span>
+          <span class="analytics-card-value">${resPeak.peak}<span class="analytics-card-unit"> чел.</span></span>
+          <span class="analytics-card-meta">${resPeak.peakDate ? 'на ' + escapeHtml(fmtDate(toISO(resPeak.peakDate))) : 'нет данных'}</span>
+        </span>
+      </button>
+    </div>`;
 
-  // Click → toggle filter «только критический путь»
-  cont.querySelector('[data-analytics="cpm"]')?.addEventListener('click', () => {
-    state.filterCriticalOnly = !state.filterCriticalOnly;
-    cont.querySelector('[data-analytics="cpm"]').classList.toggle('is-active', state.filterCriticalOnly);
-    applyCriticalFilterStyles();
+  // Все плашки → drawer с детализацией
+  cont.querySelectorAll('[data-analytics]').forEach((btn) => {
+    btn.addEventListener('click', () => openAnalyticsDrawer(btn.getAttribute('data-analytics')));
   });
 }
 
 function applyCriticalFilterStyles() {
   const root = document.getElementById('gantt');
   if (!root) return;
-  root.classList.toggle('show-critical-only', !!state.filterCriticalOnly);
+  // state.cpmFilterMode: null | 'critical' | 'flexible'
+  root.classList.toggle('show-critical-only', state.cpmFilterMode === 'critical');
+  root.classList.toggle('show-flexible-only', state.cpmFilterMode === 'flexible');
 }
 
 function renderHero() {
@@ -1182,7 +1366,10 @@ function attachToolbarHandlers() {
   }
 
   const printBtn = $('#btn-print');
-  if (printBtn) printBtn.addEventListener('click', () => window.print());
+  if (printBtn) printBtn.addEventListener('click', printGanttAsImage);
+
+  const depsBtn = $('#btn-deps');
+  if (depsBtn) depsBtn.addEventListener('click', openDepsModal);
 }
 
 /* ─── Gantt ─── */
@@ -1368,8 +1555,9 @@ function renderGantt() {
 
       const hidden = collapsed ? ' row-hidden' : '';
       const isCritical = state.cpmCritical && state.cpmCritical.has(t.id);
-      const critCls = isCritical ? ' task-critical' : '';
-      const critBadge = isCritical ? '<span class="task-crit-badge" title="На критическом пути — задержка сдвигает срок проекта">⚠ КП</span>' : '';
+      const isDone = !!t.actualEnd;
+      const critCls = (isCritical ? ' task-critical' : '') + (isDone ? ' task-completed' : '');
+      const critBadge = (isCritical && prog < 1) ? '<span class="task-crit-badge" title="На критическом пути — задержка сдвигает срок проекта">⚠ КП</span>' : '';
       const matRisk = computeMaterialRisk(t);
       const matBadge = matRisk
         ? `<span class="task-mat-badge" title="Заказать до ${escapeHtml(fmtDate(toISO(matRisk.orderBy)))} · ${matRisk.riskyCount} материалов в риске">📦 ${matRisk.daysToStart > 0 ? '−' + (matRisk.maxLead - matRisk.daysToStart) + 'д' : 'срочно'}</span>`
@@ -1377,7 +1565,7 @@ function renderGantt() {
       body += `<div class="task-label${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
         <span class="tbullet" style="background:${catColor}"></span>
         <span class="tid">${escapeHtml(t.id)}</span>
-        <span class="tname" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</span>
+        <span class="tname">${escapeHtml(t.name)}</span>
         ${critBadge}
         ${matBadge}
         ${progBadge}
@@ -1823,8 +2011,8 @@ const kv = (k, v, opts = {}) =>
 function openDrawer(tid) {
   const t = state.schedule.tasks.find((x) => x.id === tid);
   if (!t) return;
-  const st = state.stageById[t.stage];
-  const sec = state.sectionById[t.section];
+  const sec = state.sectionById[t.section] || { name: t.section || '—', color: '#94a3b8' };
+  const st = state.stageById[t.stage] || { name: 'Этап не указан', color: '#94a3b8' };
   const pStart = t.planStart || t.start;
   const pEnd = t.planEnd || t.end;
   const pStartD = parseISO(pStart);
@@ -1850,7 +2038,7 @@ function openDrawer(tid) {
     ? Math.max(1, dayDiff(parseISO(t.actualStart), asOf) + 1) : 0;
   const daysRemaining = (status === 'running' && !isOverdue) ? Math.max(0, dayDiff(asOf, pEndD)) : 0;
 
-  $('#drawer-tag').innerHTML = `<span class="drawer-tag-dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)} · ${escapeHtml(st.name)}`;
+  $('#drawer-tag').innerHTML = `<span class="drawer-tag-dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)}${st.name ? ' · ' + escapeHtml(st.name) : ''}`;
   $('#drawer-title').textContent = t.name;
 
   const factRange = t.actualStart
@@ -1911,10 +2099,11 @@ function openDrawer(tid) {
       ${kv('Факт', escapeHtml(factRange), { span: true })}
       ${kv('Длительность (план)', plannedDur + ' ' + daysWord(plannedDur))}
       ${kv('Длительность (факт)', actualDur != null ? (actualDur + ' ' + daysWord(actualDur)) : (daysInWork > 0 ? (daysInWork + ' ' + daysWord(daysInWork) + ' · в работе') : '—'))}
-    </div>${buildDrawerDelaysHtml(t)}${buildDrawerResourcesHtml(t.id)}${buildDrawerMaterialsHtml(t.id)}${buildDrawerTaskMeetingNotesHtml(t.id)}${buildDrawerTicketsHtml(t.id)}${buildDrawerHistoryHtml(t)}`;
+    </div>${buildDrawerDelaysHtml(t)}${buildDrawerResourcesHtml(t.id)}${buildDrawerMaterialsHtml(t.id)}${buildDrawerTaskMeetingNotesHtml(t.id)}${buildDrawerTicketsHtml(t.id)}${buildDrawerDependenciesHtml(t)}${buildDrawerHistoryHtml(t)}`;
 
   attachTicketHandlers();
   attachResourceMaterialHandlers(t.id);
+  bindDrawerDependenciesHandlers(t.id);
   $('#drawer').setAttribute('aria-hidden', 'false');
 }
 
@@ -2606,9 +2795,354 @@ function loadPdfLibs() {
   });
   pdfLibsPromise = Promise.all([
     load('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'),
-    load('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')
-  ]);
+    // html2canvas-pro поддерживает color-mix(), oklch и другие современные CSS color functions.
+    // Оригинальный html2canvas 1.4.1 на них падает.
+    load('https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js')
+  ]).then(() => {
+    // html2canvas-pro экспортирует window.html2canvas — совместимо со старым кодом
+    if (!window.html2canvas) throw new Error('html2canvas not available after load');
+  });
   return pdfLibsPromise;
+}
+
+/* ─── Печать графика ───
+   Рендерим Gantt + Hero в одну большую картинку через html2canvas, временно прячем
+   живой DOM, подставляем картинку — и вызываем window.print(). Юзер получает родной
+   диалог браузера с опциями «Сохранить PDF» / «Печатать», а вывод выглядит точно как
+   на экране (без поехавшего layout). После закрытия диалога возвращаем DOM как был. */
+async function printGanttAsImage() {
+  const btn = document.getElementById('btn-print');
+  const orig = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span aria-hidden="true">⏳</span> Готовлю…'; }
+  if (!state.schedule) { if (btn) { btn.disabled = false; btn.innerHTML = orig; } return; }
+
+  document.body.classList.add('is-pdf-export');
+  const cleanup = [];
+  try {
+    await loadPdfLibs();
+    if (!window.html2canvas) throw new Error('html2canvas не загрузился');
+
+    // Render at print-friendly cellW. A4 landscape usable ≈ 1047×718px (10mm margins).
+    // Reserve label column 220px → days fill 827px. Pick cellW so gantt fits in width budget.
+    const totalDays = state.layout.totalDays || 120;
+    const PRINT_LABEL_W = 220;
+    const PAGE_W_PX = 1047;
+    // Width budget: label + days. Compute cellW so totalGanttWidth ≤ PAGE_W_PX (single column).
+    const cellWFitOne = Math.floor((PAGE_W_PX - PRINT_LABEL_W) / totalDays);
+    const printCellW = Math.max(4, Math.min(22, cellWFitOne));
+    const savedCellW = state.cellW;
+    state.cellW = printCellW;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      body.is-pdf-export .gantt-wrap { max-height: none !important; height: auto !important; overflow: visible !important; }
+      body.is-pdf-export .gantt { max-height: none !important; overflow: visible !important; }
+      body.is-pdf-export .gantt-overlays { display: none !important; }
+      body.is-pdf-export .task-open-btn { display: none !important; }
+      body.is-pdf-export .task-label, body.is-pdf-export .corner, body.is-pdf-export .dates-header, body.is-pdf-export .section-label { position: static !important; }
+      body.is-pdf-export .hero-title {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: initial !important;
+        color: var(--ink) !important;
+      }
+    `;
+    document.head.appendChild(style); cleanup.push(() => style.remove());
+    renderGantt();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const heroEl = document.querySelector('.hero');
+    const analyticsEl = document.querySelector('.project-analytics');
+    const ganttEl = document.getElementById('gantt');
+    if (!ganttEl) throw new Error('gantt not found');
+
+    // Hero+analytics off-screen container
+    const topWrap = document.createElement('div');
+    topWrap.style.cssText = `position:fixed; left:-9999px; top:0; width:${PAGE_W_PX}px; background:#fff; padding:14px 16px; box-sizing:border-box;`;
+    if (heroEl) topWrap.appendChild(heroEl.cloneNode(true));
+    if (analyticsEl) topWrap.appendChild(analyticsEl.cloneNode(true));
+    document.body.appendChild(topWrap);
+    const topCanvas = await window.html2canvas(topWrap, { scale: 1.5, backgroundColor: '#ffffff', useCORS: true, logging: false });
+    topWrap.remove();
+
+    const ganttCanvas = await window.html2canvas(ganttEl, {
+      scale: 1.5,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      windowWidth: ganttEl.scrollWidth,
+      windowHeight: ganttEl.scrollHeight,
+      width: ganttEl.scrollWidth,
+      height: ganttEl.scrollHeight
+    });
+
+    // Convert to blob URL — браузер хорошо переваривает blob:URL для печати,
+    // в отличие от мегабайтных data:URL'ов.
+    const toBlobUrl = (canvas) => new Promise((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (!b) return reject(new Error('toBlob returned null'));
+        resolve(URL.createObjectURL(b));
+      }, 'image/jpeg', 0.85);
+    });
+    const topUrl = await toBlobUrl(topCanvas);
+    const ganttUrl = await toBlobUrl(ganttCanvas);
+    cleanup.push(() => { try { URL.revokeObjectURL(topUrl); URL.revokeObjectURL(ganttUrl); } catch(_) {} });
+
+    // Inline images sized to A4 landscape printable width.
+    // Use mm units so browser scales correctly and won't paint blank.
+    const printRoot = document.createElement('div');
+    printRoot.id = 'print-root';
+    const topImg = new Image();
+    topImg.src = topUrl;
+    topImg.className = 'print-top';
+    const ganttImg = new Image();
+    ganttImg.src = ganttUrl;
+    ganttImg.className = 'print-gantt';
+    printRoot.appendChild(topImg);
+    printRoot.appendChild(ganttImg);
+    document.body.appendChild(printRoot);
+    cleanup.push(() => printRoot.remove());
+
+    // Wait for both images to decode before printing
+    await Promise.all([
+      topImg.decode().catch(() => {}),
+      ganttImg.decode().catch(() => {})
+    ]);
+
+    const printStyle = document.createElement('style');
+    printStyle.id = 'print-image-style';
+    printStyle.textContent = `
+      @media screen {
+        #print-root { display: none; }
+      }
+      @media print {
+        @page { size: A4 landscape; margin: 8mm; }
+        html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+        body > *:not(#print-root) { display: none !important; }
+        #print-root { display: block !important; }
+        #print-root img {
+          display: block;
+          width: 100%;
+          height: auto;
+          max-width: 100%;
+        }
+        #print-root img.print-top { margin-bottom: 6mm; }
+        /* Allow gantt image to break across pages naturally */
+        #print-root img.print-gantt { page-break-inside: auto; break-inside: auto; }
+      }
+    `;
+    document.head.appendChild(printStyle); cleanup.push(() => printStyle.remove());
+
+    // Restore live UI now that snapshot is done
+    state.cellW = savedCellW;
+    renderGantt();
+
+    // Small delay before print() so images settle in DOM
+    await new Promise(r => setTimeout(r, 200));
+    window.print();
+  } catch (e) {
+    console.error('Print prep failed', e);
+    alert('Не удалось подготовить печать: ' + (e.message || e));
+  } finally {
+    setTimeout(() => {
+      cleanup.forEach((fn) => { try { fn(); } catch (_) {} });
+      document.body.classList.remove('is-pdf-export');
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }, 2500);
+  }
+}
+
+/* ─── Gantt → PDF export (точное совпадение с экраном) ───
+   Альтернатива браузерной печати. Захватывает hero+аналитику и сам Gantt в canvas,
+   нарезает по A4 landscape. Label-колонка повторяется на каждой странице, чтобы было
+   видно к какой работе относится каждая полоса. */
+async function exportGanttToPdf() {
+  const btn = document.getElementById('btn-print');
+  const orig = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span aria-hidden="true">⏳</span> PDF…'; }
+  const sched = state.schedule;
+  if (!sched) { if (btn) { btn.disabled = false; btn.innerHTML = orig; } return; }
+
+  // Save UI state
+  const savedCellW = state.cellW;
+  const savedScroll = { x: 0, y: 0 };
+  const wrap = document.querySelector('.gantt-wrap');
+  if (wrap) { savedScroll.x = wrap.scrollLeft; savedScroll.y = wrap.scrollTop; }
+
+  document.body.classList.add('is-pdf-export');
+
+  try {
+    await loadPdfLibs();
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF || !window.html2canvas) throw new Error('PDF-библиотеки не загрузились');
+
+    // Render Gantt at print-optimised cellW so width-per-day fits comfortably on one page.
+    // A4 landscape: 297mm × 210mm. Margins 10mm → usable 277×190 mm = 1047×718 px @ 96dpi.
+    // Reserve label column 260px → 787px for days. Pick cellW so totalDays × cellW ≤ N×787 (N pages horizontally).
+    const totalDays = state.layout.totalDays || 120;
+    const PRINT_LABEL_W = 220;
+    const PAGE_W_PX = 1047; // A4 landscape
+    const PAGE_H_PX = 718;
+    const GRID_W_PX = PAGE_W_PX - PRINT_LABEL_W;
+    // Try to fit width on 1 page. If grid would be too narrow per day (<10), allow horizontal split.
+    const fitOnePageCell = GRID_W_PX / totalDays;
+    let printCellW;
+    let pagesH;
+    if (fitOnePageCell >= 10) {
+      printCellW = Math.min(28, fitOnePageCell);
+      pagesH = 1;
+    } else {
+      printCellW = 14; // readable
+      pagesH = Math.ceil((totalDays * printCellW) / GRID_W_PX);
+    }
+
+    // Save current label width and override for export.
+    state.cellW = printCellW;
+    // Inject a CSS override to widen label column for the export
+    const styleEl = document.createElement('style');
+    styleEl.id = 'pdf-export-style';
+    styleEl.textContent = `
+      body.is-pdf-export .gantt-wrap { max-height: none !important; height: auto !important; overflow: visible !important; }
+      body.is-pdf-export .gantt { max-height: none !important; overflow: visible !important; }
+      body.is-pdf-export .gantt-overlays { display: none !important; }
+      body.is-pdf-export .task-open-btn { display: none !important; }
+      body.is-pdf-export .task-label, body.is-pdf-export .corner, body.is-pdf-export .dates-header, body.is-pdf-export .section-label { position: static !important; }
+      /* Fix gradient text-fill rendering issues in html2canvas */
+      body.is-pdf-export .hero-title {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: initial !important;
+        color: var(--ink) !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    renderGantt();
+    // Wait for layout to settle
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const ganttEl = document.getElementById('gantt');
+    if (!ganttEl) throw new Error('gantt element not found');
+
+    // Capture the entire gantt at native (rendered) size, with high DPI
+    const canvas = await window.html2canvas(ganttEl, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      windowWidth: ganttEl.scrollWidth,
+      windowHeight: ganttEl.scrollHeight,
+      width: ganttEl.scrollWidth,
+      height: ganttEl.scrollHeight
+    });
+
+    // Also capture hero + analytics for cover page
+    const heroEl = document.querySelector('.hero');
+    const analyticsEl = document.querySelector('.project-analytics');
+    const coverWrap = document.createElement('div');
+    coverWrap.style.cssText = `position:fixed; left:-9999px; top:0; width:${PAGE_W_PX}px; background:#fff; padding:20px; box-sizing:border-box;`;
+    if (heroEl) coverWrap.appendChild(heroEl.cloneNode(true));
+    if (analyticsEl) coverWrap.appendChild(analyticsEl.cloneNode(true));
+    document.body.appendChild(coverWrap);
+    const coverCanvas = await window.html2canvas(coverWrap, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+    coverWrap.remove();
+
+    // Build PDF (A4 landscape, mm units)
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape', compress: true });
+    const PAGE_W_MM = 297, PAGE_H_MM = 210, MARGIN = 10;
+    const USABLE_W_MM = PAGE_W_MM - MARGIN * 2;
+    const USABLE_H_MM = PAGE_H_MM - MARGIN * 2;
+
+    // ─── Cover page: hero + analytics
+    {
+      const ratio = coverCanvas.width / coverCanvas.height;
+      const w = USABLE_W_MM;
+      const h = w / ratio;
+      const finalH = Math.min(h, USABLE_H_MM);
+      const finalW = finalH < h ? finalH * ratio : w;
+      const url = coverCanvas.toDataURL('image/jpeg', 0.92);
+      doc.addImage(url, 'JPEG', MARGIN + (USABLE_W_MM - finalW) / 2, MARGIN, finalW, finalH);
+    }
+
+    // ─── Gantt pages
+    // The captured canvas has full width. We need to slice it horizontally if needed.
+    // canvas.width is in CSS-px × scale (= 2). Convert mm ↔ canvas-px:
+    //   mmPerPx = USABLE_W_MM / canvas.width  (for full-width fit)
+    // We want labelColW (220 CSS-px = 440 canvas-px @ scale=2) shown on each page.
+    const SCALE = 2;
+    const labelColPx = PRINT_LABEL_W * SCALE;
+    const cwTotal = canvas.width;
+    const chTotal = canvas.height;
+
+    // Compute mm per canvas-px: we want each page to show label + slice such that
+    // label width in mm + slice width in mm = USABLE_W_MM.
+    // We choose mm-per-px such that one full slice fits a page.
+    const slicePxAvail = cwTotal - labelColPx;
+    const sliceWidthPxPerPage = Math.ceil(slicePxAvail / pagesH);
+    const totalPxPerPage = labelColPx + sliceWidthPxPerPage;
+    const mmPerPx = USABLE_W_MM / totalPxPerPage; // both label and slice scale to fit page width
+    const pageRowsHeightMm = USABLE_H_MM;
+    const pageRowsHeightPx = Math.ceil(pageRowsHeightMm / mmPerPx);
+    const verticalPages = Math.ceil(chTotal / pageRowsHeightPx);
+
+    // Pre-extract label strip canvas (entire height, only labelColPx wide)
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = labelColPx;
+    labelCanvas.height = chTotal;
+    labelCanvas.getContext('2d').drawImage(canvas, 0, 0, labelColPx, chTotal, 0, 0, labelColPx, chTotal);
+
+    for (let v = 0; v < verticalPages; v++) {
+      const sy = v * pageRowsHeightPx;
+      const sliceH = Math.min(pageRowsHeightPx, chTotal - sy);
+      for (let h = 0; h < pagesH; h++) {
+        doc.addPage();
+        // Composite: label column + grid slice
+        const composite = document.createElement('canvas');
+        composite.width = totalPxPerPage;
+        composite.height = sliceH;
+        const ctx = composite.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, composite.width, composite.height);
+        // label
+        ctx.drawImage(labelCanvas, 0, sy, labelColPx, sliceH, 0, 0, labelColPx, sliceH);
+        // grid slice
+        const gridSx = labelColPx + h * sliceWidthPxPerPage;
+        const gridSw = Math.min(sliceWidthPxPerPage, cwTotal - gridSx);
+        ctx.drawImage(canvas, gridSx, sy, gridSw, sliceH, labelColPx, 0, gridSw, sliceH);
+        const url = composite.toDataURL('image/jpeg', 0.92);
+        const finalH = sliceH * mmPerPx;
+        doc.addImage(url, 'JPEG', MARGIN, MARGIN, USABLE_W_MM, finalH);
+        // Footer: project + page indicator. ASCII-only to avoid jsPDF default font cyrillic issues.
+        const totalPages = 1 + verticalPages * pagesH;
+        const curPage = 1 + v * pagesH + h + 1;
+        const projName = (sched.project?.name || '').replace(/[^\x20-\x7E]/g, '').trim();
+        doc.setFontSize(8); doc.setTextColor(120);
+        doc.text(`${projName ? projName + ' · ' : ''}page ${curPage} / ${totalPages}`,
+          MARGIN, PAGE_H_MM - 4);
+      }
+    }
+
+    // Filename
+    const slug = (sched.project?.slug || 'project');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    doc.save(`gantt-${slug}-${dateStr}.pdf`);
+  } catch (e) {
+    console.error('PDF export failed', e);
+    alert('Не удалось сохранить PDF: ' + (e.message || e));
+  } finally {
+    document.body.classList.remove('is-pdf-export');
+    document.getElementById('pdf-export-style')?.remove();
+    state.cellW = savedCellW;
+    renderGantt();
+    if (wrap) { wrap.scrollLeft = savedScroll.x; wrap.scrollTop = savedScroll.y; }
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
 }
 
 async function imageUrlToDataUrl(url) {
@@ -2632,6 +3166,31 @@ async function imageUrlToDataUrl(url) {
     } catch (_) { /* try next */ }
   }
   return null;
+}
+
+// Cache fetched photo dataURLs across the session — keeps user gesture alive on share()
+const ticketPhotoCache = new Map(); // url → dataUrl | null | Promise<dataUrl|null>
+function getCachedPhoto(url) {
+  if (!url) return Promise.resolve(null);
+  const hit = ticketPhotoCache.get(url);
+  if (hit !== undefined) return hit instanceof Promise ? hit : Promise.resolve(hit);
+  const p = imageUrlToDataUrl(url).then((du) => {
+    ticketPhotoCache.set(url, du);
+    return du;
+  }).catch(() => {
+    ticketPhotoCache.set(url, null);
+    return null;
+  });
+  ticketPhotoCache.set(url, p);
+  return p;
+}
+// Fire-and-forget prefetch for a set of tickets
+function prefetchTicketPhotos(tickets) {
+  for (const tk of (tickets || [])) {
+    for (const p of (tk.photos || [])) {
+      if (p?.url && !ticketPhotoCache.has(p.url)) getCachedPhoto(p.url);
+    }
+  }
 }
 
 function buildTicketPageHtml(tk, task, project) {
@@ -2727,16 +3286,17 @@ async function shareSelectedTickets(taskId, triggerBtn) {
   try {
     setLoading(true, 'Загрузка библиотек…');
     await loadPdfLibs();
-    setLoading(true, `PDF: 0/${tickets.length}`);
-    // Build incrementally and update label
+    // Photos: read from cache (prefetch started when user entered selection mode).
+    // Any miss is fetched here, but cache hits are instant — keeps the user-gesture window short.
+    setLoading(true, `Фото 0/${tickets.length}…`);
     for (let i = 0; i < tickets.length; i++) {
       setLoading(true, `Фото ${i + 1}/${tickets.length}…`);
       const t = tickets[i];
       t.photoDataUrls = [];
-      for (const p of (t.photos || [])) {
-        const du = await imageUrlToDataUrl(p.url);
-        if (du) t.photoDataUrls.push(du);
-      }
+      const photos = Array.isArray(t.photos) ? t.photos : [];
+      // Fetch all photos for this ticket in parallel
+      const results = await Promise.all(photos.map((p) => getCachedPhoto(p?.url)));
+      for (const du of results) if (du) t.photoDataUrls.push(du);
     }
     setLoading(true, 'Рендер PDF…');
     const { jsPDF } = window.jspdf;
@@ -2762,27 +3322,61 @@ async function shareSelectedTickets(taskId, triggerBtn) {
     const fname = `Тикеты_${(task?.name || 'task').slice(0,30).replace(/[^\p{L}\p{N}_-]+/gu, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
     const file = new File([blob], fname, { type: 'application/pdf' });
 
-    // Share ONLY the file — no accompanying title/text so chat apps treat it as file attachment only
     setLoading(true, 'Открываю выбор приложения…');
     const fileOnly = { files: [file] };
-    let shareAttempted = false, shareCanceled = false;
+    let shared = false, canceled = false, shareError = null;
     if (navigator.canShare && navigator.canShare(fileOnly)) {
-      shareAttempted = true;
       try {
         await navigator.share(fileOnly);
+        shared = true;
       } catch (e) {
-        if (e.name === 'AbortError') shareCanceled = true;
-        else console.warn('share failed:', e.message);
+        if (e?.name === 'AbortError') canceled = true;
+        else shareError = e;
       }
-    }
-    if (!shareAttempted) {
+    } else {
       // No Web Share API (desktop browsers usually) — download directly
       downloadBlob(blob, fname);
+      shared = true;
     }
-    // Reset selection on success
-    vs.selectionMode = false;
-    vs.selectedIds = new Set();
-    refreshTicketsSection(taskId);
+
+    if (shared) {
+      vs.selectionMode = false;
+      vs.selectedIds = new Set();
+      refreshTicketsSection(taskId);
+      return;
+    }
+
+    // Не сбрасываем выбор: пользователь либо отменил, либо iOS подавила share
+    // (потерянный user-gesture после долгой подготовки). Кнопка превращается в
+    // «Отправить PDF» с готовым blob — следующий клик вызывает share() синхронно.
+    setLoading(false);
+    if (triggerBtn) {
+      triggerBtn.classList.add('tickets-action-share--ready');
+      const lbl = triggerBtn.querySelector('.tickets-action-share-lbl');
+      if (lbl) lbl.textContent = canceled ? 'Отправить ещё раз' : 'Отправить PDF';
+      const handler = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file] }).then(() => {
+            vs.selectionMode = false;
+            vs.selectedIds = new Set();
+            refreshTicketsSection(taskId);
+          }).catch((e) => {
+            if (e?.name !== 'AbortError') {
+              downloadBlob(blob, fname);
+            }
+          });
+        } else {
+          downloadBlob(blob, fname);
+        }
+      };
+      // Replace previous click handler with synchronous share-only handler
+      const fresh = triggerBtn.cloneNode(true);
+      triggerBtn.replaceWith(fresh);
+      fresh.addEventListener('click', handler);
+    }
+    if (shareError) console.warn('share failed:', shareError.message || shareError);
   } catch (e) {
     alert('Ошибка подготовки PDF: ' + (e.message || e));
     setLoading(false);
@@ -3340,6 +3934,12 @@ function attachTicketHandlers() {
       vs.selectionMode = !vs.selectionMode;
       if (!vs.selectionMode) vs.selectedIds = new Set();
       else vs.selectedIds = vs.selectedIds || new Set();
+      // Pre-warm PDF libs and photo cache so first share() preserves user-gesture window
+      if (vs.selectionMode) {
+        loadPdfLibs();
+        const taskTickets = (state.tickets || []).filter((t) => String(t.task_id) === String(tid));
+        prefetchTicketPhotos(taskTickets);
+      }
       refreshTicketsSection(tid);
     });
   });
@@ -3575,12 +4175,32 @@ function openStatsDrawer(type) {
       const ts = tasks.filter((t) => t.section === sec.id);
       if (!ts.length) return '';
       const done = ts.filter((t) => !!t.actualEnd).length;
-      return `<div class="drawer-row">
-        <div class="drawer-row-head">
+      const inProgress = ts.filter((t) => t.actualStart && !t.actualEnd).length;
+      const notStarted = ts.length - done - inProgress;
+      const meta = [
+        done > 0 ? `✅ ${done}` : null,
+        inProgress > 0 ? `🔧 ${inProgress}` : null,
+        notStarted > 0 ? `◯ ${notStarted}` : null
+      ].filter(Boolean).join(' · ');
+      const tasksHtml = ts.map((t) => {
+        const prog = taskProgress(t);
+        const pct = Math.round(prog * 100);
+        const status = prog >= 1 ? 'done' : (t.actualStart ? 'progress' : 'idle');
+        const statusIco = status === 'done' ? '✅' : status === 'progress' ? '🔧' : '◯';
+        return `<button type="button" class="scope-task" data-task-id="${escapeHtml(t.id)}" title="Открыть карточку работы">
+          <span class="scope-task-ico">${statusIco}</span>
+          <span class="scope-task-name">${escapeHtml(t.name)}</span>
+          <span class="scope-task-pct${status === 'done' ? ' is-done' : ''}">${pct}%</span>
+        </button>`;
+      }).join('');
+      return `<div class="drawer-row scope-row" data-section-id="${escapeHtml(sec.id)}">
+        <button type="button" class="scope-row-head" aria-expanded="false">
+          <span class="scope-row-chev" aria-hidden="true">▸</span>
           <span class="drawer-row-label" style="--dot:${sec.color}"><span class="drawer-row-dot"></span>${escapeHtml(sec.name)}</span>
           <span class="drawer-row-val">${ts.length} ${plural(ts.length, ['наименование', 'наименования', 'наименований'])}</span>
-        </div>
-        <div class="drawer-row-meta">${done > 0 ? `завершено ${done}` : 'не начато'}</div>
+        </button>
+        <div class="drawer-row-meta">${meta || 'не начато'}</div>
+        <div class="scope-tasks">${tasksHtml}</div>
       </div>`;
     }).join('');
     const sectionCount = new Set(tasks.map((t) => t.section)).size;
@@ -3595,7 +4215,373 @@ function openStatsDrawer(type) {
   $('#drawer-tag').textContent = tag;
   $('#drawer-title').textContent = title;
   $('#drawer-body').innerHTML = html;
+  if (type === 'tasks') bindScopeRowHandlers();
   $('#drawer').setAttribute('aria-hidden', 'false');
+}
+
+function bindScopeRowHandlers() {
+  const body = $('#drawer-body');
+  if (!body) return;
+  body.querySelectorAll('.scope-row-head').forEach((head) => {
+    head.addEventListener('click', () => {
+      const row = head.closest('.scope-row');
+      if (!row) return;
+      const open = row.classList.toggle('is-open');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+  body.querySelectorAll('.scope-task').forEach((btn) => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const tid = btn.getAttribute('data-task-id');
+      if (tid) openDrawer(tid);
+    });
+  });
+}
+
+function openAnalyticsDrawer(type) {
+  const s = state.schedule;
+  const asOf = effectiveToday();
+  const tasks = s.tasks || [];
+  let tag = 'Аналитика', title = '—', html = '';
+
+  if (type === 'spi') {
+    const evm = computeEVM(s, asOf);
+    const spiPct = (evm.SPI * 100).toFixed(0);
+    const verdict = evm.SPI >= 0.97 ? 'идём по плану' : evm.SPI >= 0.88 ? 'небольшое отставание' : 'серьёзное отставание';
+
+    const taskStateBadge = (t, m) => {
+      const today = asOf.getTime();
+      const pe = parseISO(t.planEnd).getTime();
+      if (t.actualEnd) return '<span class="drawer-task-badge drawer-task-badge--done">✓ готово</span>';
+      if (t.actualStart && today >= pe) return '<span class="drawer-task-badge drawer-task-badge--late">⚠ просрочка</span>';
+      if (t.actualStart) return '<span class="drawer-task-badge drawer-task-badge--running">в работе</span>';
+      if (today > pe) return '<span class="drawer-task-badge drawer-task-badge--late">⚠ не начали</span>';
+      if (today > parseISO(t.planStart).getTime()) return '<span class="drawer-task-badge drawer-task-badge--late">⚠ не стартовали</span>';
+      return '<span class="drawer-task-badge drawer-task-badge--pending">ждёт старта</span>';
+    };
+
+    // Этапы с раскрытием
+    const stageRows = s.stages.map((st) => {
+      const ts = tasks.filter((t) => t.stage === st.id);
+      if (!ts.length) return '';
+      let PV = 0, EV = 0, totalCost = 0;
+      const taskMetrics = ts.map(t => ({ t, m: computeTaskMetrics(t, asOf) }));
+      for (const { m } of taskMetrics) {
+        if (!m.cost) continue;
+        PV += m.PV; EV += m.EV; totalCost += m.cost;
+      }
+      const noCost = totalCost === 0;
+      const stageSpi = PV > 0 ? EV / PV : 1;
+      const cls = noCost ? 'spi-na' : spiClass(stageSpi);
+      const fillPct = totalCost > 0 ? Math.round((EV / totalCost) * 100) : 0;
+      const valHtml = noCost
+        ? `<span class="drawer-row-val ${cls}" title="Стоимость работ этапа не задана — SPI рассчитать нельзя">SPI —</span>`
+        : `<span class="drawer-row-val ${cls}">SPI ${(stageSpi * 100).toFixed(0)}%</span>`;
+      const metaHtml = noCost
+        ? `<div class="drawer-row-meta drawer-row-meta--muted">работы вне сметы CYFR — стоимость не задана</div>`
+        : `<div class="drawer-row-meta">освоено ${fmtAED(EV)} из ${fmtAED(totalCost)} · ${taskMetrics.length} ${plural(taskMetrics.length, ['работа','работы','работ'])}</div>`;
+
+      // Inner task list (sorted by SPI ascending — самые проблемные сверху, потом готовые)
+      const sortedTasks = [...taskMetrics].sort((a, b) => {
+        const sa = a.m.spi == null ? 99 : a.m.spi;
+        const sb = b.m.spi == null ? 99 : b.m.spi;
+        return sa - sb;
+      });
+      const taskListHtml = sortedTasks.map(({ t, m }) => {
+        const taskSpi = m.spi;
+        const taskSpiText = taskSpi == null
+          ? '<span class="drawer-row-val spi-na" title="Работа ещё не должна была начаться по плану">—</span>'
+          : `<span class="drawer-row-val ${spiClass(taskSpi)}">${(taskSpi * 100).toFixed(0)}%</span>`;
+        const costText = m.cost > 0
+          ? `${fmtAED(m.cost)}`
+          : '<span class="drawer-row-meta--muted">без сметы</span>';
+        const factPct = Math.round(m.aP * 100);
+        const planPct = Math.round(m.pP * 100);
+        return `<button type="button" class="drawer-row drawer-row-link drawer-task-row" data-task-id="${escapeHtml(t.id)}">
+          <div class="drawer-row-head">
+            <span class="drawer-row-label drawer-task-name">${escapeHtml(t.name)}</span>
+            ${taskSpiText}
+          </div>
+          <div class="drawer-row-meta">
+            ${taskStateBadge(t, m)} · план ${planPct}% / факт ${factPct}% · ${costText}
+          </div>
+        </button>`;
+      }).join('');
+
+      return `<div class="drawer-stage-block${noCost ? ' drawer-row--na' : ''}">
+        <button type="button" class="drawer-row drawer-row-stage" data-stage-toggle="${escapeHtml(st.id)}" aria-expanded="false">
+          <div class="drawer-row-head">
+            <span class="drawer-row-label" style="--dot:${st.color}"><span class="drawer-row-dot"></span>${escapeHtml(st.name)} <span class="drawer-stage-caret">▸</span></span>
+            ${valHtml}
+          </div>
+          ${noCost ? '' : `<div class="drawer-progress"><div class="drawer-progress-fill" style="width:${fillPct}%; background:${st.color}"></div></div>`}
+          ${metaHtml}
+        </button>
+        <div class="drawer-stage-tasks" data-stage-id="${escapeHtml(st.id)}" hidden>
+          ${taskListHtml}
+        </div>
+      </div>`;
+    }).join('');
+    // Что отстаёт — задачи без actualEnd, у которых planEnd < today
+    const overdue = tasks
+      .filter((t) => !t.actualEnd && parseISO(t.planEnd || t.end) < asOf)
+      .map((t) => ({ t, slip: dayDiff(parseISO(t.planEnd || t.end), asOf) }))
+      .sort((a, b) => b.slip - a.slip)
+      .slice(0, 6);
+    const overdueHtml = overdue.map(({ t, slip }) => `
+      <button type="button" class="drawer-row drawer-row-link" data-task-id="${escapeHtml(t.id)}">
+        <div class="drawer-row-head">
+          <span class="drawer-row-label">${escapeHtml(t.name)}</span>
+          <span class="drawer-row-val analytics-slip--late">+${slip} дн.</span>
+        </div>
+        <div class="drawer-row-meta">план до ${escapeHtml(fmtDate(t.planEnd || t.end))} · ${escapeHtml(state.sectionById[t.section]?.name || '')}</div>
+      </button>`).join('');
+
+    tag = 'Темп проекта';
+    title = `SPI · ${verdict}`;
+    html = `<div class="drawer-grid">
+      ${kv('SPI', spiPct + '%', { big: true })}
+      ${kv('Освоено (EV)', fmtAED(evm.EV))}
+      ${kv('План (PV)', fmtAED(evm.PV))}
+      ${kv('На дату', escapeHtml(fmtDate(toISO(asOf))), { span: true })}
+    </div>
+    <div class="drawer-hint"><b>SPI (Schedule Performance Index)</b> — индикатор соответствия проекта плановому графику по международной методологии управления стоимостью проекта <i>Earned Value Management</i> (PMI). <b>100%</b> — проект идёт точно по плану; меньше — отставание; больше — опережение. Каждая работа взвешивается по её финансовому объёму в общем бюджете проекта, поэтому показатель отражает реальный темп освоения, а не просто число закрытых пунктов.</div>
+    <div class="drawer-section-title">По этапам</div>
+    <div class="drawer-list">${stageRows || '<div class="drawer-empty">Нет данных по этапам.</div>'}</div>
+    ${overdueHtml ? `<div class="drawer-section-title">Что отстаёт</div><div class="drawer-list">${overdueHtml}</div>` : ''}`;
+  }
+
+  else if (type === 'eac') {
+    const evm = computeEVM(s, asOf);
+    const slip = evm.slipDays;
+    const slipText = slip > 1 ? `<span class="analytics-slip--late">+${slip} дн. к плану</span>`
+                  : slip < -1 ? `<span class="analytics-slip--early">${slip} дн. к плану</span>`
+                  : '<span class="analytics-slip--ok">в графике</span>';
+    // Топ задач по slip — те, что просрочены или замедляют темп
+    const candidates = tasks.map((t) => {
+      const pe = parseISO(t.planEnd || t.end);
+      let slipDays = 0;
+      if (t.actualEnd) {
+        slipDays = dayDiff(pe, parseISO(t.actualEnd));
+      } else if (asOf > pe) {
+        slipDays = dayDiff(pe, asOf);
+      }
+      return { t, slip: slipDays };
+    }).filter((x) => x.slip > 0).sort((a, b) => b.slip - a.slip).slice(0, 8);
+    const rows = candidates.map(({ t, slip }) => `
+      <button type="button" class="drawer-row drawer-row-link" data-task-id="${escapeHtml(t.id)}">
+        <div class="drawer-row-head">
+          <span class="drawer-row-label">${escapeHtml(t.name)}</span>
+          <span class="drawer-row-val analytics-slip--late">+${slip} дн.</span>
+        </div>
+        <div class="drawer-row-meta">план до ${escapeHtml(fmtDate(t.planEnd || t.end))}${t.actualEnd ? ' · факт ' + escapeHtml(fmtDate(t.actualEnd)) : ''}</div>
+      </button>`).join('');
+    tag = 'Прогноз';
+    title = 'Прогноз сдачи проекта';
+    html = `<div class="drawer-grid">
+      ${kv('По контракту', escapeHtml(fmtDate(s.project.endDate)))}
+      ${kv('Прогноз (EAC)', escapeHtml(fmtDate(toISO(evm.eacDate))))}
+      ${kv('Отклонение', slipText, { span: true })}
+    </div>
+    <div class="drawer-hint">Прогноз = срок проекта ÷ темп. Темп = «сколько уже сделано» ÷ «сколько должно было быть сделано». Если темп сохранится, сдача будет ${slip > 0 ? 'позже' : slip < 0 ? 'раньше' : 'в срок'}.</div>
+    ${rows ? `<div class="drawer-section-title">Что тянет срок</div><div class="drawer-list">${rows}</div>` : `<div class="drawer-empty">Просроченных работ нет — прогноз держится.</div>`}`;
+  }
+
+  else if (type === 'cpm') {
+    const crit = state.cpmCritical || new Set();
+    const slack = state.cpmSlack || new Map();
+    const openTasks = tasks.filter((t) => !t.actualEnd);
+    const critTasks = openTasks
+      .filter((t) => crit.has(t.id))
+      .sort((a, b) => parseISO(a.planStart) - parseISO(b.planStart));
+    const flexTasks = openTasks
+      .filter((t) => !crit.has(t.id))
+      .sort((a, b) => parseISO(a.planStart) - parseISO(b.planStart));
+
+    const mode = state.cpmFilterMode || null;
+    const renderRow = (t, kind) => {
+      const sec = state.sectionById[t.section];
+      const sl = slack.get(t.id) || 0;
+      // Дни показываем только когда активен фильтр того же типа.
+      let right;
+      if (kind === 'flex' && mode === 'flexible' && sl > 0) {
+        right = `<span class="drawer-row-val drawer-row-val--ok">+${sl} ${plural(sl, ['день','дня','дней'])} запаса</span>`;
+      } else if (kind === 'crit' && mode === 'critical') {
+        right = `<span class="drawer-row-val drawer-row-val--bad">до ${escapeHtml(fmtDate(t.planEnd))}</span>`;
+      } else {
+        right = `<span class="drawer-row-val drawer-row-val--muted">${escapeHtml(fmtDate(t.planEnd))}</span>`;
+      }
+      return `
+      <button type="button" class="drawer-row drawer-row-link" data-task-id="${escapeHtml(t.id)}">
+        <div class="drawer-row-head">
+          <span class="drawer-row-label" style="--dot:${sec?.color || '#94a3b8'}"><span class="drawer-row-dot"></span>${escapeHtml(t.name)}</span>
+          ${right}
+        </div>
+        <div class="drawer-row-meta">${escapeHtml(fmtDate(t.planStart))} → ${escapeHtml(fmtDate(t.planEnd))}${sec ? ' · ' + escapeHtml(sec.name) : ''}</div>
+      </button>`;
+    };
+
+    const critRows = critTasks.map((t) => renderRow(t, 'crit')).join('');
+    const flexRows = flexTasks.map((t) => renderRow(t, 'flex')).join('');
+
+    tag = 'Сроки';
+    title = 'Критический путь';
+
+    html = `<div class="drawer-grid">
+      ${kv('Без запаса', String(critTasks.length))}
+      ${kv('С запасом', String(flexTasks.length))}
+    </div>
+    <div class="drawer-hint">
+      Работы делятся на две категории по влиянию на срок сдачи проекта.
+      <br><br>
+      <strong>Без запаса по графику</strong> — задержка любой из этих работ непосредственно сдвигает дату сдачи проекта.
+      <br><br>
+      <strong>С запасом</strong> — работа может быть выполнена позже плановой даты на N дней без последствий для итогового срока.
+    </div>
+    <div class="drawer-hint drawer-hint--secondary">
+      Расчёт основан на графе зависимостей и плановых датах работ. Для каждой работы определяется самая ранняя возможная дата окончания (исходя из готовности предшествующих работ) и самая поздняя допустимая (чтобы не сорвать срок зависимых работ или сдачи проекта). Разница между этими датами — запас по графику.
+    </div>
+    <div class="drawer-actions drawer-actions--two">
+      <button type="button" class="drawer-btn${mode === 'critical' ? ' drawer-btn--on' : ''}" data-cpm-filter="critical">
+        ${mode === 'critical' ? '✓ ' : ''}Без запаса
+      </button>
+      <button type="button" class="drawer-btn${mode === 'flexible' ? ' drawer-btn--on' : ''}" data-cpm-filter="flexible">
+        ${mode === 'flexible' ? '✓ ' : ''}С запасом
+      </button>
+    </div>
+    ${critTasks.length ? `<div class="drawer-section-title">Работы без запаса по графику</div><div class="drawer-list">${critRows}</div>` : ''}
+    ${flexTasks.length ? `<div class="drawer-section-title">Работы с запасом по графику</div><div class="drawer-list">${flexRows}</div>` : ''}
+    ${!critTasks.length && !flexTasks.length ? `<div class="drawer-empty">Все работы завершены.</div>` : ''}`;
+  }
+
+  else if (type === 'materials') {
+    const risky = [];
+    for (const t of tasks) {
+      const r = computeMaterialRisk(t);
+      if (r) risky.push({ t, r, mats: getTaskMaterials(t.id) });
+    }
+    risky.sort((a, b) => a.r.orderBy - b.r.orderBy);
+    const rows = risky.map(({ t, r, mats }) => {
+      const list = mats.filter(m => !m.ordered && (Number(m.leadTime) || 0) > r.daysToStart);
+      const matLis = list.map(m => `<li>${escapeHtml(m.name || '—')} <span class="muted">· lead-time ${m.leadTime || 0} дн.</span></li>`).join('');
+      return `
+      <div class="drawer-row">
+        <div class="drawer-row-head">
+          <button type="button" class="drawer-row-label drawer-row-link" data-task-id="${escapeHtml(t.id)}">${escapeHtml(t.name)}</button>
+          <span class="drawer-row-val analytics-slip--late">заказать до ${escapeHtml(fmtDate(toISO(r.orderBy)))}</span>
+        </div>
+        <div class="drawer-row-meta">старт ${escapeHtml(fmtDate(t.planStart))} · через ${r.daysToStart} дн.</div>
+        ${matLis ? `<ul class="drawer-mat-list">${matLis}</ul>` : ''}
+      </div>`;
+    }).join('');
+    tag = 'Снабжение';
+    title = `Материалы в риске · ${risky.length} ${plural(risky.length, ['работа', 'работы', 'работ'])}`;
+    html = `<div class="drawer-grid">
+      ${kv('Работ под риском', String(risky.length))}
+      ${kv('Ближайший заказ', risky.length ? escapeHtml(fmtDate(toISO(risky[0].r.orderBy))) : '—')}
+    </div>
+    <div class="drawer-hint">Материал «в риске», если до старта работы меньше дней, чем lead-time поставщика, и закупка не отмечена.</div>
+    ${rows ? `<div class="drawer-section-title">Список</div><div class="drawer-list">${rows}</div>` : `<div class="drawer-empty">Все материалы под контролем.</div>`}`;
+  }
+
+  else if (type === 'resources') {
+    const tl = computeResourceTimeline(s);
+    // Топ-7 дней по нагрузке
+    const topDays = tl.totalPerDay
+      .map((n, i) => ({ n, i }))
+      .filter((x) => x.n > 0)
+      .sort((a, b) => b.n - a.n)
+      .slice(0, 7);
+    const peakIdx = tl.peakIdx;
+    // Разбивка по специализациям на пиковом дне
+    const peakBreakdown = peakIdx >= 0 ? tl.types
+      .map((tp) => ({ tp, n: tl.counts[tp][peakIdx] }))
+      .filter((x) => x.n > 0)
+      .sort((a, b) => b.n - a.n) : [];
+    const breakdownHtml = peakBreakdown.map(({ tp, n }) => `
+      <div class="drawer-row">
+        <div class="drawer-row-head">
+          <span class="drawer-row-label">${escapeHtml(RESOURCE_LABEL_BY_ID[tp] || tp)}</span>
+          <span class="drawer-row-val">${n} чел.</span>
+        </div>
+      </div>`).join('');
+    const dayRows = topDays.map(({ n, i }) => `
+      <div class="drawer-row">
+        <div class="drawer-row-head">
+          <span class="drawer-row-label">${escapeHtml(fmtDate(toISO(tl.days[i])))}</span>
+          <span class="drawer-row-val${i === peakIdx ? ' analytics-slip--late' : ''}">${n} чел.${i === peakIdx ? ' · пик' : ''}</span>
+        </div>
+      </div>`).join('');
+    const heatmapOn = !!state.showHeatmap;
+    tag = 'Ресурсы';
+    title = `Пик ${tl.peak} чел.${tl.peakDate ? ' · ' + fmtDate(toISO(tl.peakDate)) : ''}`;
+    html = `<div class="drawer-grid">
+      ${kv('Пик одновременно', String(tl.peak))}
+      ${kv('День пика', tl.peakDate ? escapeHtml(fmtDate(toISO(tl.peakDate))) : '—')}
+    </div>
+    <div class="drawer-hint">Пик — максимальное число людей в один день, исходя из «Ресурсов» в карточках работ.</div>
+    <div class="drawer-actions">
+      <button type="button" class="drawer-btn${heatmapOn ? ' drawer-btn--on' : ''}" id="res-toggle-heatmap">
+        ${heatmapOn ? '✓ Heatmap включён' : 'Показать heatmap по дням'}
+      </button>
+    </div>
+    ${breakdownHtml ? `<div class="drawer-section-title">В день пика</div><div class="drawer-list">${breakdownHtml}</div>` : ''}
+    ${dayRows ? `<div class="drawer-section-title">Топ дней по нагрузке</div><div class="drawer-list">${dayRows}</div>` : `<div class="drawer-empty">Нет данных по ресурсам.</div>`}`;
+  }
+
+  $('#drawer-tag').textContent = tag;
+  $('#drawer-title').textContent = title;
+  $('#drawer-body').innerHTML = html;
+  $('#drawer').setAttribute('aria-hidden', 'false');
+
+  // Wire up drawer-internal handlers
+  document.querySelectorAll('#drawer-body .drawer-row-link[data-task-id]').forEach((el) => {
+    el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const tid = el.getAttribute('data-task-id');
+      if (tid) openDrawer(tid);
+    });
+  });
+  // Раскрытие/сворачивание блока этапа в SPI drawer
+  document.querySelectorAll('#drawer-body [data-stage-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const sid = btn.getAttribute('data-stage-toggle');
+      const list = document.querySelector(`#drawer-body .drawer-stage-tasks[data-stage-id="${CSS.escape(sid)}"]`);
+      if (!list) return;
+      const open = list.hasAttribute('hidden');
+      if (open) list.removeAttribute('hidden'); else list.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', String(open));
+      const caret = btn.querySelector('.drawer-stage-caret');
+      if (caret) caret.textContent = open ? '▾' : '▸';
+    });
+  });
+  // Two-mode CPM filter: 'critical' | 'flexible' | null. Re-clicking the active mode turns it off.
+  document.querySelectorAll('#drawer-body [data-cpm-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const want = btn.getAttribute('data-cpm-filter');
+      state.cpmFilterMode = (state.cpmFilterMode === want) ? null : want;
+      // back-compat for any other code that reads filterCriticalOnly
+      state.filterCriticalOnly = state.cpmFilterMode === 'critical';
+      // Recompute CPM (uses freshest deps), then re-render gantt rows so .task-critical
+      // / .task-completed classes match current state, then apply filter classes.
+      renderProjectAnalytics();
+      renderGantt();
+      applyCriticalFilterStyles();
+      // Re-render the drawer to update active button state
+      openAnalyticsDrawer('cpm');
+    });
+  });
+  const resBtn = document.getElementById('res-toggle-heatmap');
+  if (resBtn) resBtn.addEventListener('click', () => {
+    state.showHeatmap = !state.showHeatmap;
+    renderResourceHeatmap();
+    resBtn.classList.toggle('drawer-btn--on', state.showHeatmap);
+    resBtn.textContent = state.showHeatmap ? '✓ Heatmap включён' : 'Показать heatmap по дням';
+    // Sync toolbar btn state if exists
+    const tb = document.getElementById('btn-heatmap');
+    if (tb) tb.dataset.active = String(!!state.showHeatmap);
+  });
 }
 
 function countWorkDays(start, end) {
@@ -4930,5 +5916,736 @@ function attachReportHandlers() {
     if (e.key === 'Escape' && document.getElementById('report-modal')?.getAttribute('aria-hidden') === 'false') {
       closeReportModal();
     }
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Dependencies modal: graph + drag-and-drop + AI auto-infer           */
+/* ════════════════════════════════════════════════════════════════════ */
+
+const DEP_NODE_W = 220;
+const DEP_NODE_H = 64;
+const DEP_COL_GAP = 280;
+const DEP_ROW_GAP = 92;
+const DEP_PAD = 40;
+
+const depsState = {
+  // taskId → { x, y } for current modal session (loaded from localStorage on open)
+  positions: new Map(),
+  // pending edge create flow: { fromTaskId } | null
+  pendingFrom: null,
+  // ghost line during pointermove
+  ghost: { active: false, x: 0, y: 0 },
+  // selected edge to delete on next click (visual feedback)
+  hoveredEdge: null,
+  // last server payload (for revert / refresh)
+  loading: false
+};
+
+function depsLocalKey() { return `depsPositions:${state.projectSlug || 'default'}`; }
+
+function loadDepPositions() {
+  try {
+    const raw = localStorage.getItem(depsLocalKey());
+    if (!raw) return new Map();
+    const obj = JSON.parse(raw);
+    return new Map(Object.entries(obj || {}).map(([k, v]) => [k, { x: Number(v.x) || 0, y: Number(v.y) || 0 }]));
+  } catch (_) { return new Map(); }
+}
+function saveDepPositions() {
+  const obj = {};
+  for (const [k, v] of depsState.positions) obj[k] = { x: v.x, y: v.y };
+  try { localStorage.setItem(depsLocalKey(), JSON.stringify(obj)); } catch (_) {}
+}
+function resetDepPositions() {
+  depsState.positions = new Map();
+  try { localStorage.removeItem(depsLocalKey()); } catch (_) {}
+  layoutDepNodesAuto();
+  renderDepsModal();
+}
+
+// Auto-layout: column = stage index, row = order within stage
+function layoutDepNodesAuto() {
+  const sched = state.schedule;
+  if (!sched) return;
+  const tasks = sched.tasks || [];
+  const stagesPresent = [...new Set(tasks.map(t => t.stage).filter(Boolean))];
+  const orderedStages = [
+    ...CANONICAL_STAGE_ORDER.filter(s => stagesPresent.includes(s)),
+    ...stagesPresent.filter(s => !CANONICAL_STAGE_ORDER.includes(s))
+  ];
+  const stageIdx = Object.fromEntries(orderedStages.map((s, i) => [s, i]));
+  const byStage = Object.fromEntries(orderedStages.map(s => [s, []]));
+  for (const t of tasks) (byStage[t.stage] || (byStage[t.stage] = [])).push(t);
+  // Sort each stage by planStart
+  for (const s of Object.keys(byStage)) {
+    byStage[s].sort((a, b) => (a.planStart || '').localeCompare(b.planStart || ''));
+  }
+  for (const s of Object.keys(byStage)) {
+    byStage[s].forEach((t, i) => {
+      depsState.positions.set(t.id, {
+        x: DEP_PAD + (stageIdx[s] || 0) * DEP_COL_GAP,
+        y: DEP_PAD + i * DEP_ROW_GAP
+      });
+    });
+  }
+}
+
+function openDepsModal() {
+  const modal = document.getElementById('deps-modal');
+  if (!modal || !state.schedule) return;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  // Load positions: persisted or auto
+  const stored = loadDepPositions();
+  if (stored.size) {
+    depsState.positions = stored;
+    // Backfill any new tasks with auto positions
+    const sched = state.schedule;
+    const tasks = sched.tasks || [];
+    const missing = tasks.filter(t => !stored.has(t.id));
+    if (missing.length) {
+      layoutDepNodesAuto();
+      // merge stored back over auto
+      for (const [k, v] of stored) depsState.positions.set(k, v);
+    }
+  } else {
+    layoutDepNodesAuto();
+  }
+  renderDepsModal();
+}
+
+function closeDepsModal() {
+  const modal = document.getElementById('deps-modal');
+  if (modal) modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  depsState.pendingFrom = null;
+}
+
+function renderDepsModal() {
+  const sched = state.schedule;
+  if (!sched) return;
+  const tasks = sched.tasks || [];
+  const sectionById = state.sectionById || {};
+  const nodesLayer = document.getElementById('deps-nodes-layer');
+  const canvas = document.getElementById('deps-canvas');
+  const svg = document.getElementById('deps-svg');
+  const edgesLayer = document.getElementById('deps-edges-layer');
+  const sub = document.getElementById('deps-head-sub');
+  if (!nodesLayer || !svg || !edgesLayer) return;
+
+  // Compute canvas size from positions
+  let maxX = 0, maxY = 0;
+  for (const [tid, pos] of depsState.positions) {
+    if (pos.x + DEP_NODE_W > maxX) maxX = pos.x + DEP_NODE_W;
+    if (pos.y + DEP_NODE_H > maxY) maxY = pos.y + DEP_NODE_H;
+  }
+  const W = Math.max(900, maxX + DEP_PAD);
+  const H = Math.max(500, maxY + DEP_PAD);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // Render nodes
+  nodesLayer.innerHTML = tasks.map(t => {
+    const pos = depsState.positions.get(t.id) || { x: 0, y: 0 };
+    const sec = sectionById[t.section] || { name: '', color: '#94a3b8' };
+    const prog = taskProgress(t);
+    const progPct = Math.round(prog * 100);
+    const done = prog >= 1;
+    const isCrit = state.cpmCritical?.has(t.id);
+    const isPending = depsState.pendingFrom === t.id;
+    return `<div class="dep-node${done ? ' is-done' : ''}${isCrit ? ' is-crit' : ''}${isPending ? ' is-pending' : ''}" data-tid="${escapeHtml(t.id)}" style="left:${pos.x}px; top:${pos.y}px; width:${DEP_NODE_W}px; --dep-color:${sec.color}">
+      <div class="dep-node-head">
+        <span class="dep-node-bullet" style="background:${sec.color}"></span>
+        <span class="dep-node-id">${escapeHtml(t.id)}</span>
+        <span class="dep-node-pct">${progPct}%</span>
+      </div>
+      <div class="dep-node-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+      <button class="dep-node-anchor" type="button" title="Потяни отсюда к другой работе, чтобы добавить связь" data-tid="${escapeHtml(t.id)}" aria-label="Создать связь">＋</button>
+    </div>`;
+  }).join('');
+
+  // Render edges
+  const deps = (state.dataCache?.taskDependencies) || [];
+  const taskById = new Map(tasks.map(t => [t.id, t]));
+  const edgesHtml = deps.filter(d => taskById.has(d.taskId) && taskById.has(d.dependsOnTaskId)).map(d => {
+    const a = depsState.positions.get(d.dependsOnTaskId) || { x: 0, y: 0 };
+    const b = depsState.positions.get(d.taskId) || { x: 0, y: 0 };
+    // edge from right side of A to left side of B
+    const x1 = a.x + DEP_NODE_W;
+    const y1 = a.y + DEP_NODE_H / 2;
+    const x2 = b.x;
+    const y2 = b.y + DEP_NODE_H / 2;
+    const midX = (x1 + x2) / 2;
+    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+    const isCrit = state.cpmCritical?.has(d.taskId) && state.cpmCritical?.has(d.dependsOnTaskId);
+    const cls = `dep-edge${isCrit ? ' is-crit' : ''}${d.source === 'auto' ? ' is-auto' : ' is-manual'}`;
+    const marker = isCrit ? 'url(#deps-arrow-crit)' : 'url(#deps-arrow)';
+    return `<g class="${cls}" data-edge-id="${escapeHtml(d.id)}" data-from="${escapeHtml(d.dependsOnTaskId)}" data-to="${escapeHtml(d.taskId)}">
+      <path class="dep-edge-hit" d="${path}"/>
+      <path class="dep-edge-line" d="${path}" marker-end="${marker}"/>
+      <title>${escapeHtml(d.rationale || `${d.dependsOnTaskId} → ${d.taskId}`)} · клик чтобы удалить</title>
+    </g>`;
+  }).join('');
+  edgesLayer.innerHTML = edgesHtml;
+
+  if (sub) sub.textContent = deps.length === 0
+    ? 'Зависимостей нет — нажми «Авто (ИИ)», чтобы расставить'
+    : `${deps.length} ${plural(deps.length, ['связь', 'связи', 'связей'])} · из них автоматических: ${deps.filter(d=>d.source==='auto').length}`;
+
+  bindDepsModalHandlers();
+}
+
+let _depsHandlersBound = false;
+function bindDepsModalHandlers() {
+  if (_depsHandlersBound) {
+    rebindDepsCanvasInteractions();
+    return;
+  }
+  _depsHandlersBound = true;
+  document.querySelectorAll('[data-deps-close]').forEach(el => el.addEventListener('click', closeDepsModal));
+  const autoBtn = document.getElementById('deps-btn-auto');
+  if (autoBtn) autoBtn.addEventListener('click', runAutoInferDeps);
+  const fitBtn = document.getElementById('deps-btn-fit');
+  if (fitBtn) fitBtn.addEventListener('click', fitDepsCanvasToView);
+  const resetBtn = document.getElementById('deps-btn-reset-pos');
+  if (resetBtn) resetBtn.addEventListener('click', resetDepPositions);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('deps-modal')?.getAttribute('aria-hidden') === 'false') {
+      closeDepsModal();
+    }
+  });
+  rebindDepsCanvasInteractions();
+}
+
+function rebindDepsCanvasInteractions() {
+  const canvas = document.getElementById('deps-canvas');
+  if (!canvas) return;
+
+  // Click on edge → delete with confirm
+  canvas.querySelectorAll('.dep-edge').forEach(g => {
+    g.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const id = g.getAttribute('data-edge-id');
+      const from = g.getAttribute('data-from');
+      const to = g.getAttribute('data-to');
+      if (!id) return;
+      const ok = confirm(`Удалить зависимость «${from} → ${to}»?`);
+      if (!ok) return;
+      g.classList.add('is-removing');
+      try {
+        await fetch('/api/dependencies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
+        });
+        // optimistic local removal
+        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => d.id !== id);
+        rebuildDepsGraph();
+        renderProjectAnalytics();
+        renderGantt();
+        renderDepsModal();
+      } catch (e) {
+        alert('Не удалось удалить связь: ' + (e.message || e));
+        g.classList.remove('is-removing');
+      }
+    });
+  });
+
+  // Anchor click → start edge creation
+  canvas.querySelectorAll('.dep-node-anchor').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const tid = btn.getAttribute('data-tid');
+      depsState.pendingFrom = (depsState.pendingFrom === tid) ? null : tid;
+      renderDepsModal();
+    });
+  });
+
+  // Click on node body — finish edge creation if in pending mode, else nothing
+  canvas.querySelectorAll('.dep-node').forEach(node => {
+    node.addEventListener('click', async (ev) => {
+      if (ev.target.closest('.dep-node-anchor')) return;
+      const tid = node.getAttribute('data-tid');
+      if (!depsState.pendingFrom || depsState.pendingFrom === tid) {
+        if (depsState.pendingFrom === tid) { depsState.pendingFrom = null; renderDepsModal(); }
+        return;
+      }
+      const from = depsState.pendingFrom;
+      const to = tid;
+      depsState.pendingFrom = null;
+      try {
+        const r = await fetch('/api/dependencies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from, source: 'manual' } })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        // optimistic add
+        const existing = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === to && d.dependsOnTaskId === from));
+        existing.push(j.dep);
+        state.dataCache.taskDependencies = existing;
+        rebuildDepsGraph();
+        renderProjectAnalytics();
+        renderGantt();
+        renderDepsModal();
+      } catch (e) {
+        alert('Не удалось создать связь: ' + (e.message || e));
+        renderDepsModal();
+      }
+    });
+  });
+
+  // Drag node
+  canvas.querySelectorAll('.dep-node').forEach(node => {
+    node.addEventListener('pointerdown', (ev) => {
+      if (ev.target.closest('.dep-node-anchor')) return;
+      const tid = node.getAttribute('data-tid');
+      const startPos = depsState.positions.get(tid) || { x: 0, y: 0 };
+      const startX = ev.clientX;
+      const startY = ev.clientY;
+      let moved = false;
+      node.setPointerCapture(ev.pointerId);
+      node.classList.add('is-dragging');
+      const onMove = (e) => {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true;
+        if (!moved) return;
+        const nx = Math.max(0, startPos.x + dx);
+        const ny = Math.max(0, startPos.y + dy);
+        depsState.positions.set(tid, { x: nx, y: ny });
+        node.style.left = nx + 'px';
+        node.style.top = ny + 'px';
+        // re-render edges only (cheap)
+        renderDepsEdgesOnly();
+      };
+      const onUp = (e) => {
+        node.releasePointerCapture(ev.pointerId);
+        node.removeEventListener('pointermove', onMove);
+        node.removeEventListener('pointerup', onUp);
+        node.removeEventListener('pointercancel', onUp);
+        node.classList.remove('is-dragging');
+        if (moved) saveDepPositions();
+      };
+      node.addEventListener('pointermove', onMove);
+      node.addEventListener('pointerup', onUp);
+      node.addEventListener('pointercancel', onUp);
+    });
+  });
+}
+
+function renderDepsEdgesOnly() {
+  const sched = state.schedule;
+  if (!sched) return;
+  const edgesLayer = document.getElementById('deps-edges-layer');
+  if (!edgesLayer) return;
+  const deps = (state.dataCache?.taskDependencies) || [];
+  const tasks = sched.tasks || [];
+  const taskIds = new Set(tasks.map(t => t.id));
+  edgesLayer.innerHTML = deps.filter(d => taskIds.has(d.taskId) && taskIds.has(d.dependsOnTaskId)).map(d => {
+    const a = depsState.positions.get(d.dependsOnTaskId) || { x: 0, y: 0 };
+    const b = depsState.positions.get(d.taskId) || { x: 0, y: 0 };
+    const x1 = a.x + DEP_NODE_W;
+    const y1 = a.y + DEP_NODE_H / 2;
+    const x2 = b.x;
+    const y2 = b.y + DEP_NODE_H / 2;
+    const midX = (x1 + x2) / 2;
+    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+    const isCrit = state.cpmCritical?.has(d.taskId) && state.cpmCritical?.has(d.dependsOnTaskId);
+    const cls = `dep-edge${isCrit ? ' is-crit' : ''}${d.source === 'auto' ? ' is-auto' : ' is-manual'}`;
+    const marker = isCrit ? 'url(#deps-arrow-crit)' : 'url(#deps-arrow)';
+    return `<g class="${cls}" data-edge-id="${escapeHtml(d.id)}" data-from="${escapeHtml(d.dependsOnTaskId)}" data-to="${escapeHtml(d.taskId)}">
+      <path class="dep-edge-hit" d="${path}"/>
+      <path class="dep-edge-line" d="${path}" marker-end="${marker}"/>
+    </g>`;
+  }).join('');
+  // Re-bind only edges (since we replaced their HTML)
+  document.querySelectorAll('#deps-edges-layer .dep-edge').forEach(g => {
+    g.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const id = g.getAttribute('data-edge-id');
+      const from = g.getAttribute('data-from');
+      const to = g.getAttribute('data-to');
+      if (!id) return;
+      const ok = confirm(`Удалить зависимость «${from} → ${to}»?`);
+      if (!ok) return;
+      try {
+        await fetch('/api/dependencies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
+        });
+        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => d.id !== id);
+        rebuildDepsGraph();
+        renderProjectAnalytics();
+        renderGantt();
+        renderDepsModal();
+      } catch (e) {
+        alert('Не удалось удалить связь: ' + (e.message || e));
+      }
+    });
+  });
+}
+
+function fitDepsCanvasToView() {
+  const wrap = document.getElementById('deps-canvas-wrap');
+  if (!wrap) return;
+  wrap.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+}
+
+async function runAutoInferDeps() {
+  if (depsState.loading) return;
+  const btn = document.getElementById('deps-btn-auto');
+  if (!btn) return;
+  const sub = document.getElementById('deps-head-sub');
+  const existing = state.dataCache?.taskDependencies?.length || 0;
+  if (existing > 0) {
+    const ok = confirm(`Автоматический режим заменит все ${existing} существующих связей. Продолжить?`);
+    if (!ok) return;
+  }
+  depsState.loading = true;
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span aria-hidden="true">⏳</span> ИИ думает…';
+  if (sub) sub.textContent = 'GPT расставляет зависимости — это может занять до минуты…';
+  try {
+    const r = await fetch('/api/depsinfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: state.projectSlug, scope: 'all' })
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    // refresh local cache
+    const reload = await fetch(`/api/dependencies?slug=${encodeURIComponent(state.projectSlug)}`);
+    const reloadJ = await reload.json();
+    state.dataCache.taskDependencies = reloadJ.deps || [];
+    rebuildDepsGraph();
+    renderProjectAnalytics();
+    renderGantt();
+    renderDepsModal();
+  } catch (e) {
+    alert('Не удалось расставить зависимости: ' + (e.message || e));
+  } finally {
+    depsState.loading = false;
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/*  КП badge popover                                            */
+/* ──────────────────────────────────────────────────────────── */
+
+/* ─── Task label hover tooltip ─── */
+let _taskTipBound = false;
+let _taskTipTimer = null;
+function bindTaskTooltip() {
+  if (_taskTipBound) return;
+  _taskTipBound = true;
+  const tip = document.getElementById('task-tip');
+  if (!tip) return;
+  let currentTid = null;
+
+  const showTip = (label) => {
+    const tid = label.getAttribute('data-tid');
+    if (!tid || tid === currentTid) return;
+    const t = state.schedule?.tasks?.find(x => x.id === tid);
+    if (!t) return;
+    currentTid = tid;
+    const sec = state.sectionById?.[t.section] || { name: '—', color: '#94a3b8' };
+    const pStart = t.planStart || t.start;
+    const pEnd = t.planEnd || t.end;
+    const dates = (pStart && pEnd) ? `${fmtDate(pStart)} → ${fmtDate(pEnd)}` : '';
+    tip.innerHTML = `
+      <div class="task-tip-name">${escapeHtml(t.name)}</div>
+      <div class="task-tip-meta">
+        <span class="task-tip-dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)}${dates ? ' · ' + escapeHtml(dates) : ''}
+      </div>
+    `;
+    // Position: anchor to label, prefer right of column with a small offset
+    const rect = label.getBoundingClientRect();
+    tip.hidden = false;
+    // Wait one frame so width is correct
+    requestAnimationFrame(() => {
+      const tipRect = tip.getBoundingClientRect();
+      let left = rect.right + 8;
+      let top = rect.top + rect.height / 2 - tipRect.height / 2;
+      // Flip below if not enough room on right
+      if (left + tipRect.width > window.innerWidth - 8) {
+        left = Math.max(8, rect.left - tipRect.width - 8);
+      }
+      // Clamp vertically
+      top = Math.max(8, Math.min(window.innerHeight - tipRect.height - 8, top));
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    });
+  };
+  const hideTip = () => {
+    currentTid = null;
+    tip.hidden = true;
+  };
+
+  document.addEventListener('mouseover', (e) => {
+    const label = e.target.closest('.task-label');
+    if (!label) {
+      // Hide unless moving into the tip itself
+      if (!e.target.closest('#task-tip') && !tip.hidden) {
+        clearTimeout(_taskTipTimer);
+        _taskTipTimer = setTimeout(hideTip, 80);
+      }
+      return;
+    }
+    clearTimeout(_taskTipTimer);
+    _taskTipTimer = setTimeout(() => showTip(label), 120);
+  });
+  document.addEventListener('mouseout', (e) => {
+    const label = e.target.closest('.task-label');
+    if (!label) return;
+    const to = e.relatedTarget;
+    if (to && (to.closest?.('.task-label') || to.closest?.('#task-tip'))) return;
+    clearTimeout(_taskTipTimer);
+    _taskTipTimer = setTimeout(hideTip, 80);
+  });
+  // Hide on scroll/click anywhere
+  window.addEventListener('scroll', hideTip, true);
+  document.addEventListener('click', hideTip);
+}
+
+let _kpBoundOnce = false;
+function bindKpPopover() {
+  if (_kpBoundOnce) return;
+  _kpBoundOnce = true;
+  // Capture phase — fires BEFORE gantt's own click handler (which calls stopPropagation).
+  document.addEventListener('click', (e) => {
+    const badge = e.target.closest('.task-crit-badge');
+    if (!badge) {
+      const pop = document.getElementById('kp-popover');
+      if (pop && !pop.hidden && !e.target.closest('#kp-popover')) {
+        pop.hidden = true;
+      }
+      return;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    const labelEl = badge.closest('.task-label');
+    const tid = labelEl?.getAttribute('data-tid');
+    if (!tid) return;
+    showKpPopover(badge, tid);
+  }, true);
+}
+
+function showKpPopover(anchor, taskId) {
+  const pop = document.getElementById('kp-popover');
+  if (!pop) return;
+  const sched = state.schedule;
+  if (!sched) return;
+  const tasks = sched.tasks || [];
+  const taskById = new Map(tasks.map(t => [t.id, t]));
+  const chain = getCriticalChain(taskId);
+  const slack = state.cpmSlack?.get(taskId) ?? 0;
+  const nameOf = (id) => escapeHtml((taskById.get(id) || {}).name || id);
+
+  const chainHtml = chain.length > 1
+    ? `<div class="kp-pop-chain">
+         <div class="kp-pop-chain-title">Цепочка работ до завершения проекта</div>
+         <ol class="kp-pop-chain-list">
+           ${chain.map((id, i) => `<li class="${i === 0 ? 'is-self' : ''}">${nameOf(id)}</li>`).join('')}
+         </ol>
+       </div>`
+    : '<div class="kp-pop-chain-title">Завершающая работа в цепочке.</div>';
+
+  pop.innerHTML = `
+    <div class="kp-pop-head">
+      <span class="kp-pop-ico" aria-hidden="true">⚠</span>
+      <div>
+        <div class="kp-pop-title">Критический путь</div>
+        <div class="kp-pop-sub">${slack <= 0 ? 'Запас по графику отсутствует' : 'Запас по графику: ' + slack + ' ' + plural(slack, ['день','дня','дней'])}. Задержка непосредственно влияет на срок сдачи проекта.</div>
+      </div>
+      <button class="kp-pop-close" type="button" aria-label="Закрыть">×</button>
+    </div>
+    <div class="kp-pop-body">
+      ${chainHtml}
+      <button type="button" class="kp-pop-graph-btn" id="kp-pop-graph">
+        <span aria-hidden="true">🔗</span> Открыть граф зависимостей
+      </button>
+    </div>
+  `;
+  // Position near anchor
+  const rect = anchor.getBoundingClientRect();
+  const popW = 320;
+  const left = Math.min(window.innerWidth - popW - 12, Math.max(12, rect.left + rect.width / 2 - popW / 2));
+  const top = Math.min(window.innerHeight - 220, rect.bottom + 6);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.style.width = popW + 'px';
+  pop.hidden = false;
+
+  pop.querySelector('.kp-pop-close')?.addEventListener('click', () => { pop.hidden = true; });
+  pop.querySelector('#kp-pop-graph')?.addEventListener('click', () => {
+    pop.hidden = true;
+    openDepsModal();
+  });
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/*  Drawer: Dependencies section                                */
+/* ──────────────────────────────────────────────────────────── */
+
+function buildDrawerDependenciesHtml(t) {
+  const sched = state.schedule;
+  if (!sched) return '';
+  const taskById = new Map((sched.tasks || []).map(x => [x.id, x]));
+  const preds = depsForTask(t.id);
+  const succs = dependentsOfTask(t.id);
+
+  const renderChip = (depRow) => {
+    const dep = taskById.get(depRow.dependsOnTaskId);
+    if (!dep) return '';
+    const auto = depRow.source === 'auto';
+    return `<div class="drawer-dep-chip${auto ? ' is-auto' : ' is-manual'}" data-from="${escapeHtml(depRow.dependsOnTaskId)}" data-to="${escapeHtml(t.id)}" title="${escapeHtml(depRow.rationale || '')}">
+      <span class="drawer-dep-chip-name">${escapeHtml(dep.name)}</span>
+      ${auto ? '<span class="drawer-dep-chip-tag" title="Расставлено ИИ">ИИ</span>' : ''}
+      <button type="button" class="drawer-dep-chip-x" aria-label="Убрать связь">×</button>
+    </div>`;
+  };
+
+  const renderSucc = (sid) => {
+    const ts = taskById.get(sid);
+    if (!ts) return '';
+    return `<div class="drawer-dep-chip is-readonly"><span class="drawer-dep-chip-name">${escapeHtml(ts.name)}</span></div>`;
+  };
+
+  const predsHtml = preds.length
+    ? preds.map(renderChip).join('')
+    : '<div class="drawer-dep-empty">— нет —</div>';
+  const succsHtml = succs.length
+    ? succs.map(renderSucc).join('')
+    : '<div class="drawer-dep-empty">— нет —</div>';
+
+  return `
+    <div class="drawer-section">
+      <div class="drawer-section-h">🔗 Зависимости</div>
+      <div class="drawer-dep-block">
+        <div class="drawer-dep-label">Зависит от:</div>
+        <div class="drawer-dep-chips">${predsHtml}</div>
+        <button type="button" class="drawer-dep-add" data-task-id="${escapeHtml(t.id)}">+ Добавить связь</button>
+      </div>
+      <div class="drawer-dep-block">
+        <div class="drawer-dep-label">От неё зависят:</div>
+        <div class="drawer-dep-chips">${succsHtml}</div>
+      </div>
+      <button type="button" class="drawer-dep-graph" id="drawer-dep-graph-btn">
+        <span aria-hidden="true">🕸</span> Открыть граф зависимостей
+      </button>
+    </div>
+  `;
+}
+
+function bindDrawerDependenciesHandlers(taskId) {
+  const drawer = document.getElementById('drawer-body');
+  if (!drawer) return;
+  drawer.querySelectorAll('.drawer-dep-chip-x').forEach(btn => {
+    btn.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const chip = btn.closest('.drawer-dep-chip');
+      const from = chip?.getAttribute('data-from');
+      const to = chip?.getAttribute('data-to');
+      if (!from || !to) return;
+      try {
+        await fetch('/api/dependencies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
+        });
+        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === to && d.dependsOnTaskId === from));
+        rebuildDepsGraph();
+        renderProjectAnalytics();
+        renderGantt();
+        // re-open drawer
+        openDrawer(taskId);
+      } catch (e) {
+        alert('Не удалось убрать связь: ' + (e.message || e));
+      }
+    });
+  });
+  const addBtn = drawer.querySelector('.drawer-dep-add');
+  if (addBtn) addBtn.addEventListener('click', () => openDrawerDepPicker(taskId));
+  const graphBtn = drawer.querySelector('#drawer-dep-graph-btn');
+  if (graphBtn) graphBtn.addEventListener('click', openDepsModal);
+}
+
+function openDrawerDepPicker(taskId) {
+  const sched = state.schedule;
+  if (!sched) return;
+  const tasks = sched.tasks || [];
+  const taskById = new Map(tasks.map(t => [t.id, t]));
+  const me = taskById.get(taskId);
+  if (!me) return;
+  const existing = new Set(depsForTask(taskId).map(d => d.dependsOnTaskId));
+  const candidates = tasks.filter(t => t.id !== taskId && !existing.has(t.id));
+  const list = candidates.map(t => {
+    const sec = state.sectionById[t.section] || {};
+    return { id: t.id, name: t.name, section: sec.name || '' };
+  });
+  // Simple prompt-style picker via a minimal modal injected into body
+  const overlay = document.createElement('div');
+  overlay.className = 'dep-picker-overlay';
+  overlay.innerHTML = `
+    <div class="dep-picker-card">
+      <div class="dep-picker-head">
+        <div>Зависит от какой работы?</div>
+        <button type="button" class="dep-picker-close" aria-label="Закрыть">×</button>
+      </div>
+      <input type="search" class="dep-picker-search" placeholder="Поиск по названию…" />
+      <div class="dep-picker-list">
+        ${list.map(x => `<button type="button" class="dep-picker-item" data-id="${escapeHtml(x.id)}">
+          <span class="dep-picker-item-name">${escapeHtml(x.name)}</span>
+          <span class="dep-picker-item-sec">${escapeHtml(x.section)}</span>
+        </button>`).join('') || '<div class="dep-picker-empty">Нет других работ</div>'}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.dep-picker-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  const search = overlay.querySelector('.dep-picker-search');
+  search.addEventListener('input', () => {
+    const q = search.value.toLowerCase().trim();
+    overlay.querySelectorAll('.dep-picker-item').forEach(it => {
+      const txt = it.textContent.toLowerCase();
+      it.style.display = !q || txt.includes(q) ? '' : 'none';
+    });
+  });
+  search.focus();
+  overlay.querySelectorAll('.dep-picker-item').forEach(it => {
+    it.addEventListener('click', async () => {
+      const depId = it.getAttribute('data-id');
+      try {
+        const r = await fetch('/api/dependencies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId, dependsOnTaskId: depId, source: 'manual' } })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status);
+        const filtered = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === taskId && d.dependsOnTaskId === depId));
+        filtered.push(j.dep);
+        state.dataCache.taskDependencies = filtered;
+        rebuildDepsGraph();
+        renderProjectAnalytics();
+        renderGantt();
+        close();
+        openDrawer(taskId);
+      } catch (e) {
+        alert('Не удалось добавить связь: ' + (e.message || e));
+      }
+    });
   });
 }

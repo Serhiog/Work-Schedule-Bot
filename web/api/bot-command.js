@@ -14,7 +14,9 @@
 //   • «что в риске?», «что сегодня в работе?»
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
-const MODEL = process.env.BOT_COMMAND_MODEL || 'gpt-5.4-pro';
+// Дефолт — стандартная gpt-5.4 (не -pro), reasoning тут оверкилл для intent-классификации.
+// Можно переопределить через BOT_COMMAND_MODEL, например 'gpt-4o-mini' (ещё дешевле).
+const MODEL = process.env.BOT_COMMAND_MODEL || 'gpt-5.4-mini';
 const APP_HOST = 'https://cyfr-schedule-app.vercel.app';
 
 const ASSIGNEES = ['Александр', 'Андрей', 'Антон П.', 'Антон М.'];
@@ -87,35 +89,51 @@ async function classify(text, ctx) {
     'Верни СТРОГИЙ JSON одной командой. Если в фразе несколько команд — выбери самую явную.'
   ].join('\n');
 
-  const r = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENAI_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      input: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: text }
-      ],
-      reasoning: { effort: 'medium' },
-      text: { format: { type: 'json_object' } },
-      max_output_tokens: 600
-    })
-  });
+  const isReasoning = /-pro\b/.test(MODEL) || /^o\d/.test(MODEL);
+  const r = await fetch(
+    isReasoning ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(isReasoning ? {
+        model: MODEL,
+        input: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: text }
+        ],
+        reasoning: { effort: 'medium' },
+        text: { format: { type: 'json_object' } },
+        max_output_tokens: 600
+      } : {
+        model: MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: text }
+        ],
+        response_format: { type: 'json_object' },
+        max_completion_tokens: 600
+      })
+    }
+  );
   const data = await r.json();
   if (!r.ok) throw new Error(`OpenAI: ${JSON.stringify(data).slice(0, 400)}`);
 
   let outText = '';
-  if (Array.isArray(data.output)) {
-    for (const item of data.output) {
-      if (item?.content) for (const c of item.content) {
-        if (c?.text) outText += c.text;
+  if (isReasoning) {
+    if (Array.isArray(data.output)) {
+      for (const item of data.output) {
+        if (item?.content) for (const c of item.content) {
+          if (c?.text) outText += c.text;
+        }
       }
     }
+    if (!outText && data.output_text) outText = data.output_text;
+  } else {
+    outText = data.choices?.[0]?.message?.content || '';
   }
-  if (!outText && data.output_text) outText = data.output_text;
   return JSON.parse(outText);
 }
 

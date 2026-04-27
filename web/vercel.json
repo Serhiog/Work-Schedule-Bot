@@ -18,5 +18,12 @@
       ]
     }
   ],
-  "crons": []
+  "crons": [
+    { "path": "/api/cron-weekly-progress", "schedule": "0 8 * * 0" },
+    { "path": "/api/cron-daily-progress",  "schedule": "0 5 * * *" }
+  ],
+  "functions": {
+    "api/depsinfer.js": { "maxDuration": 300 },
+    "api/report.js": { "maxDuration": 120 }
+  }
 }

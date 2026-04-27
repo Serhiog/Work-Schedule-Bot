@@ -171,7 +171,9 @@ ${userTheses}
 async function callOpenAI(messages, model) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error('OPENAI_API_KEY not set');
-  const apiModel = model || 'gpt-5.5-pro';
+  // Дефолт — gpt-5.4 (standard, без reasoning). Отчёт = генерация связного текста, reasoning тут оверкилл.
+  // Был gpt-5.5-pro: один вызов стоил $0.50–$2 (reasoning output ~$120/1M). Сейчас примерно в 10× дешевле.
+  const apiModel = model || 'gpt-5.4-mini';
 
   // Pro / reasoning models use /v1/responses (chat completions returns 404 "not a chat model")
   const isReasoning = /(-pro|-codex|^o\d)/i.test(apiModel);
@@ -235,7 +237,7 @@ module.exports = async (req, res) => {
     const slug = body.slug || 'orange-1801';
     const period = body.period || { start: clampISO(new Date()), end: clampISO(new Date()) };
     const theses = String(body.theses || '');
-    const model = body.model || 'gpt-5.4-pro';
+    const model = body.model || 'gpt-5.4-mini';
     const photoRequests = Array.isArray(body.photos) ? body.photos.slice(0, 30) : [];
 
     // 1. Schedule + tickets

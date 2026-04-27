@@ -3,7 +3,9 @@
 // Возвращает структурированный план изменений (preview), который фронт показывает на подтверждение.
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
-const MODEL = process.env.OPENAI_MEETING_MODEL || 'gpt-5.4-pro';
+// Дефолт — стандартная gpt-5.4. Анализ конспекта = NLU-задача,
+// reasoning тут даёт небольшое улучшение, но в 10× дороже. Override через OPENAI_MEETING_MODEL.
+const MODEL = process.env.OPENAI_MEETING_MODEL || 'gpt-5.4-mini';
 
 function bad(res, code, message, extra) {
   res.status(code).json({ error: message, ...(extra || {}) });
@@ -114,42 +116,57 @@ module.exports = async function handler(req, res) {
   ].join('\n');
 
   try {
-    const r = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        input: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        reasoning: { effort: 'medium' },
-        text: { format: { type: 'json_object' } },
-        max_output_tokens: 8000
-      })
-    });
+    const isReasoning = /-pro\b/.test(MODEL) || /^o\d/.test(MODEL);
+    const r = await fetch(
+      isReasoning ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(isReasoning ? {
+          model: MODEL,
+          input: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          reasoning: { effort: 'medium' },
+          text: { format: { type: 'json_object' } },
+          max_output_tokens: 8000
+        } : {
+          model: MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          response_format: { type: 'json_object' },
+          max_completion_tokens: 8000
+        })
+      }
+    );
 
     const data = await r.json();
     if (!r.ok) {
       return bad(res, r.status, 'OpenAI error', { detail: data });
     }
 
-    // Извлекаем text из Responses API
     let outText = '';
-    if (Array.isArray(data.output)) {
-      for (const item of data.output) {
-        if (item?.content && Array.isArray(item.content)) {
-          for (const c of item.content) {
-            if (c?.text) outText += c.text;
-            else if (typeof c === 'string') outText += c;
+    if (isReasoning) {
+      if (Array.isArray(data.output)) {
+        for (const item of data.output) {
+          if (item?.content && Array.isArray(item.content)) {
+            for (const c of item.content) {
+              if (c?.text) outText += c.text;
+              else if (typeof c === 'string') outText += c;
+            }
           }
         }
       }
+      if (!outText && data.output_text) outText = data.output_text;
+    } else {
+      outText = data.choices?.[0]?.message?.content || '';
     }
-    if (!outText && data.output_text) outText = data.output_text;
 
     let parsed;
     try {

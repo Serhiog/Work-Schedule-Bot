@@ -24,7 +24,8 @@ const TABLES = {
   ticketMeetingNotes:  'TicketMeetingNotes',
   taskMeetingNotes:    'TaskMeetingNotes',
   taskResources:       'TaskResources',
-  taskMaterials:       'TaskMaterials'
+  taskMaterials:       'TaskMaterials',
+  taskDependencies:    'TaskDependencies'
 };
 
 function bad(res, code, msg, extra) {
@@ -82,13 +83,14 @@ function genId(prefix) {
 // ---------- GET: aggregate read by slug ----------
 async function readAggregate(slug) {
   const slugFilter = `{ProjectSlug}='${escapeFormula(slug)}'`;
-  const [assigneesR, updatesR, ticketNotesR, taskNotesR, resourcesR, materialsR] = await Promise.all([
+  const [assigneesR, updatesR, ticketNotesR, taskNotesR, resourcesR, materialsR, depsR] = await Promise.all([
     listAll(TABLES.assignees, slugFilter),
     listAll(TABLES.updates, slugFilter, [{ field: 'At', direction: 'asc' }]),
     listAll(TABLES.ticketMeetingNotes, slugFilter, [{ field: 'At', direction: 'asc' }]),
     listAll(TABLES.taskMeetingNotes, slugFilter, [{ field: 'At', direction: 'asc' }]),
     listAll(TABLES.taskResources, slugFilter),
-    listAll(TABLES.taskMaterials, slugFilter)
+    listAll(TABLES.taskMaterials, slugFilter),
+    listAll(TABLES.taskDependencies, slugFilter)
   ]);
 
   // Shape: { byTicket: { ticketId: [...] }, byTask: { taskId: [...] } }
@@ -157,7 +159,16 @@ async function readAggregate(slug) {
     taskMaterials[tid] = Array.isArray(mats) ? mats : [];
   }
 
-  return { assignees, updates, ticketMeetingNotes, taskMeetingNotes, taskResources, taskMaterials };
+  const taskDependencies = depsR.map(r => ({
+    id: r.id,
+    taskId: r.fields.TaskId || '',
+    dependsOnTaskId: r.fields.DependsOnTaskId || '',
+    source: r.fields.Source || 'manual',
+    rationale: r.fields.Rationale || '',
+    at: r.fields.At || ''
+  })).filter(d => d.taskId && d.dependsOnTaskId);
+
+  return { assignees, updates, ticketMeetingNotes, taskMeetingNotes, taskResources, taskMaterials, taskDependencies };
 }
 
 // ---------- POST: action handlers ----------
