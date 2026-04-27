@@ -385,6 +385,9 @@ function setTaskResources(taskId, resources) {
   state.dataCache.taskResources[String(taskId)] = list;
   postDataAction('task-resources:upsert', { taskId: String(taskId), slug: state.projectSlug, resources: list })
     .catch(e => console.warn('task-resources:upsert failed', e));
+  // Live re-render heatmap + analytics if shown
+  if (state.showHeatmap && typeof renderResourceHeatmap === 'function') renderResourceHeatmap();
+  if (typeof renderProjectAnalytics === 'function') renderProjectAnalytics();
 }
 
 function getTaskMaterials(taskId) {
@@ -645,18 +648,27 @@ function computeCriticalPath(schedule) {
       }
     }
   } else {
-    // Fallback: stage-chain. Каждая работа этапа N зависит от ВСЕХ работ этапа N-1.
-    const stagesPresent = [...new Set(tasks.map(t => t.stage).filter(Boolean))];
-    const ordered = [
-      ...CANONICAL_STAGE_ORDER.filter(s => stagesPresent.includes(s)),
-      ...stagesPresent.filter(s => !CANONICAL_STAGE_ORDER.includes(s))
-    ];
-    const byStage = Object.fromEntries(ordered.map(s => [s, []]));
-    for (const t of tasks) if (byStage[t.stage]) byStage[t.stage].push(t.id);
-    for (let i = 1; i < ordered.length; i++) {
-      const prev = byStage[ordered[i - 1]];
-      for (const tid of byStage[ordered[i]]) {
-        for (const pid of prev) preds.get(tid).add(pid);
+    // Fallback: section-chain. Внутри каждой секции работы выстраиваются по этапу и planStart;
+    // каждая работа зависит от предыдущей в этой же секции. Между секциями зависимостей НЕТ
+    // (секции могут идти параллельно), поэтому не получаем ложно «всё критическое».
+    const bySection = new Map();
+    for (const t of tasks) {
+      const arr = bySection.get(t.section) || [];
+      arr.push(t);
+      bySection.set(t.section, arr);
+    }
+    const stageRank = (st) => {
+      const i = CANONICAL_STAGE_ORDER.indexOf(st);
+      return i >= 0 ? i : 99;
+    };
+    for (const arr of bySection.values()) {
+      arr.sort((a, b) => {
+        const sa = stageRank(a.stage), sb = stageRank(b.stage);
+        if (sa !== sb) return sa - sb;
+        return (a.planStart || '').localeCompare(b.planStart || '');
+      });
+      for (let i = 1; i < arr.length; i++) {
+        preds.get(arr[i].id).add(arr[i - 1].id);
       }
     }
   }
@@ -896,7 +908,9 @@ function renderResourceHeatmap() {
   });
 
   const cellW = state.cellW || 22;
-  const labelW = isMobile() ? 0 : 180;
+  // Левая колонка heatmap = ширина Gantt label column (по умолчанию 260px), чтобы дни выравнивались по вертикали
+  const ganttLabelW = parseInt(getComputedStyle(document.getElementById('gantt') || document.body).getPropertyValue('--label-col-w')) || 260;
+  const labelW = isMobile() ? 0 : ganttLabelW;
   const max = Math.max(1, ...Object.values(tl.counts).flat());
 
   const monthsHtml = (() => {
@@ -913,7 +927,7 @@ function renderResourceHeatmap() {
     return groups.map(g => `<div class="rh-month-cell" style="grid-column: span ${g.count}">${escapeHtml(g.label)}</div>`).join('');
   })();
 
-  const headerDaysHtml = tl.days.map(d => `<div class="rh-day-header">${d.getUTCDate()}</div>`).join('');
+  const headerDaysHtml = tl.days.map((d, i) => `<div class="rh-day-header" data-col="${i}">${d.getUTCDate()}</div>`).join('');
 
   const cellsTpl = `repeat(${tl.days.length}, ${cellW}px)`;
 
@@ -925,7 +939,7 @@ function renderResourceHeatmap() {
     const cells = arr.map((n, i) => {
       const intensity = Math.min(1, n / peakRef);
       const bg = n > 0 ? `rgba(${palette}, ${baseAlpha + intensity * peakAlpha})` : 'transparent';
-      return `<div class="rh-cell${isTotal ? ' rh-cell--total' : ''}" style="background:${bg}" title="${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n}">${n > 0 ? n : ''}</div>`;
+      return `<div class="rh-cell${isTotal ? ' rh-cell--total' : ''}" data-col="${i}" style="background:${bg}" title="${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n}">${n > 0 ? n : ''}</div>`;
     }).join('');
     return `
       <div class="rh-row${isTotal ? ' rh-row--total' : ''}">
@@ -947,12 +961,37 @@ function renderResourceHeatmap() {
       <div class="rh-table" style="--rh-label-w:${labelW}px;">
         <div class="rh-row rh-row--header">
           <div class="rh-row-label"></div>
-          <div class="rh-row-cells" style="grid-template-columns:${cellsTpl}">${tl.days.map(d => `<div class="rh-day-header">${d.getUTCDate()}</div>`).join('')}</div>
+          <div class="rh-row-cells" style="grid-template-columns:${cellsTpl}">${tl.days.map((d, i) => `<div class="rh-day-header" data-col="${i}">${d.getUTCDate()}</div>`).join('')}</div>
         </div>
         ${rowsHtml}
         ${totalRowHtml}
       </div>
     </div>`;
+
+  // ── Sync horizontal scroll with the Gantt ──
+  const gantt = document.getElementById('gantt');
+  const rhScroll = cont.querySelector('.rh-scroll');
+  if (gantt && rhScroll) {
+    let syncing = false;
+    const sync = (src, dst) => {
+      if (syncing) return;
+      syncing = true;
+      dst.scrollLeft = src.scrollLeft;
+      requestAnimationFrame(() => { syncing = false; });
+    };
+    if (!gantt._rhScrollSync) {
+      gantt._rhScrollSync = () => sync(gantt, rhScroll);
+      gantt.addEventListener('scroll', gantt._rhScrollSync, { passive: true });
+    } else {
+      // re-bind to fresh rhScroll element
+      gantt.removeEventListener('scroll', gantt._rhScrollSync);
+      gantt._rhScrollSync = () => sync(gantt, rhScroll);
+      gantt.addEventListener('scroll', gantt._rhScrollSync, { passive: true });
+    }
+    rhScroll.addEventListener('scroll', () => sync(rhScroll, gantt), { passive: true });
+    // Initial align
+    rhScroll.scrollLeft = gantt.scrollLeft;
+  }
 }
 
 // Resource peak: считаем суммарное число людей на каждый день в plan-диапазоне.
@@ -1367,9 +1406,6 @@ function attachToolbarHandlers() {
 
   const printBtn = $('#btn-print');
   if (printBtn) printBtn.addEventListener('click', printGanttAsImage);
-
-  const depsBtn = $('#btn-deps');
-  if (depsBtn) depsBtn.addEventListener('click', openDepsModal);
 }
 
 /* ─── Gantt ─── */
@@ -1977,6 +2013,21 @@ function updateOverlays() {
     if (d) d.classList.add('hovered');
   }
 
+  // Зеркалим hover/pin на heatmap (если открыт). rh-col-* — отдельные классы,
+  // чтобы не пересечься с глобальными .col-hover/.col-pinned (там opacity:0 + position:absolute).
+  const heatmap = document.getElementById('resource-heatmap');
+  if (heatmap && !heatmap.hasAttribute('hidden')) {
+    heatmap.querySelectorAll('.rh-col-hover, .rh-col-pinned').forEach(el => {
+      el.classList.remove('rh-col-hover', 'rh-col-pinned');
+    });
+    if (state.hoverCol != null && state.hoverCol !== state.pinCol) {
+      heatmap.querySelectorAll(`[data-col="${state.hoverCol}"]`).forEach(el => el.classList.add('rh-col-hover'));
+    }
+    if (state.pinCol != null) {
+      heatmap.querySelectorAll(`[data-col="${state.pinCol}"]`).forEach(el => el.classList.add('rh-col-pinned'));
+    }
+  }
+
   const showHoverCol = state.hoverCol != null && state.hoverCol !== state.pinCol;
   set($('#col-hover'), showHoverCol, showHoverCol ? colRect(state.hoverCol) : null);
 
@@ -2345,28 +2396,69 @@ function buildDrawerMaterialsHtml(taskId) {
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === tid);
   const materials = getTaskMaterials(tid);
   const risk = t ? computeMaterialRisk(t) : null;
+  const planStart = t ? parseISO(t.planStart) : null;
+  const today = effectiveToday();
 
   const riskBanner = risk
-    ? `<div class="materials-risk-banner">⚠️ Заказать до <strong>${escapeHtml(fmtDate(toISO(risk.orderBy)))}</strong> — ${risk.riskyCount} из ${risk.totalCount} ещё не оформлены, lead-time ${risk.maxLead} дн.</div>`
+    ? `<div class="materials-risk-banner">⚠️ Заказать до <strong>${escapeHtml(fmtDate(toISO(risk.orderBy)))}</strong> · ${risk.riskyCount} из ${risk.totalCount} ${plural(risk.totalCount, ['материала', 'материалов', 'материалов'])} ещё не оформлено</div>`
     : '';
 
-  const rows = materials.map((m, idx) => `
-    <div class="material-row${m.ordered ? ' material-row--ordered' : ''}" data-row-idx="${idx}">
-      <input type="text" class="material-name-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" value="${escapeHtml(m.name || '')}" placeholder="Название материала" />
-      <input type="number" min="0" max="120" class="material-leadtime-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" value="${m.leadTime || 0}" title="Lead-time, дней" />
-      <span class="material-leadtime-suffix">дн.</span>
-      <label class="material-ordered-toggle" title="Отмечено как заказано">
-        <input type="checkbox" class="material-ordered-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}"${m.ordered ? ' checked' : ''} />
-        <span>заказано</span>
-      </label>
-      <button type="button" class="material-row-del" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" title="Убрать">✕</button>
-    </div>`).join('');
+  const cards = materials.map((m, idx) => {
+    const lead = Math.max(0, Math.min(120, Number(m.leadTime) || 0));
+    let orderBy = null;
+    let urgency = 'normal'; // 'normal' | 'soon' | 'overdue' | 'ok'
+    if (planStart) {
+      orderBy = new Date(planStart.getTime() - lead * DAY_MS);
+      const daysToOrder = Math.round((orderBy - today) / DAY_MS);
+      if (m.ordered) urgency = 'ok';
+      else if (daysToOrder < 0) urgency = 'overdue';
+      else if (daysToOrder <= 3) urgency = 'soon';
+    }
+    if (m.ordered) urgency = 'ok';
+    const aiBadge = m.isAi ? '<span class="mat-card-ai" title="Подсказано ИИ">AI</span>' : '';
+    const orderByStr = orderBy
+      ? `<span class="mat-card-orderby">заказать до <strong>${escapeHtml(fmtDate(toISO(orderBy)))}</strong></span>`
+      : '';
+    const rationale = m.rationale ? `<div class="mat-card-rationale">${escapeHtml(m.rationale)}</div>` : '';
+    const presets = [3, 7, 14, 21, 30];
+    const presetBtns = presets.map(d =>
+      `<button type="button" class="mat-card-preset${lead === d ? ' is-active' : ''}" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" data-preset="${d}">${d}</button>`
+    ).join('');
+    return `
+      <div class="mat-card mat-card--${urgency}${m.ordered ? ' is-ordered' : ''}" data-row-idx="${idx}">
+        <div class="mat-card-head">
+          <input type="text" class="mat-card-name material-name-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" value="${escapeHtml(m.name || '')}" placeholder="Название материала" />
+          ${aiBadge}
+          <button type="button" class="mat-card-del material-row-del" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" aria-label="Удалить">×</button>
+        </div>
+        ${rationale}
+        <div class="mat-card-controls">
+          <label class="mat-card-status">
+            <input type="checkbox" class="material-ordered-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}"${m.ordered ? ' checked' : ''} />
+            <span class="mat-card-status-text">${m.ordered ? '✓ Заказано' : 'Не заказано'}</span>
+          </label>
+          <div class="mat-card-lead">
+            <span class="mat-card-lead-label">Срок поставки:</span>
+            <div class="mat-card-presets">${presetBtns}</div>
+            <input type="number" min="0" max="120" class="mat-card-lead-input material-leadtime-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" value="${lead}" />
+            <span class="mat-card-lead-suffix">дн.</span>
+          </div>
+        </div>
+        ${orderByStr ? `<div class="mat-card-foot">${orderByStr}</div>` : ''}
+      </div>`;
+  }).join('');
+
   return `
     <div class="drawer-section-title">Материалы</div>
     <div class="materials-block" data-task-id="${escapeHtml(tid)}">
       ${riskBanner}
-      <div class="materials-rows" id="materials-rows-${escapeHtml(tid)}">${rows || '<div class="materials-empty">Нет материалов (используются дефолты по типу работы)</div>'}</div>
-      <button type="button" class="material-add-btn" data-task-id="${escapeHtml(tid)}">+ Добавить материал</button>
+      <div class="materials-rows" id="materials-rows-${escapeHtml(tid)}">${cards || '<div class="materials-empty">Материалы не указаны. Нажмите «Подсказать ИИ» или добавьте вручную.</div>'}</div>
+      <div class="materials-actions">
+        <button type="button" class="material-add-btn" data-task-id="${escapeHtml(tid)}">+ Добавить материал</button>
+        <button type="button" class="material-ai-btn" data-task-id="${escapeHtml(tid)}" title="Подсказать материалы для этой работы через ИИ">
+          <span aria-hidden="true">✨</span> Подсказать ИИ
+        </button>
+      </div>
     </div>`;
 }
 
@@ -2423,6 +2515,54 @@ function attachResourceMaterialHandlers(taskId) {
     setTaskMaterials(tid, arr);
     reRenderMaterials(tid);
   });
+  // Lead-time presets
+  document.querySelectorAll(`.mat-card-preset[data-task-id="${tid}"]`).forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.rowIdx);
+      const preset = Number(btn.dataset.preset);
+      mutateMaterial(tid, idx, { leadTime: preset });
+      reRenderMaterials(tid);
+    });
+  });
+  // AI suggest button — calls /api/matsinfer for this task
+  const aiBtn = document.querySelector(`.material-ai-btn[data-task-id="${tid}"]`);
+  if (aiBtn) {
+    aiBtn.addEventListener('click', async () => {
+      if (aiBtn.disabled) return;
+      aiBtn.disabled = true;
+      const orig = aiBtn.innerHTML;
+      aiBtn.innerHTML = '<span aria-hidden="true">⏳</span> ИИ думает…';
+      try {
+        const r = await fetch('/api/matsinfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: state.projectSlug, scope: 'taskId', taskId: tid })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        const suggested = (j.byTask && j.byTask[tid]) || [];
+        if (!suggested.length) {
+          alert('ИИ не предложил материалов для этой работы (возможно, материалы не нужны).');
+          aiBtn.disabled = false;
+          aiBtn.innerHTML = orig;
+          return;
+        }
+        // Merge with existing manual entries (don't overwrite manual ones)
+        const existing = getTaskMaterials(tid);
+        const existingNames = new Set(existing.map(m => (m.name || '').trim().toLowerCase()));
+        const merged = [...existing];
+        for (const s of suggested) {
+          if (!existingNames.has((s.name || '').trim().toLowerCase())) merged.push(s);
+        }
+        setTaskMaterials(tid, merged);
+        reRenderMaterials(tid);
+      } catch (e) {
+        alert('Не удалось получить подсказки: ' + (e.message || e));
+        aiBtn.disabled = false;
+        aiBtn.innerHTML = orig;
+      }
+    });
+  }
 }
 
 function mutateResource(taskId, idx, patch) {
@@ -5919,424 +6059,6 @@ function attachReportHandlers() {
   });
 }
 
-/* ════════════════════════════════════════════════════════════════════ */
-/*  Dependencies modal: graph + drag-and-drop + AI auto-infer           */
-/* ════════════════════════════════════════════════════════════════════ */
-
-const DEP_NODE_W = 220;
-const DEP_NODE_H = 64;
-const DEP_COL_GAP = 280;
-const DEP_ROW_GAP = 92;
-const DEP_PAD = 40;
-
-const depsState = {
-  // taskId → { x, y } for current modal session (loaded from localStorage on open)
-  positions: new Map(),
-  // pending edge create flow: { fromTaskId } | null
-  pendingFrom: null,
-  // ghost line during pointermove
-  ghost: { active: false, x: 0, y: 0 },
-  // selected edge to delete on next click (visual feedback)
-  hoveredEdge: null,
-  // last server payload (for revert / refresh)
-  loading: false
-};
-
-function depsLocalKey() { return `depsPositions:${state.projectSlug || 'default'}`; }
-
-function loadDepPositions() {
-  try {
-    const raw = localStorage.getItem(depsLocalKey());
-    if (!raw) return new Map();
-    const obj = JSON.parse(raw);
-    return new Map(Object.entries(obj || {}).map(([k, v]) => [k, { x: Number(v.x) || 0, y: Number(v.y) || 0 }]));
-  } catch (_) { return new Map(); }
-}
-function saveDepPositions() {
-  const obj = {};
-  for (const [k, v] of depsState.positions) obj[k] = { x: v.x, y: v.y };
-  try { localStorage.setItem(depsLocalKey(), JSON.stringify(obj)); } catch (_) {}
-}
-function resetDepPositions() {
-  depsState.positions = new Map();
-  try { localStorage.removeItem(depsLocalKey()); } catch (_) {}
-  layoutDepNodesAuto();
-  renderDepsModal();
-}
-
-// Auto-layout: column = stage index, row = order within stage
-function layoutDepNodesAuto() {
-  const sched = state.schedule;
-  if (!sched) return;
-  const tasks = sched.tasks || [];
-  const stagesPresent = [...new Set(tasks.map(t => t.stage).filter(Boolean))];
-  const orderedStages = [
-    ...CANONICAL_STAGE_ORDER.filter(s => stagesPresent.includes(s)),
-    ...stagesPresent.filter(s => !CANONICAL_STAGE_ORDER.includes(s))
-  ];
-  const stageIdx = Object.fromEntries(orderedStages.map((s, i) => [s, i]));
-  const byStage = Object.fromEntries(orderedStages.map(s => [s, []]));
-  for (const t of tasks) (byStage[t.stage] || (byStage[t.stage] = [])).push(t);
-  // Sort each stage by planStart
-  for (const s of Object.keys(byStage)) {
-    byStage[s].sort((a, b) => (a.planStart || '').localeCompare(b.planStart || ''));
-  }
-  for (const s of Object.keys(byStage)) {
-    byStage[s].forEach((t, i) => {
-      depsState.positions.set(t.id, {
-        x: DEP_PAD + (stageIdx[s] || 0) * DEP_COL_GAP,
-        y: DEP_PAD + i * DEP_ROW_GAP
-      });
-    });
-  }
-}
-
-function openDepsModal() {
-  const modal = document.getElementById('deps-modal');
-  if (!modal || !state.schedule) return;
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  // Load positions: persisted or auto
-  const stored = loadDepPositions();
-  if (stored.size) {
-    depsState.positions = stored;
-    // Backfill any new tasks with auto positions
-    const sched = state.schedule;
-    const tasks = sched.tasks || [];
-    const missing = tasks.filter(t => !stored.has(t.id));
-    if (missing.length) {
-      layoutDepNodesAuto();
-      // merge stored back over auto
-      for (const [k, v] of stored) depsState.positions.set(k, v);
-    }
-  } else {
-    layoutDepNodesAuto();
-  }
-  renderDepsModal();
-}
-
-function closeDepsModal() {
-  const modal = document.getElementById('deps-modal');
-  if (modal) modal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  depsState.pendingFrom = null;
-}
-
-function renderDepsModal() {
-  const sched = state.schedule;
-  if (!sched) return;
-  const tasks = sched.tasks || [];
-  const sectionById = state.sectionById || {};
-  const nodesLayer = document.getElementById('deps-nodes-layer');
-  const canvas = document.getElementById('deps-canvas');
-  const svg = document.getElementById('deps-svg');
-  const edgesLayer = document.getElementById('deps-edges-layer');
-  const sub = document.getElementById('deps-head-sub');
-  if (!nodesLayer || !svg || !edgesLayer) return;
-
-  // Compute canvas size from positions
-  let maxX = 0, maxY = 0;
-  for (const [tid, pos] of depsState.positions) {
-    if (pos.x + DEP_NODE_W > maxX) maxX = pos.x + DEP_NODE_W;
-    if (pos.y + DEP_NODE_H > maxY) maxY = pos.y + DEP_NODE_H;
-  }
-  const W = Math.max(900, maxX + DEP_PAD);
-  const H = Math.max(500, maxY + DEP_PAD);
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-
-  // Render nodes
-  nodesLayer.innerHTML = tasks.map(t => {
-    const pos = depsState.positions.get(t.id) || { x: 0, y: 0 };
-    const sec = sectionById[t.section] || { name: '', color: '#94a3b8' };
-    const prog = taskProgress(t);
-    const progPct = Math.round(prog * 100);
-    const done = prog >= 1;
-    const isCrit = state.cpmCritical?.has(t.id);
-    const isPending = depsState.pendingFrom === t.id;
-    return `<div class="dep-node${done ? ' is-done' : ''}${isCrit ? ' is-crit' : ''}${isPending ? ' is-pending' : ''}" data-tid="${escapeHtml(t.id)}" style="left:${pos.x}px; top:${pos.y}px; width:${DEP_NODE_W}px; --dep-color:${sec.color}">
-      <div class="dep-node-head">
-        <span class="dep-node-bullet" style="background:${sec.color}"></span>
-        <span class="dep-node-id">${escapeHtml(t.id)}</span>
-        <span class="dep-node-pct">${progPct}%</span>
-      </div>
-      <div class="dep-node-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
-      <button class="dep-node-anchor" type="button" title="Потяни отсюда к другой работе, чтобы добавить связь" data-tid="${escapeHtml(t.id)}" aria-label="Создать связь">＋</button>
-    </div>`;
-  }).join('');
-
-  // Render edges
-  const deps = (state.dataCache?.taskDependencies) || [];
-  const taskById = new Map(tasks.map(t => [t.id, t]));
-  const edgesHtml = deps.filter(d => taskById.has(d.taskId) && taskById.has(d.dependsOnTaskId)).map(d => {
-    const a = depsState.positions.get(d.dependsOnTaskId) || { x: 0, y: 0 };
-    const b = depsState.positions.get(d.taskId) || { x: 0, y: 0 };
-    // edge from right side of A to left side of B
-    const x1 = a.x + DEP_NODE_W;
-    const y1 = a.y + DEP_NODE_H / 2;
-    const x2 = b.x;
-    const y2 = b.y + DEP_NODE_H / 2;
-    const midX = (x1 + x2) / 2;
-    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-    const isCrit = state.cpmCritical?.has(d.taskId) && state.cpmCritical?.has(d.dependsOnTaskId);
-    const cls = `dep-edge${isCrit ? ' is-crit' : ''}${d.source === 'auto' ? ' is-auto' : ' is-manual'}`;
-    const marker = isCrit ? 'url(#deps-arrow-crit)' : 'url(#deps-arrow)';
-    return `<g class="${cls}" data-edge-id="${escapeHtml(d.id)}" data-from="${escapeHtml(d.dependsOnTaskId)}" data-to="${escapeHtml(d.taskId)}">
-      <path class="dep-edge-hit" d="${path}"/>
-      <path class="dep-edge-line" d="${path}" marker-end="${marker}"/>
-      <title>${escapeHtml(d.rationale || `${d.dependsOnTaskId} → ${d.taskId}`)} · клик чтобы удалить</title>
-    </g>`;
-  }).join('');
-  edgesLayer.innerHTML = edgesHtml;
-
-  if (sub) sub.textContent = deps.length === 0
-    ? 'Зависимостей нет — нажми «Авто (ИИ)», чтобы расставить'
-    : `${deps.length} ${plural(deps.length, ['связь', 'связи', 'связей'])} · из них автоматических: ${deps.filter(d=>d.source==='auto').length}`;
-
-  bindDepsModalHandlers();
-}
-
-let _depsHandlersBound = false;
-function bindDepsModalHandlers() {
-  if (_depsHandlersBound) {
-    rebindDepsCanvasInteractions();
-    return;
-  }
-  _depsHandlersBound = true;
-  document.querySelectorAll('[data-deps-close]').forEach(el => el.addEventListener('click', closeDepsModal));
-  const autoBtn = document.getElementById('deps-btn-auto');
-  if (autoBtn) autoBtn.addEventListener('click', runAutoInferDeps);
-  const fitBtn = document.getElementById('deps-btn-fit');
-  if (fitBtn) fitBtn.addEventListener('click', fitDepsCanvasToView);
-  const resetBtn = document.getElementById('deps-btn-reset-pos');
-  if (resetBtn) resetBtn.addEventListener('click', resetDepPositions);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && document.getElementById('deps-modal')?.getAttribute('aria-hidden') === 'false') {
-      closeDepsModal();
-    }
-  });
-  rebindDepsCanvasInteractions();
-}
-
-function rebindDepsCanvasInteractions() {
-  const canvas = document.getElementById('deps-canvas');
-  if (!canvas) return;
-
-  // Click on edge → delete with confirm
-  canvas.querySelectorAll('.dep-edge').forEach(g => {
-    g.addEventListener('click', async (ev) => {
-      ev.stopPropagation();
-      const id = g.getAttribute('data-edge-id');
-      const from = g.getAttribute('data-from');
-      const to = g.getAttribute('data-to');
-      if (!id) return;
-      const ok = confirm(`Удалить зависимость «${from} → ${to}»?`);
-      if (!ok) return;
-      g.classList.add('is-removing');
-      try {
-        await fetch('/api/dependencies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
-        });
-        // optimistic local removal
-        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => d.id !== id);
-        rebuildDepsGraph();
-        renderProjectAnalytics();
-        renderGantt();
-        renderDepsModal();
-      } catch (e) {
-        alert('Не удалось удалить связь: ' + (e.message || e));
-        g.classList.remove('is-removing');
-      }
-    });
-  });
-
-  // Anchor click → start edge creation
-  canvas.querySelectorAll('.dep-node-anchor').forEach(btn => {
-    btn.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      const tid = btn.getAttribute('data-tid');
-      depsState.pendingFrom = (depsState.pendingFrom === tid) ? null : tid;
-      renderDepsModal();
-    });
-  });
-
-  // Click on node body — finish edge creation if in pending mode, else nothing
-  canvas.querySelectorAll('.dep-node').forEach(node => {
-    node.addEventListener('click', async (ev) => {
-      if (ev.target.closest('.dep-node-anchor')) return;
-      const tid = node.getAttribute('data-tid');
-      if (!depsState.pendingFrom || depsState.pendingFrom === tid) {
-        if (depsState.pendingFrom === tid) { depsState.pendingFrom = null; renderDepsModal(); }
-        return;
-      }
-      const from = depsState.pendingFrom;
-      const to = tid;
-      depsState.pendingFrom = null;
-      try {
-        const r = await fetch('/api/dependencies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from, source: 'manual' } })
-        });
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
-        // optimistic add
-        const existing = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === to && d.dependsOnTaskId === from));
-        existing.push(j.dep);
-        state.dataCache.taskDependencies = existing;
-        rebuildDepsGraph();
-        renderProjectAnalytics();
-        renderGantt();
-        renderDepsModal();
-      } catch (e) {
-        alert('Не удалось создать связь: ' + (e.message || e));
-        renderDepsModal();
-      }
-    });
-  });
-
-  // Drag node
-  canvas.querySelectorAll('.dep-node').forEach(node => {
-    node.addEventListener('pointerdown', (ev) => {
-      if (ev.target.closest('.dep-node-anchor')) return;
-      const tid = node.getAttribute('data-tid');
-      const startPos = depsState.positions.get(tid) || { x: 0, y: 0 };
-      const startX = ev.clientX;
-      const startY = ev.clientY;
-      let moved = false;
-      node.setPointerCapture(ev.pointerId);
-      node.classList.add('is-dragging');
-      const onMove = (e) => {
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        if (!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true;
-        if (!moved) return;
-        const nx = Math.max(0, startPos.x + dx);
-        const ny = Math.max(0, startPos.y + dy);
-        depsState.positions.set(tid, { x: nx, y: ny });
-        node.style.left = nx + 'px';
-        node.style.top = ny + 'px';
-        // re-render edges only (cheap)
-        renderDepsEdgesOnly();
-      };
-      const onUp = (e) => {
-        node.releasePointerCapture(ev.pointerId);
-        node.removeEventListener('pointermove', onMove);
-        node.removeEventListener('pointerup', onUp);
-        node.removeEventListener('pointercancel', onUp);
-        node.classList.remove('is-dragging');
-        if (moved) saveDepPositions();
-      };
-      node.addEventListener('pointermove', onMove);
-      node.addEventListener('pointerup', onUp);
-      node.addEventListener('pointercancel', onUp);
-    });
-  });
-}
-
-function renderDepsEdgesOnly() {
-  const sched = state.schedule;
-  if (!sched) return;
-  const edgesLayer = document.getElementById('deps-edges-layer');
-  if (!edgesLayer) return;
-  const deps = (state.dataCache?.taskDependencies) || [];
-  const tasks = sched.tasks || [];
-  const taskIds = new Set(tasks.map(t => t.id));
-  edgesLayer.innerHTML = deps.filter(d => taskIds.has(d.taskId) && taskIds.has(d.dependsOnTaskId)).map(d => {
-    const a = depsState.positions.get(d.dependsOnTaskId) || { x: 0, y: 0 };
-    const b = depsState.positions.get(d.taskId) || { x: 0, y: 0 };
-    const x1 = a.x + DEP_NODE_W;
-    const y1 = a.y + DEP_NODE_H / 2;
-    const x2 = b.x;
-    const y2 = b.y + DEP_NODE_H / 2;
-    const midX = (x1 + x2) / 2;
-    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-    const isCrit = state.cpmCritical?.has(d.taskId) && state.cpmCritical?.has(d.dependsOnTaskId);
-    const cls = `dep-edge${isCrit ? ' is-crit' : ''}${d.source === 'auto' ? ' is-auto' : ' is-manual'}`;
-    const marker = isCrit ? 'url(#deps-arrow-crit)' : 'url(#deps-arrow)';
-    return `<g class="${cls}" data-edge-id="${escapeHtml(d.id)}" data-from="${escapeHtml(d.dependsOnTaskId)}" data-to="${escapeHtml(d.taskId)}">
-      <path class="dep-edge-hit" d="${path}"/>
-      <path class="dep-edge-line" d="${path}" marker-end="${marker}"/>
-    </g>`;
-  }).join('');
-  // Re-bind only edges (since we replaced their HTML)
-  document.querySelectorAll('#deps-edges-layer .dep-edge').forEach(g => {
-    g.addEventListener('click', async (ev) => {
-      ev.stopPropagation();
-      const id = g.getAttribute('data-edge-id');
-      const from = g.getAttribute('data-from');
-      const to = g.getAttribute('data-to');
-      if (!id) return;
-      const ok = confirm(`Удалить зависимость «${from} → ${to}»?`);
-      if (!ok) return;
-      try {
-        await fetch('/api/dependencies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
-        });
-        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => d.id !== id);
-        rebuildDepsGraph();
-        renderProjectAnalytics();
-        renderGantt();
-        renderDepsModal();
-      } catch (e) {
-        alert('Не удалось удалить связь: ' + (e.message || e));
-      }
-    });
-  });
-}
-
-function fitDepsCanvasToView() {
-  const wrap = document.getElementById('deps-canvas-wrap');
-  if (!wrap) return;
-  wrap.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-}
-
-async function runAutoInferDeps() {
-  if (depsState.loading) return;
-  const btn = document.getElementById('deps-btn-auto');
-  if (!btn) return;
-  const sub = document.getElementById('deps-head-sub');
-  const existing = state.dataCache?.taskDependencies?.length || 0;
-  if (existing > 0) {
-    const ok = confirm(`Автоматический режим заменит все ${existing} существующих связей. Продолжить?`);
-    if (!ok) return;
-  }
-  depsState.loading = true;
-  btn.disabled = true;
-  const orig = btn.innerHTML;
-  btn.innerHTML = '<span aria-hidden="true">⏳</span> ИИ думает…';
-  if (sub) sub.textContent = 'GPT расставляет зависимости — это может занять до минуты…';
-  try {
-    const r = await fetch('/api/depsinfer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: state.projectSlug, scope: 'all' })
-    });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
-    // refresh local cache
-    const reload = await fetch(`/api/dependencies?slug=${encodeURIComponent(state.projectSlug)}`);
-    const reloadJ = await reload.json();
-    state.dataCache.taskDependencies = reloadJ.deps || [];
-    rebuildDepsGraph();
-    renderProjectAnalytics();
-    renderGantt();
-    renderDepsModal();
-  } catch (e) {
-    alert('Не удалось расставить зависимости: ' + (e.message || e));
-  } finally {
-    depsState.loading = false;
-    btn.disabled = false;
-    btn.innerHTML = orig;
-  }
-}
 
 /* ──────────────────────────────────────────────────────────── */
 /*  КП badge popover                                            */
@@ -6471,9 +6193,6 @@ function showKpPopover(anchor, taskId) {
     </div>
     <div class="kp-pop-body">
       ${chainHtml}
-      <button type="button" class="kp-pop-graph-btn" id="kp-pop-graph">
-        <span aria-hidden="true">🔗</span> Открыть граф зависимостей
-      </button>
     </div>
   `;
   // Position near anchor
@@ -6487,10 +6206,6 @@ function showKpPopover(anchor, taskId) {
   pop.hidden = false;
 
   pop.querySelector('.kp-pop-close')?.addEventListener('click', () => { pop.hidden = true; });
-  pop.querySelector('#kp-pop-graph')?.addEventListener('click', () => {
-    pop.hidden = true;
-    openDepsModal();
-  });
 }
 
 /* ──────────────────────────────────────────────────────────── */
@@ -6500,151 +6215,105 @@ function showKpPopover(anchor, taskId) {
 function buildDrawerDependenciesHtml(t) {
   const sched = state.schedule;
   if (!sched) return '';
-  const taskById = new Map((sched.tasks || []).map(x => [x.id, x]));
+  const tasks = sched.tasks || [];
+  const taskById = new Map(tasks.map(x => [x.id, x]));
   const preds = depsForTask(t.id);
   const succs = dependentsOfTask(t.id);
+  const predsByDep = new Map(preds.map(p => [p.dependsOnTaskId, p]));
 
-  const renderChip = (depRow) => {
-    const dep = taskById.get(depRow.dependsOnTaskId);
-    if (!dep) return '';
-    const auto = depRow.source === 'auto';
-    return `<div class="drawer-dep-chip${auto ? ' is-auto' : ' is-manual'}" data-from="${escapeHtml(depRow.dependsOnTaskId)}" data-to="${escapeHtml(t.id)}" title="${escapeHtml(depRow.rationale || '')}">
-      <span class="drawer-dep-chip-name">${escapeHtml(dep.name)}</span>
-      ${auto ? '<span class="drawer-dep-chip-tag" title="Расставлено ИИ">ИИ</span>' : ''}
-      <button type="button" class="drawer-dep-chip-x" aria-label="Убрать связь">×</button>
-    </div>`;
-  };
-
-  const renderSucc = (sid) => {
-    const ts = taskById.get(sid);
-    if (!ts) return '';
-    return `<div class="drawer-dep-chip is-readonly"><span class="drawer-dep-chip-name">${escapeHtml(ts.name)}</span></div>`;
-  };
-
-  const predsHtml = preds.length
-    ? preds.map(renderChip).join('')
-    : '<div class="drawer-dep-empty">— нет —</div>';
   const succsHtml = succs.length
-    ? succs.map(renderSucc).join('')
+    ? succs.map(sid => {
+        const ts = taskById.get(sid);
+        if (!ts) return '';
+        const sec = state.sectionById[ts.section] || { color: '#94a3b8' };
+        return `<div class="dep-succ-row"><span class="dep-succ-dot" style="background:${sec.color}"></span><span class="dep-succ-name">${escapeHtml(ts.name)}</span></div>`;
+      }).join('')
     : '<div class="drawer-dep-empty">— нет —</div>';
+
+  const others = tasks.filter(x => x.id !== t.id);
+  const rowsHtml = others.map(o => {
+    const sec = state.sectionById[o.section] || { name: '', color: '#94a3b8' };
+    const dep = predsByDep.get(o.id);
+    const checked = !!dep;
+    const auto = dep && dep.source === 'auto';
+    return `<button type="button" class="dep-row${checked ? ' is-checked' : ''}" data-dep-id="${escapeHtml(o.id)}" data-name="${escapeHtml(o.name)}">
+      <span class="dep-row-check" aria-hidden="true">${checked ? '✓' : ''}</span>
+      <span class="dep-row-dot" style="background:${sec.color}"></span>
+      <span class="dep-row-name">${escapeHtml(o.name)}</span>
+      ${auto ? '<span class="dep-row-tag" title="Расставлено ИИ">ИИ</span>' : ''}
+    </button>`;
+  }).join('') || '<div class="drawer-dep-empty">Нет других работ</div>';
 
   return `
-    <div class="drawer-section">
+    <div class="drawer-section" id="drawer-deps-section" data-task-id="${escapeHtml(t.id)}">
       <div class="drawer-section-h">🔗 Зависимости</div>
       <div class="drawer-dep-block">
-        <div class="drawer-dep-label">Зависит от:</div>
-        <div class="drawer-dep-chips">${predsHtml}</div>
-        <button type="button" class="drawer-dep-add" data-task-id="${escapeHtml(t.id)}">+ Добавить связь</button>
+        <div class="drawer-dep-label">От неё зависят:</div>
+        <div class="dep-succ-list">${succsHtml}</div>
       </div>
       <div class="drawer-dep-block">
-        <div class="drawer-dep-label">От неё зависят:</div>
-        <div class="drawer-dep-chips">${succsHtml}</div>
+        <div class="drawer-dep-label">Зависит от каких работ — отметьте галочкой:</div>
+        <input type="search" class="dep-search" id="drawer-dep-search" placeholder="Поиск по названию…" />
+        <div class="dep-rows" id="drawer-dep-rows">${rowsHtml}</div>
       </div>
-      <button type="button" class="drawer-dep-graph" id="drawer-dep-graph-btn">
-        <span aria-hidden="true">🕸</span> Открыть граф зависимостей
-      </button>
     </div>
   `;
 }
 
 function bindDrawerDependenciesHandlers(taskId) {
-  const drawer = document.getElementById('drawer-body');
-  if (!drawer) return;
-  drawer.querySelectorAll('.drawer-dep-chip-x').forEach(btn => {
-    btn.addEventListener('click', async (ev) => {
+  const section = document.getElementById('drawer-deps-section');
+  if (!section) return;
+  const search = section.querySelector('#drawer-dep-search');
+  if (search) {
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase().trim();
+      section.querySelectorAll('.dep-row').forEach(r => {
+        const name = (r.getAttribute('data-name') || '').toLowerCase();
+        r.style.display = !q || name.includes(q) ? '' : 'none';
+      });
+    });
+  }
+  section.querySelectorAll('.dep-row').forEach(row => {
+    row.addEventListener('click', async (ev) => {
       ev.stopPropagation();
-      const chip = btn.closest('.drawer-dep-chip');
-      const from = chip?.getAttribute('data-from');
-      const to = chip?.getAttribute('data-to');
-      if (!from || !to) return;
+      if (row.classList.contains('is-busy')) return;
+      const depId = row.getAttribute('data-dep-id');
+      if (!depId) return;
+      const wasChecked = row.classList.contains('is-checked');
+      row.classList.add('is-busy');
       try {
-        await fetch('/api/dependencies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId: to, dependsOnTaskId: from } })
-        });
-        state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === to && d.dependsOnTaskId === from));
+        if (wasChecked) {
+          const r = await fetch('/api/dependencies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'remove', payload: { slug: state.projectSlug, taskId, dependsOnTaskId: depId } })
+          });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          state.dataCache.taskDependencies = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === taskId && d.dependsOnTaskId === depId));
+          row.classList.remove('is-checked');
+          const tagEl = row.querySelector('.dep-row-tag'); if (tagEl) tagEl.remove();
+          const checkEl = row.querySelector('.dep-row-check'); if (checkEl) checkEl.textContent = '';
+        } else {
+          const r = await fetch('/api/dependencies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId, dependsOnTaskId: depId, source: 'manual' } })
+          });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status);
+          const filtered = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === taskId && d.dependsOnTaskId === depId));
+          filtered.push(j.dep);
+          state.dataCache.taskDependencies = filtered;
+          row.classList.add('is-checked');
+          const checkEl = row.querySelector('.dep-row-check'); if (checkEl) checkEl.textContent = '✓';
+        }
         rebuildDepsGraph();
         renderProjectAnalytics();
         renderGantt();
-        // re-open drawer
-        openDrawer(taskId);
       } catch (e) {
-        alert('Не удалось убрать связь: ' + (e.message || e));
-      }
-    });
-  });
-  const addBtn = drawer.querySelector('.drawer-dep-add');
-  if (addBtn) addBtn.addEventListener('click', () => openDrawerDepPicker(taskId));
-  const graphBtn = drawer.querySelector('#drawer-dep-graph-btn');
-  if (graphBtn) graphBtn.addEventListener('click', openDepsModal);
-}
-
-function openDrawerDepPicker(taskId) {
-  const sched = state.schedule;
-  if (!sched) return;
-  const tasks = sched.tasks || [];
-  const taskById = new Map(tasks.map(t => [t.id, t]));
-  const me = taskById.get(taskId);
-  if (!me) return;
-  const existing = new Set(depsForTask(taskId).map(d => d.dependsOnTaskId));
-  const candidates = tasks.filter(t => t.id !== taskId && !existing.has(t.id));
-  const list = candidates.map(t => {
-    const sec = state.sectionById[t.section] || {};
-    return { id: t.id, name: t.name, section: sec.name || '' };
-  });
-  // Simple prompt-style picker via a minimal modal injected into body
-  const overlay = document.createElement('div');
-  overlay.className = 'dep-picker-overlay';
-  overlay.innerHTML = `
-    <div class="dep-picker-card">
-      <div class="dep-picker-head">
-        <div>Зависит от какой работы?</div>
-        <button type="button" class="dep-picker-close" aria-label="Закрыть">×</button>
-      </div>
-      <input type="search" class="dep-picker-search" placeholder="Поиск по названию…" />
-      <div class="dep-picker-list">
-        ${list.map(x => `<button type="button" class="dep-picker-item" data-id="${escapeHtml(x.id)}">
-          <span class="dep-picker-item-name">${escapeHtml(x.name)}</span>
-          <span class="dep-picker-item-sec">${escapeHtml(x.section)}</span>
-        </button>`).join('') || '<div class="dep-picker-empty">Нет других работ</div>'}
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  const close = () => overlay.remove();
-  overlay.querySelector('.dep-picker-close').addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-  const search = overlay.querySelector('.dep-picker-search');
-  search.addEventListener('input', () => {
-    const q = search.value.toLowerCase().trim();
-    overlay.querySelectorAll('.dep-picker-item').forEach(it => {
-      const txt = it.textContent.toLowerCase();
-      it.style.display = !q || txt.includes(q) ? '' : 'none';
-    });
-  });
-  search.focus();
-  overlay.querySelectorAll('.dep-picker-item').forEach(it => {
-    it.addEventListener('click', async () => {
-      const depId = it.getAttribute('data-id');
-      try {
-        const r = await fetch('/api/dependencies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId, dependsOnTaskId: depId, source: 'manual' } })
-        });
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status);
-        const filtered = (state.dataCache.taskDependencies || []).filter(d => !(d.taskId === taskId && d.dependsOnTaskId === depId));
-        filtered.push(j.dep);
-        state.dataCache.taskDependencies = filtered;
-        rebuildDepsGraph();
-        renderProjectAnalytics();
-        renderGantt();
-        close();
-        openDrawer(taskId);
-      } catch (e) {
-        alert('Не удалось добавить связь: ' + (e.message || e));
+        alert('Не удалось обновить связь: ' + (e.message || e));
+      } finally {
+        row.classList.remove('is-busy');
       }
     });
   });
