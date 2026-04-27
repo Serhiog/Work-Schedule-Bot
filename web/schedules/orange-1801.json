@@ -16,7 +16,7 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-27T13:18:58.847Z",
+    "lastUpdated": "2026-04-27T18:38:35.301Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -100,6 +100,11 @@
       "id": "cleaning",
       "name": "Уборка / вывоз мусора",
       "color": "#16a34a"
+    },
+    {
+      "id": "мойка",
+      "name": "мойка",
+      "color": "#94a3b8"
     }
   ],
   "stages": [
@@ -770,6 +775,12 @@
       "author": "Sergei (weekly_report)",
       "action": "set_progress_batch",
       "note": "Из голосового отчёта: покраска стен 20%, покраска потолков 30%, остальное по плану."
+    },
+    {
+      "at": "2026-04-27T18:38:35.300Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «мойка»"
     }
   ]
 }
