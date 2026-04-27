@@ -16,8 +16,8 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-27T12:42:00.000Z",
-    "lastUpdatedBy": "Sergei (weekly_report 27 апр)",
+    "lastUpdated": "2026-04-27T13:18:58.847Z",
+    "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
         "id": "P1",
@@ -206,7 +206,7 @@
       "section": "preparation",
       "stage": "ST1",
       "name": "Защита поверхностей ПВХ-материалом",
-      "qty": 1700.0,
+      "qty": 1700,
       "unit": "м²",
       "costIncVat": 17494.04,
       "planStart": "2026-02-27",
@@ -250,7 +250,7 @@
       "name": "Разработка и согласование чертежей системы пожаротушения",
       "qty": null,
       "unit": "",
-      "costIncVat": 7350.0,
+      "costIncVat": 7350,
       "planStart": "2026-02-24",
       "planEnd": "2026-03-20",
       "actualStart": "2026-02-24",
@@ -264,11 +264,12 @@
       "name": "Сопровождение работ подрядчика по вентиляции и кондиционированию",
       "qty": null,
       "unit": "",
-      "costIncVat": 5250.0,
+      "costIncVat": 5250,
       "planStart": "2026-03-01",
       "planEnd": "2026-05-30",
       "actualStart": "2026-03-01",
-      "actualEnd": null
+      "actualEnd": null,
+      "progress": 0.07
     },
     {
       "id": "7",
@@ -278,7 +279,7 @@
       "name": "Возведение конструкций ГКЛ (2 слоя) с металлокаркасом",
       "qty": 302.11,
       "unit": "м²",
-      "costIncVat": 143200.0,
+      "costIncVat": 143200,
       "planStart": "2026-03-08",
       "planEnd": "2026-03-30",
       "actualStart": "2026-03-08",
