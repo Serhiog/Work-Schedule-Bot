@@ -52,6 +52,9 @@ const state = {
   depsGraph: { byTask: new Map(), byDependency: new Map() },
   // Persisted positions for the dependencies modal (per project, in localStorage)
   depPositions: {},
+  // Edit mode — включает inline-edit имени работы, кнопки + Раздел / + Работа,
+  // удаление, drag дат на Гантте.
+  editMode: false,
 };
 
 function getProjectSlug() {
@@ -188,6 +191,9 @@ async function init() {
   attachToolbarHandlers();
   bindKpPopover();
   bindTaskTooltip();
+  bindTopFab();
+  bindEditMode();
+  bindBarDrag();
   fetchTickets();
   loadProjectData(state.projectSlug)
     .then(() => migrateLocalToAirtable(state.projectSlug))
@@ -1520,6 +1526,17 @@ function attachToolbarHandlers() {
 
   const printBtn = $('#btn-print');
   if (printBtn) printBtn.addEventListener('click', printGanttAsImage);
+
+  const editBtn = $('#btn-edit');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      state.editMode = !state.editMode;
+      editBtn.setAttribute('data-active', String(state.editMode));
+      document.body.classList.toggle('is-edit-mode', state.editMode);
+      renderGantt();
+    });
+    document.body.classList.toggle('is-edit-mode', state.editMode);
+  }
 }
 
 /* ─── Gantt ─── */
@@ -1651,17 +1668,22 @@ function renderGantt() {
   let body = '';
   for (const sec of state.schedule.sections) {
     const secTasks = tasksBySection[sec.id] || [];
-    if (!secTasks.length) continue;
+    // Пустые секции тоже показываем (пользователь только что создал, работ ещё нет —
+    // важно видеть что секция существует, чтобы добавить в неё задачу).
 
     const isSub = !!sec.sub;
     const collapsed = state.collapsedSections.has(sec.id);
     const secId = escapeHtml(sec.id);
     body += `<div class="section-label${isSub ? ' is-sub' : ''}${collapsed ? ' section-label--collapsed' : ''}" data-section-id="${secId}" role="button" tabindex="0" aria-expanded="${collapsed ? 'false' : 'true'}" title="${collapsed ? 'Развернуть' : 'Свернуть'} группу">
       <span class="section-chevron" aria-hidden="true">▾</span>
-      <span class="section-dot" style="background:${sec.color}"></span>
-      ${escapeHtml(sec.name)}
+      <span class="section-dot section-dot-edit" style="background:${sec.color}" data-section-id="${secId}" title="Сменить цвет"></span>
+      <span class="section-name" data-section-id="${secId}" data-edit-name title="Кликни в режиме правки, чтобы переименовать">${escapeHtml(sec.name)}</span>
       <span class="section-count">${secTasks.length}</span>
       ${isSub ? '<span class="sub-badge-sec">СУБ</span>' : ''}
+      <span class="edit-only-actions" aria-hidden="true">
+        <button type="button" class="row-edit-btn" data-edit-section="${secId}" title="Переименовать раздел">✎</button>
+        <button type="button" class="row-del-btn" data-del-section="${secId}" title="Удалить раздел (только если в нём 0 работ)">🗑</button>
+      </span>
     </div>`;
     body += `<div class="section-grid" data-section-id="${secId}" style="width:${gridW}px"></div>`;
 
@@ -1716,11 +1738,15 @@ function renderGantt() {
       body += `<div class="task-label${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
         <span class="tbullet" style="background:${catColor}"></span>
         <span class="tid">${escapeHtml(t.id)}</span>
-        <span class="tname">${escapeHtml(t.name)}</span>
+        <span class="tname" data-tid="${t.id}" data-edit-name title="Кликни в режиме правки, чтобы переименовать">${escapeHtml(t.name)}</span>
         ${critBadge}
         ${matBadge}
         ${progBadge}
         ${subBadge}
+        <span class="edit-only-actions" aria-hidden="true">
+          <button type="button" class="row-edit-btn" data-edit-task="${t.id}" title="Переименовать">✎</button>
+          <button type="button" class="row-del-btn" data-del-task="${t.id}" title="Удалить работу">🗑</button>
+        </span>
         <button class="task-open-btn" data-tid="${t.id}" tabindex="-1" title="Подробнее" aria-label="Открыть детали: ${escapeHtml(t.name)}">→</button>
       </div>`;
       const progFill = prog > 0 ? `<div class="bar-plan-progress" style="width:${progPct}%; background:${bTop}" aria-hidden="true"></div>` : '';
@@ -1734,7 +1760,17 @@ function renderGantt() {
         ${ticketBadge}
       </div>`;
     }
+    // «+ Работа» в конце раздела (видна только в edit-mode через CSS)
+    body += `<button type="button" class="add-row add-task-row${collapsed ? ' row-hidden' : ''}" data-add-task="${secId}" title="Добавить работу в раздел «${escapeHtml(sec.name)}»">
+      <span class="add-row-plus" aria-hidden="true">+</span> Добавить работу
+    </button>`;
+    body += `<div class="add-row-grid${collapsed ? ' row-hidden' : ''}" style="width:${gridW}px"></div>`;
   }
+  // «+ Раздел» в самом конце списка
+  body += `<button type="button" class="add-row add-section-row" data-add-section title="Создать новый раздел">
+    <span class="add-row-plus" aria-hidden="true">+</span> Добавить раздел
+  </button>`;
+  body += `<div class="add-row-grid" style="width:${gridW}px"></div>`;
 
   // Preserve scroll position across re-renders (e.g. iOS resize from toolbar show/hide)
   const prevScrollLeft = gantt.scrollLeft;
@@ -1785,7 +1821,7 @@ function renderGantt() {
       e.stopPropagation();
     });
   });
-  // Section-label click → toggle collapse
+  // Section-label click → toggle collapse (skip if click был по edit-элементам)
   gantt.querySelectorAll('.section-label').forEach((el) => {
     const toggle = () => {
       const sid = el.getAttribute('data-section-id');
@@ -1794,7 +1830,12 @@ function renderGantt() {
       else state.collapsedSections.add(sid);
       applyCollapsedState();
     };
-    el.addEventListener('click', toggle);
+    el.addEventListener('click', (e) => {
+      if (state.editMode && (e.target.closest('.edit-only-actions') || e.target.closest('[data-edit-name]') || e.target.closest('.section-dot-edit') || e.target.closest('input,textarea'))) {
+        return; // не схлопывать в режиме правки если кликнули по edit-кнопке/инпуту
+      }
+      toggle();
+    });
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
     });
@@ -6317,6 +6358,720 @@ function bindTaskTooltip() {
   // Hide on scroll/click anywhere
   window.addEventListener('scroll', hideTip, true);
   document.addEventListener('click', hideTip);
+}
+
+/* ─── Floating «К шапке» FAB ─── */
+let _topFabBound = false;
+function bindTopFab() {
+  if (_topFabBound) return;
+  _topFabBound = true;
+  const fab = document.getElementById('top-fab');
+  if (!fab) return;
+  // Порог: показываем когда юзер «залип» в Гантте — сразу как только сам график
+  // прокрутил под верх viewport'а (это совпадает с тем, что .gantt-wrap стал sticky).
+  const THRESHOLD = 280;
+  let shown = false;
+  const update = () => {
+    const want = window.scrollY > THRESHOLD && !isMobile();
+    if (want === shown) return;
+    shown = want;
+    if (want) {
+      fab.hidden = false;
+      // запускаем анимацию входа — на следующий кадр
+      requestAnimationFrame(() => fab.classList.add('is-visible'));
+    } else {
+      fab.classList.remove('is-visible');
+      // спрятать после анимации
+      setTimeout(() => { if (!shown) fab.hidden = true; }, 200);
+    }
+  };
+  fab.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+  update();
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Edit mode — переименование/добавление/удаление работ и разделов     */
+/* ════════════════════════════════════════════════════════════════════ */
+
+let _editModeBound = false;
+function bindEditMode() {
+  if (_editModeBound) return;
+  _editModeBound = true;
+
+  // Делегированный click — поверх обычных handler'ов; capture-phase, чтобы
+  // перехватить клик до .section-label collapse.
+  document.addEventListener('click', (e) => {
+    if (!state.editMode) return;
+
+    const editTask = e.target.closest('[data-edit-task]');
+    if (editTask) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = editTask.getAttribute('data-edit-task');
+      startInlineEditTaskName(tid);
+      return;
+    }
+    const editSection = e.target.closest('[data-edit-section]');
+    if (editSection) {
+      e.stopPropagation(); e.preventDefault();
+      const sid = editSection.getAttribute('data-edit-section');
+      startInlineEditSectionName(sid);
+      return;
+    }
+    const editColor = e.target.closest('.section-dot-edit');
+    if (editColor) {
+      e.stopPropagation(); e.preventDefault();
+      const sid = editColor.getAttribute('data-section-id');
+      openSectionColorPicker(sid, editColor);
+      return;
+    }
+    const delTask = e.target.closest('[data-del-task]');
+    if (delTask) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = delTask.getAttribute('data-del-task');
+      confirmDeleteTask(tid);
+      return;
+    }
+    const delSection = e.target.closest('[data-del-section]');
+    if (delSection) {
+      e.stopPropagation(); e.preventDefault();
+      const sid = delSection.getAttribute('data-del-section');
+      confirmDeleteSection(sid);
+      return;
+    }
+    const addTask = e.target.closest('[data-add-task]');
+    if (addTask) {
+      e.stopPropagation(); e.preventDefault();
+      const sid = addTask.getAttribute('data-add-task');
+      openAddTaskForm(sid, addTask);
+      return;
+    }
+    const addSection = e.target.closest('[data-add-section]');
+    if (addSection) {
+      e.stopPropagation(); e.preventDefault();
+      openAddSectionForm(addSection);
+      return;
+    }
+    // Inline-edit при клике по самому имени (если в edit mode)
+    const editName = e.target.closest('[data-edit-name]');
+    if (editName) {
+      const tid = editName.getAttribute('data-tid');
+      const sid = editName.getAttribute('data-section-id');
+      if (tid) { e.stopPropagation(); e.preventDefault(); startInlineEditTaskName(tid); return; }
+      if (sid) { e.stopPropagation(); e.preventDefault(); startInlineEditSectionName(sid); return; }
+    }
+  }, true);
+}
+
+function startInlineEditTaskName(taskId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  const labelEl = document.querySelector(`.task-label[data-tid="${cssEscape(taskId)}"] .tname`);
+  if (!labelEl) return;
+  inlineEdit(labelEl, t.name, async (newName) => {
+    if (!newName || newName === t.name) return;
+    const prevName = t.name;
+    showToast('Сохраняю…');
+    try {
+      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch: { name: newName } });
+      t.name = newName;
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt();
+      renderTasksSheet();
+      showToast(`✓ Сохранено: «${newName}»`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch: { name: prevName } });
+        t.name = prevName;
+        if (r2.schedule) state.schedule = r2.schedule;
+        renderGantt();
+        renderTasksSheet();
+        showToast(`↶ Возвращено: «${prevName}»`);
+      } } });
+    } catch (e) {
+      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+    }
+  });
+}
+
+function startInlineEditSectionName(sectionId) {
+  const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
+  if (!sec) return;
+  const labelEl = document.querySelector(`.section-label[data-section-id="${cssEscape(sectionId)}"] .section-name`);
+  if (!labelEl) return;
+  inlineEdit(labelEl, sec.name, async (newName) => {
+    if (!newName || newName === sec.name) return;
+    const prevName = sec.name;
+    showToast('Сохраняю…');
+    try {
+      const r = await postDataAction('section:update', { slug: state.projectSlug, sectionId, patch: { name: newName } });
+      sec.name = newName;
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt();
+      renderLegend();
+      renderTasksSheet();
+      showToast(`✓ Раздел переименован: «${newName}»`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('section:update', { slug: state.projectSlug, sectionId, patch: { name: prevName } });
+        sec.name = prevName;
+        if (r2.schedule) state.schedule = r2.schedule;
+        renderGantt(); renderLegend(); renderTasksSheet();
+        showToast(`↶ Возвращено: «${prevName}»`);
+      } } });
+    } catch (e) {
+      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+    }
+  });
+}
+
+function inlineEdit(targetEl, currentValue, onSave) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'inline-edit-input';
+  input.value = currentValue || '';
+  input.maxLength = 200;
+  const prevDisplay = targetEl.style.display;
+  targetEl.style.display = 'none';
+  targetEl.parentNode.insertBefore(input, targetEl.nextSibling);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = (save) => {
+    if (done) return;
+    done = true;
+    const v = input.value.trim();
+    input.remove();
+    targetEl.style.display = prevDisplay || '';
+    if (save && v) onSave(v);
+  };
+  input.addEventListener('blur', () => finish(true));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+  // не давать клику пробулиться обратно в section-label (collapse)
+  input.addEventListener('click', (e) => e.stopPropagation());
+}
+
+function confirmDeleteTask(taskId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  if (!confirm(`Удалить работу «${t.name}»? Будет возможность отменить в течение 8 секунд.`)) return;
+  const snapshot = JSON.parse(JSON.stringify(t)); // полный snapshot для восстановления
+  (async () => {
+    showToast('Удаляю…');
+    try {
+      const r = await postDataAction('task:delete', { slug: state.projectSlug, taskId });
+      if (r.schedule) state.schedule = r.schedule;
+      else state.schedule.tasks = state.schedule.tasks.filter(x => String(x.id) !== String(taskId));
+      try { renderProjectAnalytics(); } catch (_) {}
+      renderGantt();
+      renderTasksSheet();
+      showToast(`✓ Удалена «${snapshot.name}»`, { action: { label: 'Отменить', onClick: async () => {
+        // Восстанавливаем через task:create — id будет новым, но имя/даты/раздел те же
+        const r2 = await postDataAction('task:create', {
+          slug: state.projectSlug,
+          sectionId: snapshot.section,
+          name: snapshot.name,
+          planStart: snapshot.planStart,
+          planEnd: snapshot.planEnd,
+          stage: snapshot.stage
+        });
+        if (r2.schedule) state.schedule = r2.schedule;
+        try { renderProjectAnalytics(); } catch (_) {}
+        renderGantt();
+        renderTasksSheet();
+        showToast(`↶ Восстановлена: «${snapshot.name}»`);
+      } } });
+    } catch (e) {
+      showToast('Не удалось удалить: ' + (e.message || e), 'error');
+    }
+  })();
+}
+
+function confirmDeleteSection(sectionId) {
+  const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
+  if (!sec) return;
+  const orphans = (state.schedule.tasks || []).filter(t => t.section === sectionId).length;
+  if (orphans) {
+    showToast(`Раздел не пустой: ${orphans} работ. Удали их сначала или перенеси.`, 'error');
+    return;
+  }
+  if (!confirm(`Удалить раздел «${sec.name}»?`)) return;
+  (async () => {
+    showToast('Удаляю…');
+    try {
+      const r = await postDataAction('section:delete', { slug: state.projectSlug, sectionId });
+      if (r.schedule) state.schedule = r.schedule;
+      else state.schedule.sections = state.schedule.sections.filter(x => x.id !== sectionId);
+      delete state.sectionById[sectionId];
+      renderGantt();
+      renderLegend();
+      renderTasksSheet();
+      showToast(`✓ Раздел «${sec.name}» удалён`);
+    } catch (e) {
+      showToast('Не удалось удалить: ' + (e.message || e), 'error');
+    }
+  })();
+}
+
+function openAddTaskForm(sectionId, anchorEl) {
+  const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
+  if (!sec) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const today = new Date().toISOString().slice(0, 10);
+  const inAWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const stagesOpts = (state.schedule?.stages || []).map(st =>
+    `<option value="${escapeHtml(st.id)}">${escapeHtml(st.name)}</option>`
+  ).join('');
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>+ Добавить работу в «${escapeHtml(sec.name)}»</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <label class="edit-form-row"><span>Название работы</span>
+        <input type="text" id="ef-name" maxlength="200" placeholder="Например: Укладка плитки в холле" autofocus />
+      </label>
+      <label class="edit-form-row"><span>Этап</span>
+        <select id="ef-stage">${stagesOpts}</select>
+      </label>
+      <div class="edit-form-row-2col">
+        <label><span>План: старт</span><input type="date" id="ef-start" value="${today}" /></label>
+        <label><span>План: финиш</span><input type="date" id="ef-end" value="${inAWeek}" /></label>
+      </div>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">Создать</button>
+      </div>
+      <div class="edit-form-err" id="ef-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('#ef-name').focus();
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const name = overlay.querySelector('#ef-name').value.trim();
+    const stage = overlay.querySelector('#ef-stage').value;
+    const planStart = overlay.querySelector('#ef-start').value;
+    const planEnd = overlay.querySelector('#ef-end').value;
+    const err = overlay.querySelector('#ef-err');
+    if (!name) { err.textContent = 'Введи название'; return; }
+    if (planEnd < planStart) { err.textContent = 'Финиш не может быть раньше старта'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
+    try {
+      const r = await postDataAction('task:create', { slug: state.projectSlug, sectionId, name, planStart, planEnd, stage });
+      if (r.schedule) state.schedule = r.schedule;
+      try { renderProjectAnalytics(); } catch (_) {}
+      renderGantt();
+      renderTasksSheet();
+      close();
+      showToast(`✓ Создана: «${name}»`);
+    } catch (e) {
+      err.textContent = 'Не удалось создать: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Создать';
+    }
+  });
+}
+
+function openAddSectionForm() {
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const colors = ['#ef4444','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#94a3b8'];
+  const colorChips = colors.map(c => `<button type="button" class="ef-color" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('');
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>+ Новый раздел</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <label class="edit-form-row"><span>Название</span>
+        <input type="text" id="ef-name" maxlength="80" placeholder="Например: Декорирование" autofocus />
+      </label>
+      <div class="edit-form-row"><span>Цвет</span>
+        <div class="ef-colors">${colorChips}</div>
+      </div>
+      <label class="edit-form-row edit-form-checkbox"><input type="checkbox" id="ef-sub" /> <span>Это работы субподрядчика</span></label>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">Создать</button>
+      </div>
+      <div class="edit-form-err" id="ef-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  let chosenColor = colors[Math.floor(Math.random() * colors.length)];
+  const colorEls = overlay.querySelectorAll('.ef-color');
+  const markChosen = () => {
+    colorEls.forEach(el => el.classList.toggle('is-chosen', el.getAttribute('data-color') === chosenColor));
+  };
+  markChosen();
+  colorEls.forEach(el => el.addEventListener('click', () => { chosenColor = el.getAttribute('data-color'); markChosen(); }));
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('#ef-name').focus();
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const name = overlay.querySelector('#ef-name').value.trim();
+    const sub = overlay.querySelector('#ef-sub').checked;
+    const err = overlay.querySelector('#ef-err');
+    if (!name) { err.textContent = 'Введи название раздела'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
+    try {
+      const r = await postDataAction('section:create', { slug: state.projectSlug, name, color: chosenColor, sub });
+      if (r.schedule) state.schedule = r.schedule;
+      // Обновим sectionById
+      state.schedule.sections.forEach(s => state.sectionById[s.id] = s);
+      renderGantt();
+      renderLegend();
+      renderTasksSheet();
+      close();
+      showToast(`✓ Раздел «${name}» создан`);
+    } catch (e) {
+      err.textContent = 'Не удалось создать: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Создать';
+    }
+  });
+}
+
+function openSectionColorPicker(sectionId, anchorEl) {
+  const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
+  if (!sec) return;
+  const colors = ['#ef4444','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#94a3b8'];
+  const popover = document.createElement('div');
+  popover.className = 'section-color-pop';
+  popover.innerHTML = colors.map(c =>
+    `<button type="button" class="ef-color${c === sec.color ? ' is-chosen' : ''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`
+  ).join('');
+  document.body.appendChild(popover);
+  const rect = anchorEl.getBoundingClientRect();
+  popover.style.left = Math.max(8, Math.min(window.innerWidth - 220, rect.left)) + 'px';
+  popover.style.top = (rect.bottom + 4) + 'px';
+  const close = () => popover.remove();
+  popover.querySelectorAll('.ef-color').forEach(el => {
+    el.addEventListener('click', async () => {
+      const c = el.getAttribute('data-color');
+      close();
+      try {
+        showToast('Меняю цвет…');
+        const r = await postDataAction('section:update', { slug: state.projectSlug, sectionId, patch: { color: c } });
+        sec.color = c;
+        if (r.schedule) state.schedule = r.schedule;
+        renderGantt();
+        renderLegend();
+        renderTasksSheet();
+        showToast(`✓ Цвет обновлён`);
+      } catch (e) {
+        showToast('Не удалось: ' + (e.message || e), 'error');
+      }
+    });
+  });
+  setTimeout(() => {
+    document.addEventListener('click', (e) => {
+      if (!popover.contains(e.target)) close();
+    }, { once: true });
+  }, 0);
+}
+
+/* ─── Toast (с опциональной кнопкой действия) ─── */
+let _toastTimer = null;
+function showToast(text, opts) {
+  // Обратная совместимость: showToast('text', 'error') → opts.level
+  if (typeof opts === 'string') opts = { level: opts };
+  opts = opts || {};
+  const level = opts.level || 'info';
+  const action = opts.action; // { label, onClick }
+  const ttl = action ? 8000 : 3500;
+
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = '';
+  const txt = document.createElement('span');
+  txt.className = 'app-toast-text';
+  txt.textContent = text;
+  toast.appendChild(txt);
+  if (action && action.label && action.onClick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'app-toast-action';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => {
+      btn.disabled = true;
+      btn.textContent = '…';
+      Promise.resolve(action.onClick())
+        .catch(e => console.warn('Undo failed:', e))
+        .finally(() => { toast.classList.remove('is-visible'); });
+    });
+    toast.appendChild(btn);
+  }
+  toast.className = `app-toast app-toast--${level}${action ? ' app-toast--with-action' : ''} is-visible`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { toast.classList.remove('is-visible'); }, ttl);
+}
+
+/* ─── Undo helpers ─── */
+// Каждая операция возвращает inverse-функцию. Toast покажет «Отменить».
+function withUndo(successText, doFwd, doInv) {
+  return doFwd().then((res) => {
+    showToast(successText, { action: { label: 'Отменить', onClick: doInv } });
+    return res;
+  });
+}
+
+// Helper для CSS-escape data-attribute (id может содержать '.', ':' и пр.)
+function cssEscape(s) {
+  if (window.CSS && CSS.escape) return CSS.escape(String(s));
+  return String(s).replace(/(["\\.#:])/g, '\\$1');
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Phase 1 · Drag plan/fact баров на Гантте                            */
+/* ════════════════════════════════════════════════════════════════════ */
+
+let _barDragBound = false;
+const _dragState = { active: false, suppressClick: false };
+
+function bindBarDrag() {
+  if (_barDragBound) return;
+  _barDragBound = true;
+  const gantt = document.getElementById('gantt');
+  if (!gantt) return;
+
+  // Capture-phase pointerdown — должен сработать ДО любых click'ов на бар.
+  gantt.addEventListener('pointerdown', (e) => {
+    if (!state.editMode) return;
+    if (e.button !== undefined && e.button !== 0) return; // только LMB
+    const bar = e.target.closest('.bar-plan, .bar-fact');
+    if (!bar) return;
+    // если кликнули прогресс-индикатор — игнорим
+    if (e.target.closest('.bar-plan-progress')) {
+      // оставим pass-through
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    startBarDrag(e, bar);
+  }, true);
+
+  // Когда edit-mode активен — суппрессим click на баре после drag.
+  gantt.addEventListener('click', (e) => {
+    if (_dragState.suppressClick) {
+      e.stopPropagation();
+      e.preventDefault();
+      _dragState.suppressClick = false;
+    }
+  }, true);
+}
+
+function startBarDrag(downEv, bar) {
+  const tid = bar.getAttribute('data-tid');
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(tid));
+  if (!t) return;
+  const isFact = bar.classList.contains('bar-fact');
+  const cellW = state.cellW || 22;
+  const rect = bar.getBoundingClientRect();
+  const offsetX = downEv.clientX - rect.left;
+  // edge zones: 12px на каждом краю (мин 8 если бар маленький)
+  const edge = Math.min(12, Math.max(6, rect.width * 0.18));
+  let mode = 'move';
+  if (offsetX < edge) mode = 'resize-left';
+  else if (offsetX > rect.width - edge) mode = 'resize-right';
+
+  // Сохраняем оригинальные значения
+  const origStartIso = isFact ? (t.actualStart || null) : (t.planStart || t.start);
+  const origEndIso   = isFact ? (t.actualEnd   || null) : (t.planEnd   || t.end);
+  // Для fact-режима resize-left невозможен если actualStart нет — fallback на move
+  if (isFact && (!origStartIso)) return; // нечего двигать
+  if (isFact && !origEndIso && mode === 'resize-right') {
+    // running fact (без даты конца) — резайз правого края = выставляем actualEnd на сегодня + delta
+    // Разрешаем — обработаем при apply
+  }
+
+  const origLeft = parseFloat(bar.style.left) || 0;
+  const origWidth = parseFloat(bar.style.width) || 0;
+
+  bar.classList.add('is-dragging');
+  bar.classList.add(`is-dragging-${mode}`);
+  document.body.classList.add('is-bar-dragging');
+
+  // Dragging hint badge (floating)
+  const hint = document.createElement('div');
+  hint.className = 'bar-drag-hint';
+  document.body.appendChild(hint);
+
+  _dragState.active = true;
+  _dragState.suppressClick = false;
+  let movedPx = 0;
+  let lastDelta = 0;
+
+  const fmtRu = (iso) => {
+    try {
+      const d = new Date(iso + 'T00:00:00Z');
+      return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+    } catch (_) { return iso; }
+  };
+  const shift = (iso, days) => {
+    if (!iso) return iso;
+    const d = new Date(iso + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const updateHint = (e, deltaDays, newStart, newEnd) => {
+    const arrow = deltaDays === 0 ? '' : (deltaDays > 0 ? '→ +' : '← ');
+    const days = Math.abs(deltaDays);
+    const lbl = isFact ? 'Факт' : 'План';
+    let txt;
+    if (mode === 'move') {
+      txt = `${lbl}: ${fmtRu(newStart)} → ${fmtRu(newEnd)}`;
+      if (deltaDays !== 0) txt += `  (${arrow}${days} ${plural(days, ['день','дня','дней'])})`;
+    } else if (mode === 'resize-left') {
+      txt = `${lbl} старт: ${fmtRu(newStart)}`;
+    } else {
+      txt = `${lbl} финиш: ${fmtRu(newEnd)}`;
+    }
+    hint.textContent = txt;
+    hint.style.left = (e.clientX + 14) + 'px';
+    hint.style.top = (e.clientY - 30) + 'px';
+  };
+
+  const onMove = (ev) => {
+    const dx = ev.clientX - downEv.clientX;
+    movedPx = Math.max(movedPx, Math.abs(dx));
+    if (movedPx > 4) _dragState.suppressClick = true;
+
+    const deltaDays = Math.round(dx / cellW);
+    lastDelta = deltaDays;
+    let newStart = origStartIso;
+    let newEnd   = origEndIso || origStartIso;
+
+    if (mode === 'move') {
+      newStart = origStartIso ? shift(origStartIso, deltaDays) : null;
+      newEnd   = origEndIso   ? shift(origEndIso,   deltaDays) : newStart;
+      bar.style.left  = (origLeft + deltaDays * cellW) + 'px';
+      bar.style.width = origWidth + 'px';
+    } else if (mode === 'resize-left') {
+      newStart = origStartIso ? shift(origStartIso, deltaDays) : null;
+      // не даём перейти за конец (минимум 1 день)
+      if (newStart && origEndIso && newStart > origEndIso) newStart = origEndIso;
+      const clampDelta = Math.max(deltaDays, -(Math.round(origWidth / cellW) - 1));
+      bar.style.left  = (origLeft + clampDelta * cellW) + 'px';
+      bar.style.width = (origWidth - clampDelta * cellW) + 'px';
+    } else { // resize-right
+      newEnd = origEndIso ? shift(origEndIso, deltaDays) : shift(origStartIso, deltaDays);
+      if (origStartIso && newEnd < origStartIso) newEnd = origStartIso;
+      const clampDelta = Math.max(deltaDays, -(Math.round(origWidth / cellW) - 1));
+      bar.style.width = (origWidth + clampDelta * cellW) + 'px';
+    }
+
+    updateHint(ev, deltaDays, newStart, newEnd);
+
+    // autoscroll near edges of #gantt
+    const gantt = document.getElementById('gantt');
+    if (gantt) {
+      const grect = gantt.getBoundingClientRect();
+      const edgeZone = 60;
+      if (ev.clientX > grect.right - edgeZone) gantt.scrollLeft += 12;
+      else if (ev.clientX < grect.left + edgeZone + 200 /* skip label col */) gantt.scrollLeft -= 12;
+    }
+  };
+
+  const onUp = async (ev) => {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    document.body.classList.remove('is-bar-dragging');
+    bar.classList.remove('is-dragging');
+    bar.classList.remove(`is-dragging-${mode}`);
+    hint.remove();
+    _dragState.active = false;
+
+    const deltaDays = lastDelta;
+    if (deltaDays === 0) {
+      // вернуть исходные стили
+      bar.style.left = origLeft + 'px';
+      bar.style.width = origWidth + 'px';
+      return;
+    }
+
+    // Применяем изменения через API
+    const patch = {};
+    let descParts = [];
+    if (isFact) {
+      if (mode === 'move') {
+        if (origStartIso) { patch.actualStart = shift(origStartIso, deltaDays); descParts.push('факт-старт'); }
+        if (origEndIso)   { patch.actualEnd   = shift(origEndIso,   deltaDays); descParts.push('факт-финиш'); }
+      } else if (mode === 'resize-left') {
+        let v = shift(origStartIso, deltaDays);
+        if (origEndIso && v > origEndIso) v = origEndIso;
+        patch.actualStart = v; descParts.push('факт-старт');
+      } else {
+        const base = origEndIso || origStartIso;
+        let v = shift(base, deltaDays);
+        if (origStartIso && v < origStartIso) v = origStartIso;
+        patch.actualEnd = v; descParts.push('факт-финиш');
+      }
+    } else {
+      if (mode === 'move') {
+        patch.planStart = shift(origStartIso, deltaDays);
+        patch.planEnd   = shift(origEndIso,   deltaDays);
+        descParts.push(`план ${deltaDays>0?'+':''}${deltaDays}д`);
+      } else if (mode === 'resize-left') {
+        let v = shift(origStartIso, deltaDays);
+        if (v > origEndIso) v = origEndIso;
+        patch.planStart = v; descParts.push('план-старт');
+      } else {
+        let v = shift(origEndIso, deltaDays);
+        if (v < origStartIso) v = origStartIso;
+        patch.planEnd = v; descParts.push('план-финиш');
+      }
+    }
+
+    // Запомним обратный patch для undo
+    const inversePatch = {};
+    for (const k of Object.keys(patch)) inversePatch[k] = t[k] || null;
+
+    showToast('Сохраняю…');
+    try {
+      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch });
+      if (r.schedule) state.schedule = r.schedule;
+      else Object.assign(t, patch);
+      try { renderProjectAnalytics(); } catch (_) {}
+      renderGantt();
+      renderTasksSheet();
+      const days = Math.abs(deltaDays);
+      const arrow = deltaDays > 0 ? '+' : '−';
+      showToast(`✓ ${descParts.join(', ')}: ${arrow}${days} ${plural(days, ['день','дня','дней'])}`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch: inversePatch });
+        if (r2.schedule) state.schedule = r2.schedule;
+        else Object.assign(t, inversePatch);
+        try { renderProjectAnalytics(); } catch (_) {}
+        renderGantt();
+        renderTasksSheet();
+        showToast(`↶ Даты возвращены`);
+      } } });
+    } catch (e) {
+      bar.style.left = origLeft + 'px';
+      bar.style.width = origWidth + 'px';
+      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+    }
+  };
+
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onUp);
 }
 
 let _kpBoundOnce = false;

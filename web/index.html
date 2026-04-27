@@ -120,6 +120,9 @@
         <button type="button" class="toolbar-btn" id="btn-heatmap" data-active="false" title="Тепловая карта загрузки людей по дням">
           <span aria-hidden="true">👥</span> Загрузка
         </button>
+        <button type="button" class="toolbar-btn toolbar-btn--edit" id="btn-edit" data-active="false" title="Включить режим правки: переименовать работы, добавить/удалить разделы и работы, перетащить даты на графике">
+          <span aria-hidden="true">✎</span> Правка
+        </button>
         <button type="button" class="toolbar-btn" id="btn-report" title="Сформировать отчёт клиенту с фото из тикетов и AI-расширением тезисов">
           <span aria-hidden="true">📄</span> Отчёт клиенту
         </button>
@@ -209,6 +212,11 @@
 
   <!-- Task name hover tooltip -->
   <div class="task-tip" id="task-tip" hidden></div>
+
+  <!-- "Back to top" floating action button (desktop) -->
+  <button type="button" class="top-fab" id="top-fab" aria-label="Прокрутить к шапке" title="К шапке" hidden>
+    <span class="top-fab-arrow" aria-hidden="true">↑</span>
+  </button>
 
   <!-- Mobile tasks sheet (slide-in from left) -->
   <button type="button" class="tasks-fab" id="tasks-fab" aria-label="Список работ">

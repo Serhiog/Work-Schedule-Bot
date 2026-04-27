@@ -1453,6 +1453,49 @@ button.stat { -webkit-appearance: none; appearance: none; }
 .drawer-metric--ok .drawer-metric-val { color: #15803d; }
 .drawer-metric--ok .drawer-metric-lbl { color: #15803d; opacity: 0.85; }
 
+/* ───── «К шапке» FAB (desktop) ───── */
+.top-fab {
+  position: fixed;
+  left: 20px;
+  bottom: 28px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  color: #fff;
+  border: 0;
+  border-radius: 50%;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -6px rgba(67,56,202,0.55), 0 4px 12px rgba(67,56,202,0.35);
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 200ms ease, transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.top-fab[hidden] { display: none; }
+.top-fab.is-visible { opacity: 1; transform: translateX(0); }
+.top-fab:hover {
+  background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+  box-shadow: 0 14px 32px -6px rgba(67,56,202,0.65), 0 6px 16px rgba(67,56,202,0.4);
+}
+.top-fab:hover .top-fab-arrow { transform: translateY(-2px); }
+.top-fab:active { transform: translateX(0) scale(0.97); }
+.top-fab:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.35), 0 12px 28px -6px rgba(67,56,202,0.55); }
+.top-fab-arrow {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 200ms ease;
+}
+@media (max-width: 720px) {
+  .top-fab { display: none !important; }
+}
+
 /* ───── Tasks FAB (mobile) ───── */
 .tasks-fab {
   position: fixed;
@@ -4416,6 +4459,19 @@ button.stat { -webkit-appearance: none; appearance: none; }
   font-weight: 700;
 }
 [data-theme="dark"] .rh-cell { color: var(--ink); }
+[data-theme="dark"] .rh-cell--overload {
+  background: rgba(248, 113, 113, .28) !important;
+  color: #fecaca !important;
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, .85);
+}
+[data-theme="dark"] .rh-day-header--overload {
+  background: rgba(248, 113, 113, .18) !important;
+  color: #fecaca !important;
+}
+[data-theme="dark"] .rh-overload-badge {
+  background: rgba(248, 113, 113, .22);
+  color: #fecaca;
+}
 
 /* Подсветка всей строки при наводе на название специалиста или любую её часть */
 .rh-row:not(.rh-row--header):hover { background: rgba(99, 102, 241, .07); }
@@ -6173,3 +6229,388 @@ button.stat { -webkit-appearance: none; appearance: none; }
 @media (max-width: 720px) {
   .task-tip { display: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Edit mode: inline-rename / + Раздел / + Работа / удаление           */
+/* ════════════════════════════════════════════════════════════════════ */
+
+.toolbar-btn--edit[data-active="true"] {
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  color: #fff;
+  border-color: #4f46e5;
+  box-shadow: 0 4px 12px -2px rgba(79, 70, 229, .4);
+}
+
+/* edit-only кнопки (✎ / 🗑) — скрыты по умолчанию, видны в edit-mode */
+.edit-only-actions {
+  display: none;
+  margin-left: auto;
+  gap: 4px;
+  align-items: center;
+}
+body.is-edit-mode .edit-only-actions { display: inline-flex; }
+.row-edit-btn, .row-del-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  width: 24px; height: 24px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.row-edit-btn:hover { background: rgba(99, 102, 241, .12); color: #4338ca; border-color: rgba(99, 102, 241, .3); }
+.row-del-btn:hover { background: rgba(239, 68, 68, .12); color: #b91c1c; border-color: rgba(239, 68, 68, .3); }
+
+/* В edit-mode скрываем «открыть детали» стрелочку, чтобы не толпиться */
+body.is-edit-mode .task-open-btn { display: none; }
+
+/* Курсор-карандаш для имени в режиме правки */
+body.is-edit-mode [data-edit-name] {
+  cursor: text;
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background 120ms;
+}
+body.is-edit-mode [data-edit-name]:hover { background: rgba(99, 102, 241, .08); }
+
+/* Курсор «pipette» для section-dot в edit-mode */
+body.is-edit-mode .section-dot-edit { cursor: pointer; outline: 1px solid transparent; transition: outline-color 120ms, transform 120ms; }
+body.is-edit-mode .section-dot-edit:hover { transform: scale(1.18); outline-color: rgba(15, 23, 42, .35); }
+
+/* Inline edit input */
+.inline-edit-input {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border: 1.5px solid #6366f1;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  width: 240px;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+/* «+ Работа» / «+ Раздел» строки — скрыты вне edit mode */
+.add-row {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4338ca;
+  background: linear-gradient(90deg, rgba(99, 102, 241, .08), transparent);
+  border: 1.5px dashed transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  width: var(--label-col-w, 260px);
+  box-sizing: border-box;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+body.is-edit-mode .add-row { display: inline-flex; }
+.add-row:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, .18), transparent);
+  border-color: rgba(99, 102, 241, .35);
+}
+.add-row-plus {
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: #6366f1; color: #fff;
+  font-weight: 700; font-size: 13px; line-height: 1;
+}
+.add-section-row {
+  font-weight: 700;
+  margin-top: 4px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, .14), transparent);
+}
+.add-row-grid {
+  display: none;
+}
+body.is-edit-mode .add-row-grid { display: block; height: 30px; }
+body.is-edit-mode .row-hidden.add-row,
+body.is-edit-mode .row-hidden.add-row-grid { display: none; }
+
+/* ─── Edit form overlay (modal) ─── */
+.edit-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: efOverlayIn 160ms ease;
+}
+@keyframes efOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+.edit-form-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px -10px rgba(15, 23, 42, .35);
+  padding: 18px 20px 16px;
+  width: 100%;
+  max-width: 420px;
+  animation: efCardIn 220ms cubic-bezier(.2,.8,.2,1);
+}
+@keyframes efCardIn { from { transform: translateY(8px) scale(.98); opacity: .6; } to { transform: none; opacity: 1; } }
+.edit-form-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 15px; font-weight: 700; color: #0f172a;
+  margin-bottom: 14px;
+}
+.edit-form-close {
+  background: transparent; border: 0; cursor: pointer;
+  font-size: 22px; line-height: 1; color: #64748b;
+  width: 28px; height: 28px; border-radius: 6px;
+}
+.edit-form-close:hover { background: #f1f5f9; color: #0f172a; }
+.edit-form-row {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-bottom: 12px;
+  font-size: 12px; color: #475569; font-weight: 500;
+}
+.edit-form-row input[type="text"],
+.edit-form-row input[type="date"],
+.edit-form-row select {
+  font: inherit; font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+.edit-form-row input:focus,
+.edit-form-row select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .15); }
+.edit-form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.edit-form-row-2col label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 12px; color: #475569; font-weight: 500;
+}
+.edit-form-checkbox {
+  flex-direction: row !important;
+  align-items: center; gap: 8px;
+  cursor: pointer;
+}
+.edit-form-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  margin-top: 8px;
+}
+.edit-form-cancel, .edit-form-submit {
+  font: inherit; font-size: 13px; font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid;
+}
+.edit-form-cancel { background: #fff; border-color: #cbd5e1; color: #475569; }
+.edit-form-cancel:hover { background: #f1f5f9; }
+.edit-form-submit { background: linear-gradient(135deg, #4338ca, #6366f1); border-color: #4f46e5; color: #fff; }
+.edit-form-submit:hover { filter: brightness(1.06); }
+.edit-form-submit[disabled] { opacity: .6; cursor: wait; }
+.edit-form-err { color: #b91c1c; font-size: 12px; margin-top: 6px; min-height: 16px; }
+
+.ef-colors {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding-top: 4px;
+}
+.ef-color {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 120ms, border-color 120ms;
+}
+.ef-color:hover { transform: scale(1.15); }
+.ef-color.is-chosen { border-color: #0f172a; transform: scale(1.15); box-shadow: 0 0 0 2px #fff inset; }
+
+.section-color-pop {
+  position: fixed;
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, .35);
+  display: flex; gap: 6px; flex-wrap: wrap;
+  width: 220px;
+  z-index: 1200;
+}
+
+/* ─── Toast ─── */
+.app-toast {
+  position: fixed;
+  bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  box-shadow: 0 12px 28px -8px rgba(15, 23, 42, .55);
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.app-toast--error { background: #b91c1c; }
+.app-toast--info { background: #0f172a; }
+
+@media (max-width: 720px) {
+  .inline-edit-input { width: 180px; }
+  .edit-form-card { max-width: 100%; }
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Phase 1 · Drag дат на гантте (edit-mode)                            */
+/* ════════════════════════════════════════════════════════════════════ */
+
+/* Курсор move/resize на барах в edit-mode + блокируем браузерный pan-x */
+body.is-edit-mode .bar-plan,
+body.is-edit-mode .bar-fact {
+  cursor: grab;
+  touch-action: none;
+}
+body.is-edit-mode .bar-plan:active,
+body.is-edit-mode .bar-fact:active { cursor: grabbing; }
+
+/* Edge-зоны для resize: видимые «ручки» как у окон ОС, всегда видны в edit-mode */
+body.is-edit-mode .bar-plan::before,
+body.is-edit-mode .bar-fact::before,
+body.is-edit-mode .bar-plan::after,
+body.is-edit-mode .bar-fact::after {
+  content: '';
+  position: absolute;
+  top: 4px; bottom: 4px;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 3;
+  background:
+    linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,.55)) center/2px 60% no-repeat,
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border-radius: 3px;
+  opacity: .55;
+  transition: opacity 140ms ease, background 140ms ease, transform 140ms ease;
+}
+body.is-edit-mode .bar-plan::before,
+body.is-edit-mode .bar-fact::before { left: 1px; }
+body.is-edit-mode .bar-plan::after,
+body.is-edit-mode .bar-fact::after { right: 1px; }
+
+/* Hover на самом баре — ручки становятся ярче и шире, появляются «стрелки» */
+body.is-edit-mode .bar-plan:hover::before,
+body.is-edit-mode .bar-plan:hover::after,
+body.is-edit-mode .bar-fact:hover::before,
+body.is-edit-mode .bar-fact:hover::after {
+  opacity: 1;
+  background:
+    linear-gradient(#fff, #fff) center/3px 70% no-repeat,
+    rgba(15, 23, 42, .35);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, .35), 0 0 8px rgba(99, 102, 241, .4);
+}
+
+/* Маленькие SVG-стрелочки ◀ ▶ внутри ручек на hover (как у resize-окон) */
+body.is-edit-mode .bar-plan:hover::before { background-image:
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='10' viewBox='0 0 6 10'><path d='M5 1 L1 5 L5 9' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>"),
+  linear-gradient(180deg, rgba(15,23,42,.5), rgba(15,23,42,.35));
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: 6px 10px, 100% 100%;
+}
+body.is-edit-mode .bar-plan:hover::after,
+body.is-edit-mode .bar-fact:hover::after { background-image:
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='10' viewBox='0 0 6 10'><path d='M1 1 L5 5 L1 9' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>"),
+  linear-gradient(180deg, rgba(15,23,42,.5), rgba(15,23,42,.35));
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: 6px 10px, 100% 100%;
+}
+body.is-edit-mode .bar-fact:hover::before { background-image:
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='10' viewBox='0 0 6 10'><path d='M5 1 L1 5 L5 9' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>"),
+  linear-gradient(180deg, rgba(15,23,42,.5), rgba(15,23,42,.35));
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: 6px 10px, 100% 100%;
+}
+
+/* Tooltip-подсказка на самом баре в edit-mode — плавающая «потяни за края» */
+body.is-edit-mode .bar-plan:hover,
+body.is-edit-mode .bar-fact:hover {
+  outline: 2px dashed rgba(99, 102, 241, .55);
+  outline-offset: 1px;
+}
+
+/* Активный drag: тень + лёгкий поднятый stack */
+body.is-edit-mode .bar-plan.is-dragging,
+body.is-edit-mode .bar-fact.is-dragging {
+  cursor: grabbing !important;
+  z-index: 50;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, .45), 0 0 0 2px rgba(99, 102, 241, .55);
+  transition: none !important;
+  filter: brightness(1.05);
+}
+
+/* Когда тащим — отключаем pointer events на других барах, чтобы не сбивались */
+body.is-bar-dragging * { user-select: none !important; }
+
+/* Floating hint badge с датой во время drag */
+.bar-drag-hint {
+  position: fixed;
+  z-index: 5000;
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  box-shadow: 0 8px 22px -4px rgba(67, 56, 202, .55);
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translateZ(0);
+  animation: hintFadeIn 120ms ease;
+}
+@keyframes hintFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Phase 3 · Toast с кнопкой «Отменить»                                */
+/* ════════════════════════════════════════════════════════════════════ */
+.app-toast--with-action {
+  padding: 8px 8px 8px 18px;
+  pointer-events: auto;
+  gap: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+.app-toast-text { display: inline-block; }
+.app-toast-action {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.app-toast-action:hover { background: rgba(255,255,255,.32); }
+.app-toast-action:disabled { opacity: .6; cursor: wait; }

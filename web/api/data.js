@@ -291,6 +291,265 @@ async function actionTaskMaterialsUpsert({ taskId, slug, materials }) {
   return { materials };
 }
 
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Schedule mutations: commit обратно в schedule.json на GitHub        */
+/* ════════════════════════════════════════════════════════════════════ */
+
+const GH_OWNER = 'Serhiog';
+const GH_REPO = 'Work-Schedule-Bot';
+const GH_BRANCH = 'main';
+const GH_TOKEN = process.env.GITHUB_TOKEN;
+
+async function ghReadSchedule(slug) {
+  if (!GH_TOKEN) {
+    const err = new Error('GITHUB_TOKEN env missing — добавь PAT с repo:contents в Vercel env');
+    err.status = 503;
+    throw err;
+  }
+  const path = `web/schedules/${slug}.json`;
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`;
+  const r = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${GH_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
+  if (r.status === 404) {
+    const err = new Error(`schedule.json not found for slug "${slug}"`);
+    err.status = 404;
+    throw err;
+  }
+  if (!r.ok) {
+    const txt = await r.text().catch(() => '');
+    throw new Error(`GitHub read failed ${r.status}: ${txt.slice(0, 300)}`);
+  }
+  const j = await r.json();
+  const content = Buffer.from(j.content || '', 'base64').toString('utf8');
+  return { schedule: JSON.parse(content), sha: j.sha, path };
+}
+
+async function ghCommitSchedule(slug, schedule, sha, message) {
+  const path = `web/schedules/${slug}.json`;
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const content = Buffer.from(JSON.stringify(schedule, null, 2), 'utf8').toString('base64');
+  const r = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${GH_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: JSON.stringify({
+      message: message || `chore: schedule ${slug} update`,
+      content,
+      sha,
+      branch: GH_BRANCH
+    })
+  });
+  if (!r.ok) {
+    const txt = await r.text().catch(() => '');
+    const err = new Error(`GitHub commit failed ${r.status}: ${txt.slice(0, 400)}`);
+    err.status = r.status === 409 ? 409 : 500;
+    throw err;
+  }
+  return r.json();
+}
+
+// Apply mutator to schedule, commit, return updated schedule.
+// Mutator: (schedule) => string (commit message). Mutates schedule in place.
+async function mutateSchedule(slug, mutator) {
+  if (!slug) throw new Error('slug required');
+  const { schedule, sha } = await ghReadSchedule(slug);
+  const message = await mutator(schedule);
+  // Recompute project.startDate / project.endDate from tasks (only if any tasks have dates)
+  recomputeProjectBounds(schedule);
+  await ghCommitSchedule(slug, schedule, sha, message);
+  return schedule;
+}
+
+function recomputeProjectBounds(schedule) {
+  const tasks = schedule.tasks || [];
+  let minS = null, maxE = null;
+  for (const t of tasks) {
+    const ps = t.planStart || t.start;
+    const pe = t.planEnd || t.end;
+    if (ps && (!minS || ps < minS)) minS = ps;
+    if (pe && (!maxE || pe > maxE)) maxE = pe;
+  }
+  if (minS) schedule.project.startDate = minS;
+  if (maxE) schedule.project.endDate = maxE;
+}
+
+function isoOnly(d) {
+  if (!d) return d;
+  const s = String(d).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+function nextTaskId(schedule) {
+  const ids = (schedule.tasks || []).map(t => Number(t.id)).filter(Number.isFinite);
+  return String(ids.length ? Math.max(...ids) + 1 : 1);
+}
+
+function nextSectionId(schedule, baseName) {
+  const slug = (baseName || 'sec')
+    .toLowerCase()
+    .replace(/[ё]/g, 'e').replace(/[а]/g, 'a').replace(/[б]/g, 'b').replace(/[в]/g, 'v')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-+|-+$)/g, '') || 'sec';
+  const existing = new Set((schedule.sections || []).map(s => s.id));
+  if (!existing.has(slug)) return slug;
+  let i = 2;
+  while (existing.has(`${slug}-${i}`)) i++;
+  return `${slug}-${i}`;
+}
+
+async function actionTaskUpdate({ slug, taskId, patch }) {
+  if (!slug || !taskId || !patch) throw new Error('slug, taskId, patch required');
+  const allowed = ['name', 'planStart', 'planEnd', 'actualStart', 'actualEnd', 'section', 'stage', 'progress'];
+  const updated = await mutateSchedule(slug, (sched) => {
+    const t = (sched.tasks || []).find(x => String(x.id) === String(taskId));
+    if (!t) throw Object.assign(new Error('task not found'), { status: 404 });
+    const changes = [];
+    for (const k of allowed) {
+      if (patch[k] === undefined) continue;
+      let v = patch[k];
+      if (k.endsWith('Start') || k.endsWith('End')) {
+        if (v === null) { delete t[k]; changes.push(`${k}=null`); continue; }
+        v = isoOnly(v);
+        if (!v) throw new Error(`${k} must be YYYY-MM-DD`);
+      }
+      t[k] = v;
+      changes.push(`${k}=${v}`);
+    }
+    // Sanity: planEnd >= planStart, actualEnd >= actualStart
+    if (t.planStart && t.planEnd && t.planEnd < t.planStart) t.planEnd = t.planStart;
+    if (t.actualStart && t.actualEnd && t.actualEnd < t.actualStart) t.actualEnd = t.actualStart;
+    return `task ${taskId}: ${changes.join(', ')}`;
+  });
+  const task = (updated.tasks || []).find(x => String(x.id) === String(taskId));
+  return { task, schedule: updated };
+}
+
+async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, stage }) {
+  if (!slug || !name) throw new Error('slug, name required');
+  const updated = await mutateSchedule(slug, (sched) => {
+    if (sectionId && !(sched.sections || []).some(s => s.id === sectionId)) {
+      throw new Error(`section "${sectionId}" not found`);
+    }
+    const id = nextTaskId(sched);
+    const today = new Date().toISOString().slice(0, 10);
+    const ps = isoOnly(planStart) || today;
+    const pe = isoOnly(planEnd) || ps;
+    const t = {
+      id,
+      name: String(name).slice(0, 200),
+      section: sectionId || (sched.sections?.[0]?.id || ''),
+      stage: stage || (sched.stages?.[0]?.id || 'rough'),
+      planStart: ps,
+      planEnd: pe
+    };
+    sched.tasks = sched.tasks || [];
+    sched.tasks.push(t);
+    return `task ${id} created: "${t.name}"`;
+  });
+  return { task: updated.tasks[updated.tasks.length - 1], schedule: updated };
+}
+
+async function actionTaskDelete({ slug, taskId }) {
+  if (!slug || !taskId) throw new Error('slug, taskId required');
+  const updated = await mutateSchedule(slug, (sched) => {
+    const idx = (sched.tasks || []).findIndex(x => String(x.id) === String(taskId));
+    if (idx < 0) throw Object.assign(new Error('task not found'), { status: 404 });
+    const removed = sched.tasks[idx];
+    sched.tasks.splice(idx, 1);
+    return `task ${taskId} deleted: "${removed.name}"`;
+  });
+  return { schedule: updated };
+}
+
+async function actionTaskBulkShift({ slug, taskIds, deltaDays, kind }) {
+  if (!slug || !Array.isArray(taskIds) || !taskIds.length) throw new Error('slug, taskIds required');
+  const delta = Math.round(Number(deltaDays) || 0);
+  if (!delta) return { changed: 0 };
+  const k = kind === 'fact' ? 'fact' : 'plan';
+  const updated = await mutateSchedule(slug, (sched) => {
+    let n = 0;
+    for (const id of taskIds) {
+      const t = (sched.tasks || []).find(x => String(x.id) === String(id));
+      if (!t) continue;
+      if (k === 'plan') {
+        if (t.planStart) t.planStart = shiftIso(t.planStart, delta);
+        if (t.planEnd) t.planEnd = shiftIso(t.planEnd, delta);
+      } else {
+        if (t.actualStart) t.actualStart = shiftIso(t.actualStart, delta);
+        if (t.actualEnd) t.actualEnd = shiftIso(t.actualEnd, delta);
+      }
+      n++;
+    }
+    return `bulk-shift ${kind} ${delta>0?'+':''}${delta}d for ${n} tasks`;
+  });
+  return { schedule: updated };
+}
+
+function shiftIso(iso, days) {
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+async function actionSectionCreate({ slug, name, color, sub }) {
+  if (!slug || !name) throw new Error('slug, name required');
+  const updated = await mutateSchedule(slug, (sched) => {
+    const id = nextSectionId(sched, name);
+    const sec = {
+      id,
+      name: String(name).slice(0, 80),
+      color: color || '#94a3b8'
+    };
+    if (sub) sec.sub = true;
+    sched.sections = sched.sections || [];
+    sched.sections.push(sec);
+    return `section ${id} created: "${sec.name}"`;
+  });
+  return { section: updated.sections[updated.sections.length - 1], schedule: updated };
+}
+
+async function actionSectionUpdate({ slug, sectionId, patch }) {
+  if (!slug || !sectionId || !patch) throw new Error('slug, sectionId, patch required');
+  const allowed = ['name', 'color', 'sub'];
+  const updated = await mutateSchedule(slug, (sched) => {
+    const sec = (sched.sections || []).find(s => s.id === sectionId);
+    if (!sec) throw Object.assign(new Error('section not found'), { status: 404 });
+    const changes = [];
+    for (const k of allowed) {
+      if (patch[k] === undefined) continue;
+      sec[k] = patch[k];
+      changes.push(`${k}=${patch[k]}`);
+    }
+    return `section ${sectionId}: ${changes.join(', ')}`;
+  });
+  return { section: (updated.sections || []).find(s => s.id === sectionId), schedule: updated };
+}
+
+async function actionSectionDelete({ slug, sectionId }) {
+  if (!slug || !sectionId) throw new Error('slug, sectionId required');
+  const updated = await mutateSchedule(slug, (sched) => {
+    const idx = (sched.sections || []).findIndex(s => s.id === sectionId);
+    if (idx < 0) throw Object.assign(new Error('section not found'), { status: 404 });
+    const orphans = (sched.tasks || []).filter(t => t.section === sectionId);
+    if (orphans.length) {
+      throw new Error(`Раздел не пустой: ${orphans.length} работ. Сначала удали или перенеси работы.`);
+    }
+    const removed = sched.sections[idx];
+    sched.sections.splice(idx, 1);
+    return `section ${sectionId} deleted: "${removed.name}"`;
+  });
+  return { schedule: updated };
+}
+
 const ACTIONS = {
   'assignees:set':         actionAssigneesSet,
   'update:add':            actionUpdateAdd,
@@ -298,7 +557,14 @@ const ACTIONS = {
   'ticket-note:add':       actionTicketNoteAdd,
   'task-note:add':         actionTaskNoteAdd,
   'task-resources:upsert': actionTaskResourcesUpsert,
-  'task-materials:upsert': actionTaskMaterialsUpsert
+  'task-materials:upsert': actionTaskMaterialsUpsert,
+  'task:update':           actionTaskUpdate,
+  'task:create':           actionTaskCreate,
+  'task:delete':           actionTaskDelete,
+  'task:bulk-shift':       actionTaskBulkShift,
+  'section:create':        actionSectionCreate,
+  'section:update':        actionSectionUpdate,
+  'section:delete':        actionSectionDelete
 };
 
 module.exports = async function handler(req, res) {

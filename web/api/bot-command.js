@@ -45,7 +45,16 @@ async function postData(action, payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, payload })
   });
-  return r.json();
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+  return j;
+}
+
+function escapeHtmlSimple(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 async function classify(text, ctx) {
@@ -78,8 +87,32 @@ async function classify(text, ctx) {
     '6. query_status — пользователь спрашивает статус, риски, активные задачи, прогресс',
     '   → { action:"query_status", topic:"materials"|"active"|"resources"|"progress"|"general" }',
     '',
-    '7. unknown — фраза не относится к бот-командам',
-    '   → { action:"unknown", reason }',
+    '7. rename_task — переименовать работу',
+    '   Примеры: «Переименуй задачу 5 в монтаж керамогранита», «Работу 18 назови чистка вентиляции».',
+    '   → { action:"rename_task", taskId, newName }',
+    '',
+    '8. shift_task_dates — сдвинуть даты работы на N дней (план или факт)',
+    '   Примеры: «Сдвинь укладку плитки на 3 дня вперёд», «Перенеси демонтаж на неделю позже»,',
+    '   «Факт по покраске сдвинь на 2 дня раньше».',
+    '   deltaDays: положительное = вперёд, отрицательное = назад. kind: "plan" (по умолчанию) или "fact".',
+    '   → { action:"shift_task_dates", taskId, deltaDays, kind:"plan"|"fact" }',
+    '',
+    '9. set_task_dates — задать конкретные даты работе',
+    '   Примеры: «У плитки старт 5 мая, финиш 12 мая», «Демонтаж: фактически начали 28 апреля».',
+    '   ISO YYYY-MM-DD. Поля любые из: planStart, planEnd, actualStart, actualEnd.',
+    '   → { action:"set_task_dates", taskId, dates:{planStart?, planEnd?, actualStart?, actualEnd?} }',
+    '',
+    '10. delete_task — удалить работу',
+    '    Пример: «Удали работу 34».',
+    '    → { action:"delete_task", taskId }',
+    '',
+    '11. add_section — создать новый раздел в проекте',
+    '    Пример: «Добавь раздел Декорирование», «Создай раздел субподрядчиков Слаботочные системы».',
+    '    color по умолчанию задаст система.',
+    '    → { action:"add_section", name, sub?:boolean }',
+    '',
+    '12. unknown — фраза не относится к бот-командам',
+    '    → { action:"unknown", reason }',
     '',
     'СПИСОК ТИКЕТОВ ПРОЕКТА (id → краткое название):',
     ctx.ticketsList || '(тикетов нет)',
@@ -247,9 +280,59 @@ module.exports = async function handler(req, res) {
         }
         break;
       }
+      case 'rename_task': {
+        if (!cmd.taskId || !cmd.newName) { replyHtml = '⚠️ Не понял какую работу и как назвать.'; break; }
+        const t = tasks.find(x => String(x.id) === String(cmd.taskId));
+        if (!t) { replyHtml = `⚠️ Работа <b>${cmd.taskId}</b> не найдена.`; break; }
+        await postData('task:update', { slug, taskId: String(cmd.taskId), patch: { name: String(cmd.newName).slice(0, 200) } });
+        replyHtml = `✅ Работа <b>${cmd.taskId}</b> переименована: «${escapeHtmlSimple(t.name)}» → <b>«${escapeHtmlSimple(cmd.newName)}»</b>`;
+        applied = true; break;
+      }
+      case 'shift_task_dates': {
+        if (!cmd.taskId || !Number.isFinite(Number(cmd.deltaDays))) { replyHtml = '⚠️ Не понял какую работу и на сколько дней.'; break; }
+        const t = tasks.find(x => String(x.id) === String(cmd.taskId));
+        if (!t) { replyHtml = `⚠️ Работа <b>${cmd.taskId}</b> не найдена.`; break; }
+        const delta = Math.round(Number(cmd.deltaDays));
+        const kind = cmd.kind === 'fact' ? 'fact' : 'plan';
+        await postData('task:bulk-shift', { slug, taskIds: [String(cmd.taskId)], deltaDays: delta, kind });
+        const sign = delta > 0 ? '+' : '';
+        replyHtml = `✅ Работа <b>${cmd.taskId}</b> «${escapeHtmlSimple(t.name)}»: ${kind === 'fact' ? 'факт' : 'план'} сдвинут на <b>${sign}${delta} дн.</b>`;
+        applied = true; break;
+      }
+      case 'set_task_dates': {
+        if (!cmd.taskId || !cmd.dates || typeof cmd.dates !== 'object') { replyHtml = '⚠️ Не понял какую работу и какие даты.'; break; }
+        const t = tasks.find(x => String(x.id) === String(cmd.taskId));
+        if (!t) { replyHtml = `⚠️ Работа <b>${cmd.taskId}</b> не найдена.`; break; }
+        const allowed = ['planStart','planEnd','actualStart','actualEnd'];
+        const patch = {};
+        for (const k of allowed) {
+          if (cmd.dates[k] && /^\d{4}-\d{2}-\d{2}$/.test(cmd.dates[k])) patch[k] = cmd.dates[k];
+        }
+        if (!Object.keys(patch).length) { replyHtml = '⚠️ Даты в неверном формате (нужно YYYY-MM-DD).'; break; }
+        await postData('task:update', { slug, taskId: String(cmd.taskId), patch });
+        const summary = Object.entries(patch).map(([k,v]) => `${k}=${v}`).join(', ');
+        replyHtml = `✅ Работа <b>${cmd.taskId}</b> «${escapeHtmlSimple(t.name)}»: ${summary}`;
+        applied = true; break;
+      }
+      case 'delete_task': {
+        if (!cmd.taskId) { replyHtml = '⚠️ Не понял какую работу удалить.'; break; }
+        const t = tasks.find(x => String(x.id) === String(cmd.taskId));
+        if (!t) { replyHtml = `⚠️ Работа <b>${cmd.taskId}</b> не найдена.`; break; }
+        await postData('task:delete', { slug, taskId: String(cmd.taskId) });
+        replyHtml = `✅ Работа <b>${cmd.taskId}</b> «${escapeHtmlSimple(t.name)}» удалена.`;
+        applied = true; break;
+      }
+      case 'add_section': {
+        if (!cmd.name) { replyHtml = '⚠️ Не понял название раздела.'; break; }
+        const colors = ['#ef4444','#f59e0b','#84cc16','#10b981','#06b6d4','#6366f1','#8b5cf6','#ec4899'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const r = await postData('section:create', { slug, name: String(cmd.name).slice(0, 80), color, sub: !!cmd.sub });
+        replyHtml = `✅ Раздел <b>«${escapeHtmlSimple(cmd.name)}»</b> создан${cmd.sub ? ' (субподрядчик)' : ''}.`;
+        applied = true; break;
+      }
       case 'unknown':
       default:
-        replyHtml = `🤷 Не разобрал команду: <i>${(cmd.reason || '').slice(0, 200)}</i>\n\n<b>Можно так:</b>\n• «По тикету T001 апдейт: подрядчик подтвердил»\n• «Назначь Александра на тикет T003»\n• «По задаче 18 заказали плитку»\n• «На работу 5 нужно 3 маляра»\n• «Что в риске?»`;
+        replyHtml = `🤷 Не разобрал команду: <i>${(cmd.reason || '').slice(0, 200)}</i>\n\n<b>Можно так:</b>\n• «По тикету T001 апдейт: подрядчик подтвердил»\n• «Назначь Александра на тикет T003»\n• «По задаче 18 заказали плитку»\n• «На работу 5 нужно 3 маляра»\n• «Сдвинь укладку плитки на 3 дня вперёд»\n• «Переименуй работу 18 в чистка вентиляции»\n• «Добавь раздел Декорирование»\n• «Что в риске?»`;
         break;
     }
 
