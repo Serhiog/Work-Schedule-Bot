@@ -123,8 +123,8 @@
         <button type="button" class="toolbar-btn" id="btn-report" title="Сформировать отчёт клиенту с фото из тикетов и AI-расширением тезисов">
           <span aria-hidden="true">📄</span> Отчёт клиенту
         </button>
-        <button type="button" class="toolbar-btn" id="btn-print" title="Сохранить как PDF или распечатать">
-          <span aria-hidden="true">⎙</span> PDF / Печать
+        <button type="button" class="toolbar-btn" id="btn-print" title="Открыть диалог печати — оттуда можно распечатать или выбрать «Сохранить как PDF»">
+          <span aria-hidden="true">⎙</span> Печать / PDF
         </button>
       </div>
     </section>
@@ -203,6 +203,12 @@
       <div class="drawer-body" id="drawer-body"></div>
     </aside>
   </div>
+
+  <!-- Critical-path popover (anchored, generic) -->
+  <div class="kp-popover" id="kp-popover" hidden></div>
+
+  <!-- Task name hover tooltip -->
+  <div class="task-tip" id="task-tip" hidden></div>
 
   <!-- Mobile tasks sheet (slide-in from left) -->
   <button type="button" class="tasks-fab" id="tasks-fab" aria-label="Список работ">

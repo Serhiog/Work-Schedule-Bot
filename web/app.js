@@ -323,7 +323,8 @@ const RESOURCE_TYPES = [
   { id: 'door_installers',  label: 'Монтажники дверей' },
   { id: 'glass_installers', label: 'Стекольщики' },
   { id: 'movers',           label: 'Мебельщики' },
-  { id: 'cleaners',         label: 'Уборщики' }
+  { id: 'cleaners',         label: 'Уборщики' },
+  { id: 'subcontractors',   label: 'Субподрядчики' }
 ];
 const RESOURCE_LABEL_BY_ID = Object.fromEntries(RESOURCE_TYPES.map(r => [r.id, r.label]));
 
@@ -346,20 +347,36 @@ const DEFAULT_RESOURCES_BY_SECTION = {
 };
 
 const DEFAULT_MATERIALS_BY_SECTION = {
-  demolition: [{ name: 'Контейнер для мусора', leadTime: 3 }],
-  sanitary:   [{ name: 'Трубы ХВС/ГВС', leadTime: 7 }, { name: 'Сантехника (унитазы, раковины)', leadTime: 14 }],
-  electric:   [{ name: 'Кабель силовой', leadTime: 7 }, { name: 'Розетки/выключатели', leadTime: 10 }, { name: 'Светильники', leadTime: 21 }],
-  hvac:       [{ name: 'Воздуховоды', leadTime: 14 }, { name: 'Фанкоилы', leadTime: 28 }, { name: 'Решётки/диффузоры', leadTime: 14 }],
-  fire:       [{ name: 'Пожарный шкаф', leadTime: 14 }, { name: 'Кабель FRLS', leadTime: 7 }],
-  gypsum:     [{ name: 'CD/UD профиль', leadTime: 7 }, { name: 'Лист ГКЛ', leadTime: 7 }, { name: 'Крепеж/саморезы', leadTime: 5 }],
-  painting:   [{ name: 'Краска', leadTime: 7 }, { name: 'Шпатлёвка/грунт', leadTime: 5 }],
-  ceramic:    [{ name: 'Плитка керамическая', leadTime: 21 }, { name: 'Клей/затирка', leadTime: 7 }],
-  flooring:   [{ name: 'Покрытие пола (LVT/ламинат)', leadTime: 14 }, { name: 'Подложка', leadTime: 7 }],
-  carpentry:  [{ name: 'Пиломатериал', leadTime: 7 }],
-  doors:      [{ name: 'Двери в сборе', leadTime: 28 }, { name: 'Фурнитура', leadTime: 14 }],
-  glass:      [{ name: 'Стеклянные перегородки', leadTime: 35 }, { name: 'Профиль алюминиевый', leadTime: 14 }],
-  furniture:  [{ name: 'Мебель', leadTime: 28 }],
-  cleanup:    []
+  // Новые ID секций (orange-1801 после пересборки по контракту)
+  preparation: [{ name: 'ПВХ-материал для защиты поверхностей', leadTime: 5 }],
+  demolition:  [{ name: 'Контейнер для мусора', leadTime: 3 }],
+  walls:       [
+    { name: 'CD/UD профиль', leadTime: 7 }, { name: 'Лист ГКЛ', leadTime: 7 }, { name: 'Утеплитель', leadTime: 7 },
+    { name: 'Шпатлёвка/грунт', leadTime: 5 }, { name: 'Краска водная', leadTime: 7 }
+  ],
+  ceilings:    [
+    { name: 'CD/UD профиль', leadTime: 7 }, { name: 'Лист ГКЛ', leadTime: 7 },
+    { name: 'Минвата 50мм (шумоизоляция)', leadTime: 7 }, { name: 'Ревизионные люки', leadTime: 14 },
+    { name: 'Краска водная', leadTime: 7 }
+  ],
+  floors:      [
+    { name: 'Самонивелирующаяся смесь', leadTime: 7 }, { name: 'Ковролин', leadTime: 14 },
+    { name: 'Плинтус МДФ', leadTime: 14 }
+  ],
+  bathrooms:   [
+    { name: 'Керамогранит', leadTime: 21 }, { name: 'Клей/затирка', leadTime: 7 },
+    { name: 'Гидроизоляция (мембрана + лента)', leadTime: 7 },
+    { name: 'Сантехника (унитазы, раковины, душ)', leadTime: 14 },
+    { name: 'Смесители и аксессуары', leadTime: 14 }
+  ],
+  electrical:  [
+    { name: 'Кабель силовой', leadTime: 7 }, { name: 'Розетки/выключатели', leadTime: 10 },
+    { name: 'Светильники', leadTime: 21 }, { name: 'Распределительный щит', leadTime: 14 }
+  ],
+  fire_safety: [{ name: 'Чертежи / согласование', leadTime: 14 }],
+  hvac:        [],  // только сопровождение подрядчика, материалы не наши
+  logistics:   [],  // транспорт — нет материалов
+  cleaning:    [],  // вывоз мусора — нет материалов
 };
 
 function defaultResourcesForTask(task) {
@@ -397,32 +414,39 @@ function getTaskMaterials(taskId) {
   return defaultMaterialsForTask(t);
 }
 function setTaskMaterials(taskId, materials) {
-  const list = (materials || []).filter(m => m && m.name && String(m.name).trim())
-    .map(m => ({
-      name: String(m.name).trim(),
-      leadTime: Math.max(0, Math.min(120, Number(m.leadTime) || 0)),
-      ordered: !!m.ordered,
-      expectedDate: m.expectedDate || '',
-      note: (m.note || '').slice(0, 200)
-    }));
-  state.dataCache.taskMaterials[String(taskId)] = list;
-  postDataAction('task-materials:upsert', { taskId: String(taskId), slug: state.projectSlug, materials: list })
+  // В кэше держим все строки (включая черновик с пустым именем — пользователь его дозаполнит).
+  // На сервер отправляем только заполненные.
+  const all = (materials || []).map(m => ({
+    name: String(m?.name || '').trim(),
+    leadTime: Math.max(0, Math.min(120, Number(m?.leadTime) || 0)),
+    ordered: !!m?.ordered,
+    expectedDate: m?.expectedDate || '',
+    note: (m?.note || '').slice(0, 200)
+  }));
+  state.dataCache.taskMaterials[String(taskId)] = all;
+  const filled = all.filter(m => m.name);
+  postDataAction('task-materials:upsert', { taskId: String(taskId), slug: state.projectSlug, materials: filled })
     .catch(e => console.warn('task-materials:upsert failed', e));
+  // Live update: analytics card + alert banner + bar outline
+  if (typeof renderProjectAnalytics === 'function') renderProjectAnalytics();
 }
 
-// Алерт по материалам: «через сколько дней нужно успеть заказать?»
-// daysUntilStart = (planStart - today). Risk if any unordered material with leadTime > daysUntilStart.
+// Алерт по материалам: срабатывает для ЛЮБОЙ незакрытой работы.
+//   • Работа в будущем — риск если lead-time > дней до старта.
+//   • Работа уже идёт / просрочена — риск ВСЕГДА если материал не заказан (нужен срочно).
+//   • Работа закрыта (actualEnd) — пропускаем.
 function computeMaterialRisk(task) {
+  if (task.actualEnd) return null;
   const today = effectiveToday();
   const start = parseISO(task.planStart);
   const daysToStart = Math.round((start - today) / DAY_MS);
-  if (daysToStart < 0) return null; // already started
+  const effectiveDaysToStart = Math.max(0, daysToStart);
   const mats = getTaskMaterials(task.id);
-  const risky = mats.filter(m => !m.ordered && (Number(m.leadTime) || 0) > daysToStart);
+  const risky = mats.filter(m => !m.ordered && (Number(m.leadTime) || 0) > effectiveDaysToStart);
   if (!risky.length) return null;
   const maxLead = Math.max(...risky.map(m => Number(m.leadTime) || 0));
   const orderBy = new Date(start.getTime() - maxLead * DAY_MS);
-  return { daysToStart, maxLead, orderBy, riskyCount: risky.length, totalCount: mats.length };
+  return { daysToStart, maxLead, orderBy, riskyCount: risky.length, totalCount: mats.length, alreadyStarted: daysToStart < 0 };
 }
 
 async function postDataAction(action, payload) {
@@ -853,6 +877,22 @@ function computeEVM(schedule, asOfDate) {
   };
 }
 
+// Лимит людей на смену в день — хранится в localStorage по slug проекта.
+// 0 / null = не задан (подсветки нет).
+function dailyCapKey() { return `dailyWorkersCap:${state.projectSlug || 'default'}`; }
+function getDailyWorkersCap() {
+  try {
+    const v = Number(localStorage.getItem(dailyCapKey()));
+    return Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
+  } catch (_) { return 0; }
+}
+function setDailyWorkersCap(v) {
+  try {
+    if (v > 0) localStorage.setItem(dailyCapKey(), String(Math.floor(v)));
+    else localStorage.removeItem(dailyCapKey());
+  } catch (_) {}
+}
+
 // Полное распределение по дням и типам специалистов. Возвращает: { days[], types[], counts[type][dayIdx], peak, peakDate, peakIdx }
 function computeResourceTimeline(schedule) {
   const tasks = schedule.tasks || [];
@@ -931,6 +971,10 @@ function renderResourceHeatmap() {
 
   const cellsTpl = `repeat(${tl.days.length}, ${cellW}px)`;
 
+  const cap = getDailyWorkersCap();
+  const overloadedDays = tl.totalPerDay.map(n => cap > 0 && n > cap);
+  const overloadCount = overloadedDays.filter(Boolean).length;
+
   const rowHtml = (label, arr, isTotal) => {
     const palette = isTotal ? '34, 197, 94' : '70, 111, 166';
     const baseAlpha = isTotal ? 0.18 : 0.15;
@@ -939,7 +983,12 @@ function renderResourceHeatmap() {
     const cells = arr.map((n, i) => {
       const intensity = Math.min(1, n / peakRef);
       const bg = n > 0 ? `rgba(${palette}, ${baseAlpha + intensity * peakAlpha})` : 'transparent';
-      return `<div class="rh-cell${isTotal ? ' rh-cell--total' : ''}" data-col="${i}" style="background:${bg}" title="${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n}">${n > 0 ? n : ''}</div>`;
+      const over = isTotal && overloadedDays[i];
+      const cls = `rh-cell${isTotal ? ' rh-cell--total' : ''}${over ? ' rh-cell--overload' : ''}`;
+      const tip = isTotal && cap > 0
+        ? `${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n} (лимит ${cap}${over ? ' — превышение!' : ''})`
+        : `${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n}`;
+      return `<div class="${cls}" data-col="${i}" style="background:${bg}" title="${tip}">${n > 0 ? n : ''}</div>`;
     }).join('');
     return `
       <div class="rh-row${isTotal ? ' rh-row--total' : ''}">
@@ -948,25 +997,49 @@ function renderResourceHeatmap() {
       </div>`;
   };
 
+  const headerCellsHtml = tl.days.map((d, i) => {
+    const cls = `rh-day-header${overloadedDays[i] ? ' rh-day-header--overload' : ''}`;
+    return `<div class="${cls}" data-col="${i}">${d.getUTCDate()}</div>`;
+  }).join('');
+
   const rowsHtml = tl.types.map(type => rowHtml(RESOURCE_LABEL_BY_ID[type] || type, tl.counts[type], false)).join('');
   const totalRowHtml = rowHtml('Итого', tl.totalPerDay, true);
+
+  const overloadBadge = cap > 0 && overloadCount > 0
+    ? `<span class="rh-overload-badge">⚠ перегруз: ${overloadCount} ${plural(overloadCount, ['день','дня','дней'])}</span>`
+    : '';
 
   cont.hidden = false;
   cont.innerHTML = `
     <div class="rh-head">
       <div class="rh-title">Загрузка людей по дням</div>
-      <div class="rh-meta">пик · ${tl.peak} чел. · ${tl.peakDate ? escapeHtml(fmtDate(toISO(tl.peakDate))) : ''}</div>
+      <div class="rh-meta">пик · ${tl.peak} чел.${tl.peakDate ? ' · ' + escapeHtml(fmtDate(toISO(tl.peakDate))) : ''}</div>
+      <div class="rh-cap">
+        <label class="rh-cap-label" for="rh-cap-input" title="Максимум людей на смене в день. Дни с превышением будут подсвечены красным.">Лимит на смену:</label>
+        <input type="number" min="0" max="999" step="1" class="rh-cap-input" id="rh-cap-input" value="${cap || ''}" placeholder="—" />
+        <span class="rh-cap-unit">чел.</span>
+        ${overloadBadge}
+      </div>
     </div>
     <div class="rh-scroll">
       <div class="rh-table" style="--rh-label-w:${labelW}px;">
         <div class="rh-row rh-row--header">
           <div class="rh-row-label"></div>
-          <div class="rh-row-cells" style="grid-template-columns:${cellsTpl}">${tl.days.map((d, i) => `<div class="rh-day-header" data-col="${i}">${d.getUTCDate()}</div>`).join('')}</div>
+          <div class="rh-row-cells" style="grid-template-columns:${cellsTpl}">${headerCellsHtml}</div>
         </div>
         ${rowsHtml}
         ${totalRowHtml}
       </div>
     </div>`;
+
+  const capInput = cont.querySelector('#rh-cap-input');
+  if (capInput) {
+    capInput.addEventListener('change', () => {
+      const v = Math.max(0, Math.min(999, Number(capInput.value) || 0));
+      setDailyWorkersCap(v);
+      renderResourceHeatmap();
+    });
+  }
 
   // ── Sync horizontal scroll with the Gantt ──
   const gantt = document.getElementById('gantt');
@@ -1025,6 +1098,47 @@ function spiClass(spi) {
   if (spi >= 0.97) return 'spi-good';
   if (spi >= 0.88) return 'spi-warn';
   return 'spi-bad';
+}
+
+function renderMaterialAlert() {
+  const cont = document.getElementById('materials-alert-banner');
+  if (!cont) return;
+  const sched = state.schedule;
+  if (!sched || !sched.tasks?.length) { cont.hidden = true; cont.innerHTML = ''; return; }
+  const risky = [];
+  for (const t of sched.tasks) {
+    const r = computeMaterialRisk(t);
+    if (r) risky.push({ t, r });
+  }
+  if (!risky.length) { cont.hidden = true; cont.innerHTML = ''; return; }
+  risky.sort((a, b) => a.r.orderBy - b.r.orderBy);
+  const nearest = risky[0].r.orderBy;
+  const urgentCount = risky.filter(({ r }) => r.daysToStart < r.maxLead).length;
+  const top = risky.slice(0, 3).map(({ t, r }) => {
+    const days = Math.max(0, Math.round((r.orderBy - effectiveToday()) / DAY_MS));
+    return `<button type="button" class="mat-alert-task" data-task-id="${escapeHtml(t.id)}" title="Открыть карточку работы">
+      <span class="mat-alert-task-name">${escapeHtml(t.name)}</span>
+      <span class="mat-alert-task-deadline">до ${escapeHtml(fmtDate(toISO(r.orderBy)))} (${days > 0 ? days + ' дн.' : 'срочно'})</span>
+    </button>`;
+  }).join('');
+  cont.hidden = false;
+  cont.innerHTML = `
+    <div class="mat-alert-head">
+      <span class="mat-alert-icon">📦</span>
+      <span class="mat-alert-title"><strong>${urgentCount} работ</strong> требуют срочного заказа материалов</span>
+      <span class="mat-alert-deadline">ближайший до <strong>${escapeHtml(fmtDate(toISO(nearest)))}</strong></span>
+      <button type="button" class="mat-alert-more" data-action="open-materials-drawer">Все →</button>
+    </div>
+    <div class="mat-alert-tasks">${top}${risky.length > 3 ? `<span class="mat-alert-more-count">+${risky.length - 3}</span>` : ''}</div>`;
+  // Wire up clicks
+  cont.querySelectorAll('.mat-alert-task').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tid = btn.getAttribute('data-task-id');
+      if (tid) openDrawer(tid);
+    });
+  });
+  const moreBtn = cont.querySelector('[data-action="open-materials-drawer"]');
+  if (moreBtn) moreBtn.addEventListener('click', () => openAnalyticsDrawer('materials'));
 }
 
 function renderProjectAnalytics() {
@@ -1598,6 +1712,7 @@ function renderGantt() {
       const matBadge = matRisk
         ? `<span class="task-mat-badge" title="Заказать до ${escapeHtml(fmtDate(toISO(matRisk.orderBy)))} · ${matRisk.riskyCount} материалов в риске">📦 ${matRisk.daysToStart > 0 ? '−' + (matRisk.maxLead - matRisk.daysToStart) + 'д' : 'срочно'}</span>`
         : '';
+      const matRiskCls = matRisk ? ' task-mat-risk' : '';
       body += `<div class="task-label${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
         <span class="tbullet" style="background:${catColor}"></span>
         <span class="tid">${escapeHtml(t.id)}</span>
@@ -1610,7 +1725,7 @@ function renderGantt() {
       </div>`;
       const progFill = prog > 0 ? `<div class="bar-plan-progress" style="width:${progPct}%; background:${bTop}" aria-hidden="true"></div>` : '';
       const ticketBadge = buildTaskTicketBadge(t.id, pLeft, pWidth);
-      body += `<div class="task-grid${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" style="width:${gridW}px; background-image: ${stripeBg ? stripeBg + ', ' : ''}linear-gradient(to right, var(--line-2) 1px, transparent 1px); background-size: auto, ${cellW}px 100%;">
+      body += `<div class="task-grid${hidden}${critCls}${matRiskCls}" data-tid="${t.id}" data-section-id="${secId}" style="width:${gridW}px; background-image: ${stripeBg ? stripeBg + ', ' : ''}linear-gradient(to right, var(--line-2) 1px, transparent 1px); background-size: auto, ${cellW}px 100%;">
         <div class="bar-plan${light ? ' light' : ''}" style="left:${pLeft}px; --bar-left:${pLeft}px; width:${pWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="План: ${escapeHtml(fmtDate(pStart))} — ${escapeHtml(fmtDate(pEnd))} · ${progPct}%">
           ${progFill}
           <span class="bar-plan-text">${escapeHtml(t.name)}</span>
@@ -2155,20 +2270,69 @@ function openDrawer(tid) {
   attachTicketHandlers();
   attachResourceMaterialHandlers(t.id);
   bindDrawerDependenciesHandlers(t.id);
+  // Если у работы нет явных зависимостей — предложим auto-зависимости из section-chain
+  // (предыдущая работа в той же секции по этапу + planStart). Они появятся в списке как ✓ ИИ.
+  ensureAutoDepsForTask(t.id);
   $('#drawer').setAttribute('aria-hidden', 'false');
+}
+
+async function ensureAutoDepsForTask(taskId) {
+  if (depsForTask(taskId).length) return;
+  const t = state.schedule.tasks.find(x => x.id === taskId);
+  if (!t) return;
+  const sectionTasks = state.schedule.tasks
+    .filter(x => x.section === t.section)
+    .sort((a, b) => {
+      const ra = CANONICAL_STAGE_ORDER.indexOf(a.stage);
+      const rb = CANONICAL_STAGE_ORDER.indexOf(b.stage);
+      const sa = ra >= 0 ? ra : 99;
+      const sb = rb >= 0 ? rb : 99;
+      if (sa !== sb) return sa - sb;
+      return (a.planStart || '').localeCompare(b.planStart || '');
+    });
+  const myIdx = sectionTasks.findIndex(x => x.id === taskId);
+  if (myIdx <= 0) return; // первая в секции — нет предшественника
+  const pred = sectionTasks[myIdx - 1];
+  try {
+    const r = await fetch('/api/dependencies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add', payload: { slug: state.projectSlug, taskId, dependsOnTaskId: pred.id, source: 'auto' } })
+    });
+    const j = await r.json();
+    if (r.ok && j.dep) {
+      const list = state.dataCache.taskDependencies || [];
+      const filtered = list.filter(d => !(d.taskId === taskId && d.dependsOnTaskId === pred.id));
+      filtered.push(j.dep);
+      state.dataCache.taskDependencies = filtered;
+      rebuildDepsGraph();
+      // Re-render dep section if drawer is still showing this task
+      const sec = document.getElementById('drawer-deps-section');
+      if (sec && sec.dataset.taskId === taskId) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildDrawerDependenciesHtml(t);
+        sec.replaceWith(wrapper.firstElementChild);
+        bindDrawerDependenciesHandlers(taskId);
+      }
+    }
+  } catch (e) { console.warn('ensureAutoDepsForTask failed:', e?.message || e); }
 }
 
 // Per-task photo store: taskId → File[]
 const ticketPhotoStore = {};
 const ticketViewState = {}; // { [taskId]: { filter: 'all', sort: 'deadline' } }
 
+// Внутренние названия статусов — отличаются от PlanRadar.
+// ID в БД остаются английскими (open/in_progress/...), мы только меняем
+// то, как они показываются пользователю, чтобы попасть в наш реальный
+// строй-процесс: бригадир видит «Новый» вместо «Открыт» и т.д.
 const TICKET_STATUS_LABEL = {
-  open:        'Открыт',
-  in_review:   'На проверке',
-  in_progress: 'В работе',
-  deferred:    'Отложен',
-  resolved:    'Закрыт',
-  rejected:    'Отклонён'
+  open:        'Новый',         // зарегистрирован, никто ещё не взял
+  in_progress: 'В работе',      // бригада устраняет
+  in_review:   'На проверке',   // устранён, ждём PM/заказчика
+  deferred:    'На паузе',      // ждём материал/решение/смежников
+  resolved:    'Устранён',      // подтверждён и закрыт
+  rejected:    'Снят'           // не дефект / отменён
 };
 const TICKET_STATUSES = ['open', 'in_review', 'in_progress', 'deferred', 'resolved', 'rejected'];
 
@@ -2692,7 +2856,11 @@ function buildDrawerTicketsHtml(taskId) {
     : '';
   return `<div class="tickets-section${selecting ? ' tickets-section--selecting' : ''}" data-task-id="${tid}">
     <div class="drawer-section-title">Тикеты${taskTickets.length ? ` (${taskTickets.length})` : ''}
-      <button class="ticket-add-btn" data-task-id="${tid}" title="Создать тикет">➕</button>
+      <button class="ticket-add-btn" data-task-id="${tid}" title="Создать новый тикет по этой работе">
+        <span class="ticket-add-btn-ico" aria-hidden="true">+</span>
+        <span class="ticket-add-btn-lbl">Новый тикет</span>
+        <span class="ticket-add-btn-arrow" aria-hidden="true">→</span>
+      </button>
     </div>
     ${createForm}
     ${taskTickets.length ? `<div class="ticket-toolbar">${selectBtn}<div class="ticket-toolbar-filters">${chips}</div></div>` : ''}
@@ -4602,18 +4770,30 @@ function openAnalyticsDrawer(type) {
       if (r) risky.push({ t, r, mats: getTaskMaterials(t.id) });
     }
     risky.sort((a, b) => a.r.orderBy - b.r.orderBy);
-    const rows = risky.map(({ t, r, mats }) => {
+    const cards = risky.map(({ t, r, mats }) => {
       const list = mats.filter(m => !m.ordered && (Number(m.leadTime) || 0) > r.daysToStart);
-      const matLis = list.map(m => `<li>${escapeHtml(m.name || '—')} <span class="muted">· lead-time ${m.leadTime || 0} дн.</span></li>`).join('');
+      const matChips = list.map(m =>
+        `<span class="mat-chip"><span class="mat-chip-name">${escapeHtml(m.name || '—')}</span><span class="mat-chip-lead">${m.leadTime || 0} дн.</span></span>`
+      ).join('');
+      const deadlineLabel = r.daysToStart > 0
+        ? `до ${escapeHtml(fmtDate(toISO(r.orderBy)))}`
+        : 'срочно';
+      const sec = state.sectionById[t.section]?.name || '';
       return `
-      <div class="drawer-row">
-        <div class="drawer-row-head">
-          <button type="button" class="drawer-row-label drawer-row-link" data-task-id="${escapeHtml(t.id)}">${escapeHtml(t.name)}</button>
-          <span class="drawer-row-val analytics-slip--late">заказать до ${escapeHtml(fmtDate(toISO(r.orderBy)))}</span>
+      <button type="button" class="mat-task-card" data-task-id="${escapeHtml(t.id)}">
+        <div class="mat-task-card-head">
+          <div class="mat-task-card-name">${escapeHtml(t.name)}</div>
+          <div class="mat-task-card-deadline">📦 ${deadlineLabel}</div>
         </div>
-        <div class="drawer-row-meta">старт ${escapeHtml(fmtDate(t.planStart))} · через ${r.daysToStart} дн.</div>
-        ${matLis ? `<ul class="drawer-mat-list">${matLis}</ul>` : ''}
-      </div>`;
+        <div class="mat-task-card-meta">
+          <span>${escapeHtml(sec)}</span>
+          <span>·</span>
+          <span>старт ${escapeHtml(fmtDate(t.planStart))}</span>
+          <span>·</span>
+          <span>через ${r.daysToStart} ${plural(r.daysToStart, ['день','дня','дней'])}</span>
+        </div>
+        ${matChips ? `<div class="mat-task-card-chips">${matChips}</div>` : ''}
+      </button>`;
     }).join('');
     tag = 'Снабжение';
     title = `Материалы в риске · ${risky.length} ${plural(risky.length, ['работа', 'работы', 'работ'])}`;
@@ -4622,7 +4802,7 @@ function openAnalyticsDrawer(type) {
       ${kv('Ближайший заказ', risky.length ? escapeHtml(fmtDate(toISO(risky[0].r.orderBy))) : '—')}
     </div>
     <div class="drawer-hint">Материал «в риске», если до старта работы меньше дней, чем lead-time поставщика, и закупка не отмечена.</div>
-    ${rows ? `<div class="drawer-section-title">Список</div><div class="drawer-list">${rows}</div>` : `<div class="drawer-empty">Все материалы под контролем.</div>`}`;
+    ${cards ? `<div class="mat-task-cards">${cards}</div>` : `<div class="drawer-empty">Все материалы под контролем.</div>`}`;
   }
 
   else if (type === 'resources') {
@@ -4676,7 +4856,7 @@ function openAnalyticsDrawer(type) {
   $('#drawer').setAttribute('aria-hidden', 'false');
 
   // Wire up drawer-internal handlers
-  document.querySelectorAll('#drawer-body .drawer-row-link[data-task-id]').forEach((el) => {
+  document.querySelectorAll('#drawer-body .drawer-row-link[data-task-id], #drawer-body .mat-task-card[data-task-id]').forEach((el) => {
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const tid = el.getAttribute('data-task-id');
@@ -6245,8 +6425,8 @@ function buildDrawerDependenciesHtml(t) {
   }).join('') || '<div class="drawer-dep-empty">Нет других работ</div>';
 
   return `
-    <div class="drawer-section" id="drawer-deps-section" data-task-id="${escapeHtml(t.id)}">
-      <div class="drawer-section-h">🔗 Зависимости</div>
+    <div class="drawer-section-title">🔗 Зависимости</div>
+    <div id="drawer-deps-section" data-task-id="${escapeHtml(t.id)}">
       <div class="drawer-dep-block">
         <div class="drawer-dep-label">От неё зависят:</div>
         <div class="dep-succ-list">${succsHtml}</div>

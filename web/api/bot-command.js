@@ -22,7 +22,7 @@ const APP_HOST = 'https://cyfr-schedule-app.vercel.app';
 const ASSIGNEES = ['Александр', 'Андрей', 'Антон П.', 'Антон М.'];
 const RESOURCE_TYPES = ['workers', 'plumbers', 'electricians', 'hvac_installers', 'fire_techs',
   'gypsum_workers', 'painters', 'tilers', 'floor_layers', 'carpenters', 'door_installers',
-  'glass_installers', 'movers', 'cleaners'];
+  'glass_installers', 'movers', 'cleaners', 'subcontractors'];
 
 function bad(res, code, msg, extra) { res.status(code).json({ error: msg, ...(extra || {}) }); }
 
@@ -68,7 +68,8 @@ async function classify(text, ctx) {
     '4. set_task_resources   — задать команду на задачу',
     '   resourceType из: workers, plumbers, electricians, hvac_installers, fire_techs,',
     '   gypsum_workers, painters, tilers, floor_layers, carpenters, door_installers,',
-    '   glass_installers, movers, cleaners.',
+    '   glass_installers, movers, cleaners, subcontractors.',
+    '   subcontractors = «субподрядчики» (внешняя бригада, не штатные).',
     '   → { action:"set_task_resources", taskId, resources:[{type, count}, ...] }',
     '',
     '5. add_task_meeting_note — добавить заметку к работе (не к тикету)',

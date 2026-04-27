@@ -24,6 +24,7 @@
   ],
   "functions": {
     "api/depsinfer.js": { "maxDuration": 300 },
+    "api/matsinfer.js": { "maxDuration": 300 },
     "api/report.js": { "maxDuration": 120 }
   }
 }

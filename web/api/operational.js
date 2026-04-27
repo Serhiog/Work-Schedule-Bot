@@ -12,7 +12,8 @@ const RESOURCE_LABEL_BY_ID = {
   hvac_installers: 'ОВиК-монтажники', fire_techs: 'Пожарные техники',
   gypsum_workers: 'ГКЛ-монтажники', painters: 'Маляры', tilers: 'Плиточники',
   floor_layers: 'Полы', carpenters: 'Плотники', door_installers: 'Двери',
-  glass_installers: 'Стекольщики', movers: 'Мебельщики', cleaners: 'Уборщики'
+  glass_installers: 'Стекольщики', movers: 'Мебельщики', cleaners: 'Уборщики',
+  subcontractors: 'Субподрядчики'
 };
 
 const DEFAULT_RESOURCES_BY_SECTION = {

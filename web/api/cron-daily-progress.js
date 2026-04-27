@@ -8,6 +8,22 @@ const AT_BASE = 'apph1Z1U3OU2gBvnL';
 const AT_USERS = 'tblDxfO0Fue11EQmp';
 const APP_HOST = 'https://cyfr-schedule-app.vercel.app';
 
+// Дефолты материалов по секциям (зеркало DEFAULT_MATERIALS_BY_SECTION в app.js).
+// Используются если в Airtable нет ручных данных по материалам конкретной работы.
+const DEFAULT_MATERIALS_BY_SECTION = {
+  preparation: [{ name: 'ПВХ-материал для защиты', leadTime: 5 }],
+  demolition:  [{ name: 'Контейнер для мусора', leadTime: 3 }],
+  walls:       [{ name: 'CD/UD профиль', leadTime: 7 }, { name: 'Лист ГКЛ', leadTime: 7 }, { name: 'Утеплитель', leadTime: 7 }, { name: 'Шпатлёвка/грунт', leadTime: 5 }, { name: 'Краска водная', leadTime: 7 }],
+  ceilings:    [{ name: 'CD/UD профиль', leadTime: 7 }, { name: 'Лист ГКЛ', leadTime: 7 }, { name: 'Минвата 50мм', leadTime: 7 }, { name: 'Ревизионные люки', leadTime: 14 }, { name: 'Краска водная', leadTime: 7 }],
+  floors:      [{ name: 'Самонивелир', leadTime: 7 }, { name: 'Ковролин', leadTime: 14 }, { name: 'Плинтус МДФ', leadTime: 14 }],
+  bathrooms:   [{ name: 'Керамогранит', leadTime: 21 }, { name: 'Клей/затирка', leadTime: 7 }, { name: 'Гидроизоляция', leadTime: 7 }, { name: 'Сантехника', leadTime: 14 }, { name: 'Смесители/аксессуары', leadTime: 14 }],
+  electrical:  [{ name: 'Кабель силовой', leadTime: 7 }, { name: 'Розетки/выключатели', leadTime: 10 }, { name: 'Светильники', leadTime: 21 }, { name: 'Электрощит', leadTime: 14 }],
+  fire_safety: [{ name: 'Чертежи / согласование', leadTime: 14 }],
+  hvac:        [],
+  logistics:   [],
+  cleaning:    [],
+};
+
 function isoToday() { return new Date().toISOString().slice(0, 10); }
 function fmtRu(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day:'numeric', month:'short', timeZone:'UTC' }); }
 function diffDays(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
@@ -16,6 +32,15 @@ async function fetchSchedule(slug) {
   const r = await fetch(`${APP_HOST}/schedules/${slug}.json?t=${Date.now()}`);
   if (!r.ok) throw new Error(`schedule ${slug} not found`);
   return r.json();
+}
+
+async function fetchProjectData(slug) {
+  // Подтягиваем материалы из Airtable через /api/data (там же ресурсы, ассайны и т.д.)
+  try {
+    const r = await fetch(`${APP_HOST}/api/data?slug=${slug}`);
+    if (!r.ok) return { taskMaterials: {} };
+    return r.json();
+  } catch { return { taskMaterials: {} }; }
 }
 
 async function listForemen() {
@@ -34,12 +59,11 @@ async function listForemen() {
   })).filter(u => u.chatId);
 }
 
-function buildEvents(schedule, today) {
+function buildEvents(schedule, today, projectData) {
   const sectionsById = Object.fromEntries(schedule.sections.map(s => [s.id, s.name]));
   const tasks = (schedule.tasks || []).filter(t => !t.actualEnd);
+  const matsByTask = (projectData && projectData.taskMaterials) || {};
 
-  // Фоновые «сквозные» работы (транспорт, вывоз мусора, сопровождение) — пинговать бессмысленно.
-  // Эвристика: работа фоновая если её длительность ≥ 50% длительности проекта.
   const projDur = Math.max(1, diffDays(schedule.project.startDate, schedule.project.endDate) + 1);
   const isBackground = (t) => {
     const taskDur = Math.max(1, diffDays(t.planStart, t.planEnd) + 1);
@@ -49,25 +73,46 @@ function buildEvents(schedule, today) {
   const startingToday = [];
   const endingToday = [];
   const overdueAny = [];
-  const inProgressNoPct = [];  // активные, не фоновые, без отчёта по %
+  const inProgressNoPct = [];
+  const materialRisks = [];
 
   for (const t of tasks) {
-    if (isBackground(t)) continue; // фоновые пропускаем целиком
-    const ps = t.planStart;
-    const pe = t.planEnd;
-    if (ps === today && !t.actualStart) startingToday.push(t);
-    if (pe === today) endingToday.push(t);
-    if (pe < today && !t.actualEnd) {
-      overdueAny.push({ t, days: diffDays(pe, today) });
-      continue; // в просрочке — отдельная категория, в midpoint не дублируем
+    // Материальные риски — по всем работам, включая фоновые
+    const planStartDate = new Date(t.planStart);
+    const todayDate = new Date(today);
+    const daysToStart = Math.round((planStartDate - todayDate) / 86400000);
+    // Закрытые работы пропускаем; активные/будущие — проверяем материалы.
+    if (!t.actualEnd) {
+      let taskMats = matsByTask[String(t.id)];
+      if (!Array.isArray(taskMats) || !taskMats.length) {
+        taskMats = DEFAULT_MATERIALS_BY_SECTION[t.section] || [];
+      }
+      if (Array.isArray(taskMats) && taskMats.length) {
+        // Для уже идущих работ effectiveDaysToStart = 0 (любой неоформленный материал критичен)
+        const effectiveDaysToStart = Math.max(0, daysToStart);
+        const risky = taskMats.filter(m => !m.ordered && (Number(m.leadTime) || 0) > effectiveDaysToStart);
+        if (risky.length) {
+          const maxLead = Math.max(...risky.map(m => Number(m.leadTime) || 0));
+          const orderBy = new Date(planStartDate.getTime() - maxLead * 86400000);
+          materialRisks.push({ t, riskyCount: risky.length, orderBy: orderBy.toISOString().slice(0,10), daysToStart, items: risky, alreadyStarted: daysToStart < 0 });
+        }
+      }
     }
-    if (t.actualStart && pe > today) {
+
+    if (isBackground(t)) continue;
+    if (t.planStart === today && !t.actualStart) startingToday.push(t);
+    if (t.planEnd === today) endingToday.push(t);
+    if (t.planEnd < today && !t.actualEnd) {
+      overdueAny.push({ t, days: diffDays(t.planEnd, today) });
+      continue;
+    }
+    if (t.actualStart && t.planEnd > today) {
       const noProgressYet = typeof t.progress !== 'number' || t.progress === 0 || t.progress === 0.01;
       if (noProgressYet) inProgressNoPct.push(t);
     }
   }
 
-  const eventsCount = startingToday.length + endingToday.length + overdueAny.length + inProgressNoPct.length;
+  const eventsCount = startingToday.length + endingToday.length + overdueAny.length + inProgressNoPct.length + materialRisks.length;
   if (!eventsCount) return null;
 
   const sec = (t) => sectionsById[t.section] || t.section;
@@ -95,6 +140,16 @@ function buildEvents(schedule, today) {
     if (inProgressNoPct.length > 8) parts.push(`  • …и ещё ${inProgressNoPct.length - 8}`);
     parts.push('');
   }
+  if (materialRisks.length) {
+    materialRisks.sort((a, b) => a.orderBy.localeCompare(b.orderBy));
+    parts.push('📦 <b>Материалы — заказать срочно:</b>');
+    for (const { t, items, orderBy, daysToStart } of materialRisks.slice(0, 6)) {
+      const matNames = items.slice(0, 3).map(m => m.name).join(', ') + (items.length > 3 ? '…' : '');
+      parts.push(`  • <b>${t.name}</b> до <b>${fmtRu(orderBy)}</b>\n     <i>${matNames}</i>`);
+    }
+    if (materialRisks.length > 6) parts.push(`  • …и ещё ${materialRisks.length - 6} работ`);
+    parts.push('');
+  }
   parts.push('🎤 <b>Запиши голосовым</b>: что стартовало, что закрылось, какие %, причины задержек. Бот разберёт и применит.');
   return parts.join('\n');
 }
@@ -117,9 +172,9 @@ module.exports = async (req, res) => {
   const dryRun = req.query?.dry === '1';
 
   try {
-    const schedule = await fetchSchedule(slug);
+    const [schedule, projectData] = await Promise.all([fetchSchedule(slug), fetchProjectData(slug)]);
     const today = isoToday();
-    const text = buildEvents(schedule, today);
+    const text = buildEvents(schedule, today, projectData);
     if (!text) return res.status(200).json({ slug, today, sent: 0, reason: 'no events today' });
 
     const users = await listForemen();
