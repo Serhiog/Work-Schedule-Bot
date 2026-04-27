@@ -725,6 +725,14 @@
       "planEnd": "2026-06-20",
       "actualStart": "2026-02-24",
       "actualEnd": null
+    },
+    {
+      "id": "39",
+      "name": "Мойка окон",
+      "section": "мойка",
+      "stage": "ST1",
+      "planStart": "2026-04-27",
+      "planEnd": "2026-05-04"
     }
   ],
   "history": [
