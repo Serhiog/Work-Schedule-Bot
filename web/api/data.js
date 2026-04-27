@@ -359,13 +359,22 @@ async function ghCommitSchedule(slug, schedule, sha, message) {
 
 // Apply mutator to schedule, commit, return updated schedule.
 // Mutator: (schedule) => string (commit message). Mutates schedule in place.
-async function mutateSchedule(slug, mutator) {
+// Авто-ретрай при 409 (SHA conflict): кто-то закоммитил в промежутке между read и write.
+async function mutateSchedule(slug, mutator, attempt = 0) {
   if (!slug) throw new Error('slug required');
   const { schedule, sha } = await ghReadSchedule(slug);
   const message = await mutator(schedule);
-  // Recompute project.startDate / project.endDate from tasks (only if any tasks have dates)
   recomputeProjectBounds(schedule);
-  await ghCommitSchedule(slug, schedule, sha, message);
+  try {
+    await ghCommitSchedule(slug, schedule, sha, message);
+  } catch (e) {
+    // 409 — конфликт SHA, перечитать и попробовать снова (до 3 попыток)
+    if (e.status === 409 && attempt < 3) {
+      await new Promise(r => setTimeout(r, 250 * (attempt + 1)));
+      return mutateSchedule(slug, mutator, attempt + 1);
+    }
+    throw e;
+  }
   return schedule;
 }
 
