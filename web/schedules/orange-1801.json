@@ -16,8 +16,8 @@
     "endDate": "2026-06-23",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-27T00:00:00.000Z",
-    "lastUpdatedBy": "Sergei Grishenkov (sync actuals to plan)",
+    "lastUpdated": "2026-04-27T12:42:00.000Z",
+    "lastUpdatedBy": "Sergei (weekly_report 27 апр)",
     "paymentStages": [
       {
         "id": "P1",
@@ -506,7 +506,8 @@
       "planStart": "2026-04-23",
       "planEnd": "2026-05-04",
       "actualStart": "2026-04-23",
-      "actualEnd": null
+      "actualEnd": null,
+      "progress": 0.2
     },
     {
       "id": "24",
@@ -562,7 +563,8 @@
       "planStart": "2026-04-26",
       "planEnd": "2026-05-08",
       "actualStart": "2026-04-26",
-      "actualEnd": null
+      "actualEnd": null,
+      "progress": 0.3
     },
     {
       "id": "28",
@@ -761,6 +763,12 @@
       "author": "Sergei Grishenkov",
       "action": "fill_actuals",
       "note": "Все факты выставлены по плану на 2026-04-27: завершено 24, в работе 7, не начато 7."
+    },
+    {
+      "date": "2026-04-27",
+      "author": "Sergei (weekly_report)",
+      "action": "set_progress_batch",
+      "note": "Из голосового отчёта: покраска стен 20%, покраска потолков 30%, остальное по плану."
     }
   ]
 }
