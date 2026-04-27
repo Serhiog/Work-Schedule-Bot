@@ -63,8 +63,9 @@ function getProjectSlug() {
 }
 
 function scheduleJsonUrl(slug) {
-  const base = 'https://raw.githubusercontent.com/Serhiog/Work-Schedule-Bot/main/web';
-  return `${base}/schedules/${slug}.json?t=${Date.now()}`;
+  // Грузим через наш Vercel-эндпоинт, который читает GitHub Contents API
+  // (минуя 5-минутный кеш raw.githubusercontent.com).
+  return `/api/data?slug=${encodeURIComponent(slug)}&schedule=1&t=${Date.now()}`;
 }
 
 function renderDatelessView(s) {
@@ -156,9 +157,11 @@ async function init() {
   }
   const slug = getProjectSlug();
   state.projectSlug = slug;
-  const res = await fetch(scheduleJsonUrl(slug));
+  const res = await fetch(scheduleJsonUrl(slug), { cache: 'no-store' });
   if (!res.ok) { showProjectNotFound(slug); return; }
-  const s = await res.json();
+  const j = await res.json();
+  // Поддержка двух форматов: либо чистый schedule (старый GitHub raw), либо обёртка { ok, slug, schedule }
+  const s = j && j.schedule && j.ok ? j.schedule : j;
   state.schedule = s;
   s.stages.forEach((st) => (state.stageById[st.id] = st));
   s.sections.forEach((se) => (state.sectionById[se.id] = se));
@@ -6637,9 +6640,20 @@ function openAddTaskForm(sectionId, anchorEl) {
       <label class="edit-form-row"><span>Этап</span>
         <select id="ef-stage">${stagesOpts}</select>
       </label>
+      <div class="edit-form-section-h">📅 План</div>
       <div class="edit-form-row-2col">
-        <label><span>План: старт</span><input type="date" id="ef-start" value="${today}" /></label>
-        <label><span>План: финиш</span><input type="date" id="ef-end" value="${inAWeek}" /></label>
+        <label><span>Старт</span><input type="date" id="ef-start" value="${today}" /></label>
+        <label><span>Финиш</span><input type="date" id="ef-end" value="${inAWeek}" /></label>
+      </div>
+      <label class="edit-form-toggle">
+        <input type="checkbox" id="ef-has-fact" />
+        <span>🔵 Уже идёт / завершена — добавить фактические даты</span>
+      </label>
+      <div class="edit-form-fact-block" id="ef-fact-block" hidden>
+        <div class="edit-form-row-2col">
+          <label><span>Факт: старт</span><input type="date" id="ef-actual-start" value="${today}" /></label>
+          <label><span>Факт: финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="ef-actual-end" /></label>
+        </div>
       </div>
       <div class="edit-form-actions">
         <button type="button" class="edit-form-cancel">Отмена</button>
@@ -6654,6 +6668,10 @@ function openAddTaskForm(sectionId, anchorEl) {
   overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   overlay.querySelector('#ef-name').focus();
+  // Тогглим блок факта
+  const hasFactCb = overlay.querySelector('#ef-has-fact');
+  const factBlock = overlay.querySelector('#ef-fact-block');
+  hasFactCb.addEventListener('change', () => { factBlock.hidden = !hasFactCb.checked; });
   overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
     const name = overlay.querySelector('#ef-name').value.trim();
     const stage = overlay.querySelector('#ef-stage').value;
@@ -6661,12 +6679,20 @@ function openAddTaskForm(sectionId, anchorEl) {
     const planEnd = overlay.querySelector('#ef-end').value;
     const err = overlay.querySelector('#ef-err');
     if (!name) { err.textContent = 'Введи название'; return; }
-    if (planEnd < planStart) { err.textContent = 'Финиш не может быть раньше старта'; return; }
+    if (planEnd < planStart) { err.textContent = 'Финиш плана не может быть раньше старта'; return; }
+    let actualStart, actualEnd;
+    if (hasFactCb.checked) {
+      actualStart = overlay.querySelector('#ef-actual-start').value || undefined;
+      actualEnd   = overlay.querySelector('#ef-actual-end').value || undefined;
+      if (actualStart && actualEnd && actualEnd < actualStart) {
+        err.textContent = 'Финиш факта не может быть раньше старта факта'; return;
+      }
+    }
     err.textContent = '';
     const submitBtn = overlay.querySelector('.edit-form-submit');
     submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
     try {
-      const r = await postDataAction('task:create', { slug: state.projectSlug, sectionId, name, planStart, planEnd, stage });
+      const r = await postDataAction('task:create', { slug: state.projectSlug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage });
       if (r.schedule) state.schedule = r.schedule;
       try { renderProjectAnalytics(); } catch (_) {}
       renderGantt();

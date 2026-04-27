@@ -442,7 +442,7 @@ async function actionTaskUpdate({ slug, taskId, patch }) {
   return { task, schedule: updated };
 }
 
-async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, stage }) {
+async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage }) {
   if (!slug || !name) throw new Error('slug, name required');
   const updated = await mutateSchedule(slug, (sched) => {
     if (sectionId && !(sched.sections || []).some(s => s.id === sectionId)) {
@@ -460,9 +460,13 @@ async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, sta
       planStart: ps,
       planEnd: pe
     };
+    const aS = isoOnly(actualStart);
+    const aE = isoOnly(actualEnd);
+    if (aS) t.actualStart = aS;
+    if (aE) t.actualEnd = aE;
     sched.tasks = sched.tasks || [];
     sched.tasks.push(t);
-    return `task ${id} created: "${t.name}"`;
+    return `task ${id} created: "${t.name}"${aS ? ` actualStart=${aS}` : ''}${aE ? ` actualEnd=${aE}` : ''}`;
   });
   return { task: updated.tasks[updated.tasks.length - 1], schedule: updated };
 }
@@ -577,12 +581,20 @@ const ACTIONS = {
 };
 
 module.exports = async function handler(req, res) {
-  if (!AT_PAT) return bad(res, 500, 'AIRTABLE_PAT env missing');
-
   try {
     if (req.method === 'GET') {
       const slug = (req.query?.slug || '').toString().trim();
       if (!slug) return bad(res, 400, 'slug required');
+      // GET /api/data?slug=X&schedule=1 — вернуть свежий schedule.json через GitHub Contents API
+      // (минуя 5-минутный кеш raw.githubusercontent.com). Не требует AIRTABLE_PAT.
+      if (req.query?.schedule === '1' || req.query?.schedule === 'true') {
+        const { schedule } = await ghReadSchedule(slug);
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.setHeader('CDN-Cache-Control', 'no-store');
+        res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+        return res.status(200).json({ ok: true, slug, schedule });
+      }
+      if (!AT_PAT) return bad(res, 500, 'AIRTABLE_PAT env missing');
       const data = await readAggregate(slug);
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, slug, data });
@@ -594,6 +606,9 @@ module.exports = async function handler(req, res) {
       }
       const { action, payload } = body || {};
       if (!action || !ACTIONS[action]) return bad(res, 400, `Unknown action: ${action}`);
+      // task:* / section:* идут в GitHub, остальное — в Airtable. Проверяем только для Airtable-actions.
+      const isScheduleMutation = action.startsWith('task:') || action.startsWith('section:');
+      if (!isScheduleMutation && !AT_PAT) return bad(res, 500, 'AIRTABLE_PAT env missing');
       const result = await ACTIONS[action](payload || {});
       return res.status(200).json({ ok: true, action, result });
     }
