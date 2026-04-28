@@ -14,7 +14,13 @@
     "lastUpdated": "2026-04-28T19:57:14.176Z",
     "lastUpdatedBy": "Bot (voice create)"
   },
-  "sections": [],
+  "sections": [
+    {
+      "id": "a",
+      "name": "Получение разрешений",
+      "color": "#f59e0b"
+    }
+  ],
   "tasks": [],
   "stages": [
     {
