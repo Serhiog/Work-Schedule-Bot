@@ -820,6 +820,17 @@
       "planEnd": "2026-05-05",
       "actualStart": "2026-04-28",
       "actualEnd": "2026-04-29"
+    },
+    {
+      "id": "47",
+      "name": "Мойка стен",
+      "section": "мойка",
+      "stage": "ST3",
+      "planStart": "2026-04-28",
+      "planEnd": "2026-05-05",
+      "actualStart": "2026-04-28",
+      "sub": true,
+      "subcontractorName": "Альтар"
     }
   ],
   "history": [
