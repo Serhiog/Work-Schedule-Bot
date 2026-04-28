@@ -16,9 +16,12 @@ const APP_HOST = 'https://cyfr-schedule-app.vercel.app';
 function bad(res, code, msg) { res.status(code).json({ error: msg }); }
 
 async function fetchSchedule(slug) {
-  const r = await fetch(`${APP_HOST}/schedules/${slug}.json`);
+  // Через /api/data?schedule=1 — свежий через GitHub Contents API (минуя 5-минутный кеш raw + статический snapshot Vercel).
+  // Это критично для свежесозданных проектов: ParseEstimate коммитит → сразу зовёт depsinfer/matsinfer.
+  const r = await fetch(`${APP_HOST}/api/data?slug=${encodeURIComponent(slug)}&schedule=1&t=${Date.now()}`);
   if (!r.ok) throw new Error(`schedule ${slug} not found (${r.status})`);
-  return r.json();
+  const j = await r.json();
+  return j && j.schedule ? j.schedule : j;
 }
 
 async function callOpenAI(messages) {

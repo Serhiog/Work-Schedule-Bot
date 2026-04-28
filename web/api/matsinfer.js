@@ -16,9 +16,11 @@ const APP_HOST = 'https://cyfr-schedule-app.vercel.app';
 function bad(res, code, msg) { res.status(code).json({ error: msg }); }
 
 async function fetchSchedule(slug) {
-  const r = await fetch(`${APP_HOST}/schedules/${slug}.json`);
+  // Свежий schedule через GitHub Contents API (без 5-минутного кеша).
+  const r = await fetch(`${APP_HOST}/api/data?slug=${encodeURIComponent(slug)}&schedule=1&t=${Date.now()}`);
   if (!r.ok) throw new Error(`schedule ${slug} not found (${r.status})`);
-  return r.json();
+  const j = await r.json();
+  return j && j.schedule ? j.schedule : j;
 }
 
 async function callOpenAI(messages) {
