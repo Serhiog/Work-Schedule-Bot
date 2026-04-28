@@ -1,0 +1,30 @@
+{
+  "project": {
+    "slug": "test-okno",
+    "name": "Тест Окно",
+    "contractor": "",
+    "customer": "",
+    "location": "",
+    "startDate": "2026-03-29",
+    "endDate": "2026-07-27",
+    "currency": "AED",
+    "totalExVat": 0,
+    "totalIncVat": 0,
+    "durationDays": 120,
+    "lastUpdated": "2026-04-28T18:17:39.213Z",
+    "lastUpdatedBy": "Bot (voice create)"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-04-28T18:17:39.213Z",
+      "by": "Bot (voice create)",
+      "type": "create_project_blank",
+      "summary": "Проект «Тест Окно» создан (пустой)"
+    }
+  ]
+}
