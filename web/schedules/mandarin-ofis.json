@@ -28,7 +28,8 @@
       "section": "a",
       "stage": "ST1",
       "planStart": "2026-04-28",
-      "planEnd": "2026-05-14"
+      "planEnd": "2026-05-14",
+      "actualStart": "2026-04-29"
     }
   ],
   "stages": [
