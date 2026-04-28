@@ -804,6 +804,15 @@
       "planEnd": "2026-03-06",
       "actualStart": "2026-03-01",
       "actualEnd": "2026-03-13"
+    },
+    {
+      "id": "46",
+      "name": "Вывоз мусора на этапе",
+      "section": "preparation",
+      "stage": "ST1",
+      "planStart": "2026-04-28",
+      "planEnd": "2026-05-05",
+      "actualStart": "2026-04-28"
     }
   ],
   "history": [
