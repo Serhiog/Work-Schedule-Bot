@@ -1,0 +1,30 @@
+{
+  "project": {
+    "slug": "test-segodnya",
+    "name": "Тест Сегодня",
+    "contractor": "",
+    "customer": "",
+    "location": "",
+    "startDate": "2026-04-28",
+    "endDate": "2026-07-27",
+    "currency": "AED",
+    "totalExVat": 0,
+    "totalIncVat": 0,
+    "durationDays": 90,
+    "lastUpdated": "2026-04-28T18:21:58.014Z",
+    "lastUpdatedBy": "Bot (voice create)"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-04-28T18:21:58.014Z",
+      "by": "Bot (voice create)",
+      "type": "create_project_blank",
+      "summary": "Проект «Тест Сегодня» создан (пустой)"
+    }
+  ]
+}
