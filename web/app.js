@@ -1748,6 +1748,7 @@ function renderGantt() {
         ${subBadge}
         <span class="edit-only-actions" aria-hidden="true">
           <button type="button" class="row-edit-btn" data-edit-task="${t.id}" title="Переименовать">✎</button>
+          <button type="button" class="row-dates-btn" data-dates-task="${t.id}" title="Изменить даты плана и факта">📅</button>
           <button type="button" class="row-del-btn" data-del-task="${t.id}" title="Удалить работу">🗑</button>
         </span>
         <button class="task-open-btn" data-tid="${t.id}" tabindex="-1" title="Подробнее" aria-label="Открыть детали: ${escapeHtml(t.name)}">→</button>
@@ -6438,6 +6439,13 @@ function bindEditMode() {
       confirmDeleteTask(tid);
       return;
     }
+    const datesTask = e.target.closest('[data-dates-task]');
+    if (datesTask) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = datesTask.getAttribute('data-dates-task');
+      openTaskDatesEditor(tid);
+      return;
+    }
     const delSection = e.target.closest('[data-del-section]');
     if (delSection) {
       e.stopPropagation(); e.preventDefault();
@@ -6702,6 +6710,118 @@ function openAddTaskForm(sectionId, anchorEl) {
     } catch (e) {
       err.textContent = 'Не удалось создать: ' + (e.message || e);
       submitBtn.disabled = false; submitBtn.textContent = 'Создать';
+    }
+  });
+}
+
+function openTaskDatesEditor(taskId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const ps = t.planStart || t.start || '';
+  const pe = t.planEnd || t.end || '';
+  const aS = t.actualStart || '';
+  const aE = t.actualEnd || '';
+  const hasFact = !!(aS || aE);
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>📅 Даты «${escapeHtml(t.name)}»</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="edit-form-section-h">📅 План</div>
+      <div class="edit-form-row-2col">
+        <label><span>Старт</span><input type="date" id="td-plan-start" value="${ps}" /></label>
+        <label><span>Финиш</span><input type="date" id="td-plan-end" value="${pe}" /></label>
+      </div>
+      <div class="edit-form-section-h" style="margin-top:18px">🔵 Факт</div>
+      <label class="edit-form-toggle">
+        <input type="checkbox" id="td-has-fact" ${hasFact ? 'checked' : ''} />
+        <span>Работа уже идёт или завершена</span>
+      </label>
+      <div class="edit-form-fact-block" id="td-fact-block" ${hasFact ? '' : 'hidden'}>
+        <div class="edit-form-row-2col">
+          <label><span>Старт</span><input type="date" id="td-actual-start" value="${aS}" /></label>
+          <label><span>Финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="td-actual-end" value="${aE}" /></label>
+        </div>
+        <button type="button" class="edit-form-fact-clear" id="td-fact-clear" title="Полностью убрать фактические даты">Убрать факт целиком</button>
+      </div>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">Сохранить</button>
+      </div>
+      <div class="edit-form-err" id="td-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  const cb = overlay.querySelector('#td-has-fact');
+  const block = overlay.querySelector('#td-fact-block');
+  cb.addEventListener('change', () => { block.hidden = !cb.checked; });
+  overlay.querySelector('#td-fact-clear').addEventListener('click', () => {
+    overlay.querySelector('#td-actual-start').value = '';
+    overlay.querySelector('#td-actual-end').value = '';
+    cb.checked = false;
+    block.hidden = true;
+  });
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const planStart = overlay.querySelector('#td-plan-start').value;
+    const planEnd = overlay.querySelector('#td-plan-end').value;
+    const factOn = cb.checked;
+    const aStart = factOn ? overlay.querySelector('#td-actual-start').value : '';
+    const aEnd   = factOn ? overlay.querySelector('#td-actual-end').value   : '';
+    const err = overlay.querySelector('#td-err');
+    if (!planStart || !planEnd) { err.textContent = 'План: старт и финиш обязательны'; return; }
+    if (planEnd < planStart) { err.textContent = 'Финиш плана не может быть раньше старта'; return; }
+    if (factOn && aStart && aEnd && aEnd < aStart) { err.textContent = 'Финиш факта не может быть раньше старта факта'; return; }
+    err.textContent = '';
+
+    // Собираем patch с минимальными изменениями
+    const patch = {};
+    if (planStart !== ps) patch.planStart = planStart;
+    if (planEnd !== pe) patch.planEnd = planEnd;
+    if (factOn) {
+      if (aStart && aStart !== aS) patch.actualStart = aStart;
+      if (!aStart && aS) patch.actualStart = null;
+      if (aEnd && aEnd !== aE) patch.actualEnd = aEnd;
+      if (!aEnd && aE) patch.actualEnd = null;
+    } else {
+      // Чекбокс выключен — снять обе фактические даты, если были
+      if (aS) patch.actualStart = null;
+      if (aE) patch.actualEnd = null;
+    }
+    if (!Object.keys(patch).length) { close(); return; }
+
+    // Сохраняем inverse для undo
+    const inverse = {};
+    for (const k of Object.keys(patch)) inverse[k] = t[k] || null;
+
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
+    try {
+      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch });
+      if (r.schedule) state.schedule = r.schedule;
+      else Object.assign(t, patch);
+      try { renderProjectAnalytics(); } catch (_) {}
+      renderGantt();
+      renderTasksSheet();
+      close();
+      const summary = Object.entries(patch).map(([k,v]) => v === null ? `${k}=пусто` : `${k}=${v}`).join(', ');
+      showToast(`✓ Даты обновлены: ${summary}`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch: inverse });
+        if (r2.schedule) state.schedule = r2.schedule;
+        try { renderProjectAnalytics(); } catch (_) {}
+        renderGantt();
+        renderTasksSheet();
+        showToast('↶ Возвращено');
+      } } });
+    } catch (e) {
+      err.textContent = 'Не удалось: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Сохранить';
     }
   });
 }

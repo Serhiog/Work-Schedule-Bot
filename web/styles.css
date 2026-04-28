@@ -6640,3 +6640,35 @@ body.is-bar-dragging * { user-select: none !important; }
 .edit-form-fact-block { animation: efBlockIn 180ms ease; }
 @keyframes efBlockIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .edit-form-fact-block .muted { color: #94a3b8; font-style: italic; font-size: 10px; font-weight: 400; }
+
+/* ─── Кнопка 📅 в edit-mode + «Убрать факт» в форме ─── */
+.row-dates-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  width: 24px; height: 24px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.row-dates-btn:hover {
+  background: rgba(99, 102, 241, .12);
+  color: #4338ca;
+  border-color: rgba(99, 102, 241, .3);
+}
+
+.edit-form-fact-clear {
+  margin-top: 8px;
+  font: inherit;
+  font-size: 11px;
+  color: #b91c1c;
+  background: transparent;
+  border: 1px dashed rgba(239, 68, 68, .35);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.edit-form-fact-clear:hover { background: rgba(239, 68, 68, .08); border-color: #b91c1c; }
