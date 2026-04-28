@@ -25,7 +25,9 @@ const TABLES = {
   taskMeetingNotes:    'TaskMeetingNotes',
   taskResources:       'TaskResources',
   taskMaterials:       'TaskMaterials',
-  taskDependencies:    'TaskDependencies'
+  taskDependencies:    'TaskDependencies',
+  projects:            'Projects',         // справочник проектов
+  botUserContext:      'BotUserContext'    // выбранный текущий проект на пользователя бота (опционально)
 };
 
 function bad(res, code, msg, extra) {
@@ -640,6 +642,71 @@ async function actionSectionDelete({ slug, sectionId }) {
   return { schedule: updated };
 }
 
+/* ════════════════════════════════════════════════════════════════════ */
+/*  Bot project routing: список проектов чата + текущий выбранный       */
+/* ════════════════════════════════════════════════════════════════════ */
+
+async function actionProjectsListByChat({ chatId }) {
+  if (!chatId) throw new Error('chatId required');
+  // Поле TelegramChatId — строка (одно chatId или CSV). Ищем по подстроке.
+  // Простая стратегия: грузим все Active=TRUE и фильтруем в JS.
+  const all = await listAll(TABLES.projects, `{Active}=TRUE()`);
+  const c = String(chatId).trim();
+  const projects = [];
+  for (const r of all) {
+    const f = r.fields || {};
+    const tag = String(f.TelegramChatId || '');
+    // Совпадение точное или CSV-вхождение
+    const tags = tag.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+    if (tags.includes(c)) {
+      projects.push({
+        slug: f.ProjectId,
+        name: f.Name || f.ProjectId,
+        url: f.VercelAliasUrl || `https://cyfr-schedule-app.vercel.app/p/${f.ProjectId}`
+      });
+    }
+  }
+  return { chatId: c, projects };
+}
+
+async function actionBotContextGet({ chatId }) {
+  if (!chatId) throw new Error('chatId required');
+  try {
+    const recs = await listAll(TABLES.botUserContext, `{ChatId}='${escapeFormula(String(chatId))}'`);
+    if (!recs.length) return { chatId, currentProjectSlug: null };
+    const f = recs[0].fields || {};
+    return { chatId, currentProjectSlug: f.CurrentProjectSlug || null, updatedAt: f.UpdatedAt || null };
+  } catch (e) {
+    // Таблица может ещё не существовать — деградируем мягко.
+    if (/not.*found|NOT_FOUND/i.test(e.message)) return { chatId, currentProjectSlug: null, _tableMissing: true };
+    throw e;
+  }
+}
+
+async function actionBotContextSet({ chatId, currentProjectSlug }) {
+  if (!chatId) throw new Error('chatId required');
+  const fields = {
+    ChatId: String(chatId),
+    CurrentProjectSlug: String(currentProjectSlug || ''),
+    UpdatedAt: new Date().toISOString()
+  };
+  try {
+    const existing = await listAll(TABLES.botUserContext, `{ChatId}='${escapeFormula(String(chatId))}'`);
+    if (existing.length) {
+      await airtable('PATCH', `${BASE}/${TABLES.botUserContext}/${existing[0].id}`, { fields });
+    } else {
+      await airtable('POST', `${BASE}/${TABLES.botUserContext}`, { fields });
+    }
+    return { ok: true, chatId, currentProjectSlug };
+  } catch (e) {
+    if (/not.*found|NOT_FOUND/i.test(e.message)) {
+      // Таблица ещё не создана — возвращаем флаг, чтобы бот мог попросить PM создать её
+      return { ok: false, chatId, _tableMissing: true, hint: 'Создайте Airtable таблицу "BotUserContext" с полями ChatId, CurrentProjectSlug, UpdatedAt' };
+    }
+    throw e;
+  }
+}
+
 const ACTIONS = {
   'assignees:set':         actionAssigneesSet,
   'update:add':            actionUpdateAdd,
@@ -655,7 +722,10 @@ const ACTIONS = {
   'section:create':        actionSectionCreate,
   'section:update':        actionSectionUpdate,
   'section:delete':        actionSectionDelete,
-  'project:delete':        actionProjectDelete
+  'project:delete':        actionProjectDelete,
+  'projects:list-by-chat': actionProjectsListByChat,
+  'bot-context:get':       actionBotContextGet,
+  'bot-context:set':       actionBotContextSet
 };
 
 module.exports = async function handler(req, res) {

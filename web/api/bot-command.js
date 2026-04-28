@@ -113,7 +113,15 @@ async function classify(text, ctx) {
     '    color по умолчанию задаст система.',
     '    → { action:"add_section", name, sub?:boolean }',
     '',
-    '12. unknown — фраза не относится к бот-командам',
+    '12. list_projects — пользователь спрашивает «какие у меня проекты?», «что у меня по проектам?», «список проектов».',
+    '    → { action:"list_projects" }',
+    '',
+    '13. switch_project — пользователь хочет переключиться на другой проект.',
+    '    Примеры: «переключись на orange», «давай по vision tower», «работаем по JLT», «теперь по проекту X».',
+    '    targetName — слова из имени проекта, по которым найдём (нечётко).',
+    '    → { action:"switch_project", targetName }',
+    '',
+    '14. unknown — фраза не относится к бот-командам',
     '    → { action:"unknown", reason }',
     '',
     'ВАЖНО: бот НЕ умеет удалять проекты целиком. Если просят «удали проект» — отвечай action:"unknown" с reason="удаление проектов делается только из веб-интерфейса в режиме Правка".',
@@ -182,10 +190,57 @@ module.exports = async function handler(req, res) {
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch (_) { return bad(res, 400, 'Invalid JSON'); }
   }
-  const { slug, text } = body || {};
-  if (!slug || !text) return bad(res, 400, 'slug and text required');
+  const { slug: slugInput, text, chatId } = body || {};
+  if (!text) return bad(res, 400, 'text required');
 
   try {
+    // ─── Резолв проекта ───
+    // Приоритет: переданный slug → BotUserContext по chatId → автодетект (1 проект для chatId).
+    // Если несколько проектов и контекст пуст → отдаём clarify-ответ со списком.
+    let slug = slugInput;
+    let projectsForChat = [];
+    if (chatId) {
+      try {
+        const lr = await fetch(`${APP_HOST}/api/data`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'projects:list-by-chat', payload: { chatId: String(chatId) } })
+        });
+        const lj = await lr.json();
+        projectsForChat = lj?.result?.projects || [];
+      } catch (_) {}
+    }
+    if (!slug && chatId) {
+      // Сначала смотрим в BotUserContext
+      try {
+        const cr = await fetch(`${APP_HOST}/api/data`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'bot-context:get', payload: { chatId: String(chatId) } })
+        });
+        const cj = await cr.json();
+        const ctxSlug = cj?.result?.currentProjectSlug;
+        if (ctxSlug && projectsForChat.some(p => p.slug === ctxSlug)) slug = ctxSlug;
+      } catch (_) {}
+    }
+    if (!slug && projectsForChat.length === 1) {
+      slug = projectsForChat[0].slug;
+    }
+    if (!slug && projectsForChat.length > 1) {
+      // Несколько проектов и нет контекста — переспрашиваем
+      const list = projectsForChat.slice(0, 8).map((p, i) => `  ${i+1}. <b>${escapeHtmlSimple(p.name)}</b>`).join('\n');
+      return res.status(200).json({
+        ok: true, action: 'clarify_project', applied: false,
+        replyHtml: `🤔 У тебя несколько проектов:\n${list}\n\nСкажи: <i>«переключись на &lt;имя&gt;»</i> — и я запомню. Или начни команду с «по проекту &lt;имя&gt;: …».`,
+        projects: projectsForChat
+      });
+    }
+    if (!slug && projectsForChat.length === 0 && chatId) {
+      return res.status(200).json({
+        ok: true, action: 'no_projects', applied: false,
+        replyHtml: `📭 У тебя ещё нет проектов. Загрузи смету — бот создаст новый проект и привяжет его к этому чату.`
+      });
+    }
+    if (!slug) return bad(res, 400, 'slug or chatId required');
+
     // Build context for classifier
     const [op, schedule] = await Promise.all([fetchOperational(slug), fetchSchedule(slug)]);
     const tasks = schedule?.tasks || [];
@@ -346,13 +401,46 @@ module.exports = async function handler(req, res) {
         replyHtml = `⚠️ Удаление проектов через бота не поддерживается. Открой проект в браузере → нажми <b>✎ Правка</b> → ⚙ Сервисные функции → <b>🗑 Удалить этот проект</b>.`;
         break;
       }
+      case 'list_projects': {
+        if (!projectsForChat.length) {
+          replyHtml = `📭 У тебя нет проектов в этом чате.`;
+        } else {
+          const cur = (await postData('bot-context:get', { chatId: String(chatId || '') }))?.result?.currentProjectSlug;
+          const lines = projectsForChat.map(p => {
+            const marker = (p.slug === cur || p.slug === slug) ? ' ◀ <i>текущий</i>' : '';
+            return `• <b>${escapeHtmlSimple(p.name)}</b>${marker}\n  <a href="${p.url}">${p.url}</a>`;
+          }).join('\n');
+          replyHtml = `📂 Твои проекты (${projectsForChat.length}):\n\n${lines}\n\nЧтобы переключиться: «<i>переключись на &lt;имя&gt;</i>».`;
+        }
+        break;
+      }
+      case 'switch_project': {
+        if (!cmd.targetName) { replyHtml = '⚠️ Не понял какой проект.'; break; }
+        if (!projectsForChat.length) { replyHtml = '📭 У тебя нет проектов в этом чате.'; break; }
+        const needle = String(cmd.targetName).toLowerCase().trim();
+        // Нечёткий поиск: по name или slug
+        let match = projectsForChat.find(p => p.slug.toLowerCase() === needle);
+        if (!match) match = projectsForChat.find(p => p.name.toLowerCase() === needle);
+        if (!match) match = projectsForChat.find(p => p.name.toLowerCase().includes(needle) || needle.includes(p.slug.toLowerCase()));
+        if (!match) {
+          replyHtml = `⚠️ Не нашёл проект «${escapeHtmlSimple(cmd.targetName)}». Доступны: ${projectsForChat.map(p=>p.name).join(', ')}.`;
+          break;
+        }
+        const setRes = await postData('bot-context:set', { chatId: String(chatId || ''), currentProjectSlug: match.slug });
+        if (setRes?.result?._tableMissing) {
+          replyHtml = `✓ Переключил на <b>${escapeHtmlSimple(match.name)}</b> — но <i>в этом запросе</i>. Чтобы запоминать выбор между сообщениями, попроси PM создать в Airtable таблицу <code>BotUserContext</code> (3 поля: ChatId, CurrentProjectSlug, UpdatedAt).`;
+        } else {
+          replyHtml = `✓ Переключил на <b>${escapeHtmlSimple(match.name)}</b>.\nТеперь все команды идут по этому проекту.\n<a href="${match.url}">${match.url}</a>`;
+        }
+        applied = true; break;
+      }
       case 'unknown':
       default:
         replyHtml = `🤷 Не разобрал команду: <i>${(cmd.reason || '').slice(0, 200)}</i>\n\n<b>Можно так:</b>\n• «По тикету T001 апдейт: подрядчик подтвердил»\n• «Назначь Александра на тикет T003»\n• «По задаче 18 заказали плитку»\n• «На работу 5 нужно 3 маляра»\n• «Сдвинь укладку плитки на 3 дня вперёд»\n• «Переименуй работу 18 в чистка вентиляции»\n• «Добавь раздел Декорирование»\n• «Что в риске?»`;
         break;
     }
 
-    res.status(200).json({ ok: true, action, applied, replyHtml, parsed: cmd });
+    res.status(200).json({ ok: true, action, applied, replyHtml, slug, parsed: cmd });
   } catch (e) {
     console.error('bot-command error', e);
     return bad(res, 500, e.message || 'Server error');
