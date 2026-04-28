@@ -1,0 +1,30 @@
+{
+  "project": {
+    "slug": "test-4",
+    "name": "Тест 4",
+    "contractor": "",
+    "customer": "",
+    "location": "",
+    "startDate": "2026-04-28",
+    "endDate": "2026-07-27",
+    "currency": "AED",
+    "totalExVat": 0,
+    "totalIncVat": 0,
+    "durationDays": 90,
+    "lastUpdated": "2026-04-28T16:49:13.912Z",
+    "lastUpdatedBy": "Bot (voice create)"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-04-28T16:49:13.912Z",
+      "by": "Bot (voice create)",
+      "type": "create_project_blank",
+      "summary": "Проект «Тест 4» создан (пустой)"
+    }
+  ]
+}
