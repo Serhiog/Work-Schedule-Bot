@@ -19,6 +19,12 @@
       "id": "hhhh",
       "name": "hhhh",
       "color": "#ec4899"
+    },
+    {
+      "id": "kkkkkk",
+      "name": "kkkkkk",
+      "color": "#ef4444",
+      "sub": true
     }
   ],
   "tasks": [
