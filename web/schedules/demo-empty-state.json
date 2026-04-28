@@ -1,0 +1,30 @@
+{
+  "project": {
+    "slug": "demo-empty-state",
+    "name": "Демо Empty State",
+    "contractor": "",
+    "customer": "",
+    "location": "",
+    "startDate": "2026-04-28",
+    "endDate": "2026-07-27",
+    "currency": "AED",
+    "totalExVat": 0,
+    "totalIncVat": 0,
+    "durationDays": 90,
+    "lastUpdated": "2026-04-28T17:07:15.158Z",
+    "lastUpdatedBy": "Bot (voice create)"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-04-28T17:07:15.158Z",
+      "by": "Bot (voice create)",
+      "type": "create_project_blank",
+      "summary": "Проект «Демо Empty State» создан (пустой)"
+    }
+  ]
+}
