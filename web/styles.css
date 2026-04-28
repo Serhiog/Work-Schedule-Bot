@@ -681,47 +681,61 @@ button.stat { -webkit-appearance: none; appearance: none; }
   position: sticky;
   left: 0;
   z-index: 8;
-  background: linear-gradient(90deg, #fafafa 0%, #fafafa 95%, rgba(250,250,250,0) 100%);
+  /* Светлый фон проекта + тонкая полоса цвета раздела слева — хедер видно сразу */
+  background: linear-gradient(90deg, #fbfbfd 0%, #fbfbfd 95%, rgba(251,251,253,0) 100%);
   border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line-2);
-  padding: 10px 14px 8px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted-2);
+  box-shadow: inset 4px 0 0 var(--sec-color, transparent);
+  padding: 14px 14px 12px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .section-label .section-dot {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.85);
+}
+.section-label .section-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .section-label .section-count {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--muted-2);
-  background: var(--line-2);
-  padding: 2px 7px;
+  color: var(--muted);
+  background: var(--surface, #f1f5f9);
+  padding: 2px 8px;
   border-radius: 999px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+  flex-shrink: 0;
 }
 .section-label .sub-badge-sec {
   margin-left: auto;
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   padding: 2px 7px;
   border-radius: 999px;
   background: rgba(234, 179, 8, 0.15);
   color: #92400e;
   border: 1px solid rgba(234, 179, 8, 0.4);
+  flex-shrink: 0;
 }
 .section-label.is-sub {
-  background: linear-gradient(90deg, rgba(254, 249, 195, 0.6) 0%, rgba(254, 249, 195, 0.6) 95%, transparent 100%);
+  background: linear-gradient(90deg, rgba(254, 249, 195, 0.5) 0%, rgba(254, 249, 195, 0.5) 95%, transparent 100%);
 }
 .sub-badge {
   display: inline-flex;
@@ -753,13 +767,14 @@ button.stat { -webkit-appearance: none; appearance: none; }
   z-index: 6;
   background: #ffffff;
   border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line-2);
-  padding: 6px 10px 6px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  /* Лёгкий отступ слева делает иерархию «раздел → работа» очевидной */
+  padding: 6px 10px 6px 24px;
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.12s ease;
 }
 .task-label::after {
   content: "";
@@ -768,14 +783,16 @@ button.stat { -webkit-appearance: none; appearance: none; }
   background: #ffffff;
   z-index: -1;
 }
-.task-label:hover { background: #fafafa; }
-.task-label:hover::after { background: #fafafa; }
+.task-label:hover { background: #fafbfc; }
+.task-label:hover::after { background: #fafbfc; }
 .task-label .tbullet {
-  width: 3px;
+  width: 2px;
   align-self: stretch;
   border-radius: 2px;
   flex-shrink: 0;
+  opacity: .55;
 }
+.task-label:hover .tbullet { opacity: .9; }
 .task-label-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -793,10 +810,10 @@ button.stat { -webkit-appearance: none; appearance: none; }
 .task-label .tname {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 12.5px;
-  color: var(--ink);
-  font-weight: 500;
-  line-height: 1.25;
+  font-size: 12px;
+  color: var(--ink-2);
+  font-weight: 400;
+  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -804,6 +821,7 @@ button.stat { -webkit-appearance: none; appearance: none; }
   -webkit-box-orient: vertical;
   word-break: break-word;
 }
+.task-label:hover .tname { color: var(--ink); }
 .task-label-meta {
   display: flex;
   align-items: center;
@@ -829,15 +847,17 @@ body.is-edit-mode .task-label-meta.is-empty { display: flex; }
   font-size: 9.5px;
   font-weight: 700;
   color: var(--muted);
-  background: var(--line-2);
-  padding: 1px 6px;
+  background: transparent;
+  padding: 1px 5px;
   border-radius: 999px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.2px;
+  opacity: .8;
 }
 .task-label .pbadge.pbadge-done {
-  background: #dcfce7;
+  background: rgba(34, 197, 94, .12);
   color: #15803d;
+  opacity: 1;
 }
 .task-label .sub-badge { flex-shrink: 0; }
 .task-label .edit-only-actions { margin-left: auto; }
@@ -1905,23 +1925,23 @@ body.is-edit-mode .task-label-meta.is-empty { display: flex; }
   justify-content: center;
   width: 14px;
   height: 14px;
-  font-size: 10px;
-  color: var(--muted-2);
+  font-size: 12px;
+  color: var(--muted);
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }
 .section-label--collapsed .section-chevron {
   transform: rotate(-90deg);
 }
-.section-label--collapsed {
-  opacity: 0.78;
-}
+.section-label--collapsed { opacity: 0.7; }
 .section-label--collapsed .section-count {
   background: #f3f4f6;
   color: #6b7280;
 }
 .row-hidden { display: none !important; }
-.section-label:hover { background: linear-gradient(90deg, #f1f5f9 0%, #f1f5f9 95%, rgba(241,245,249,0) 100%); }
+.section-label:hover {
+  background: linear-gradient(90deg, #f4f5f7 0%, #f4f5f7 95%, rgba(244,245,247,0) 100%);
+}
 .section-label:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
 
 /* Drawer — tickets section */
@@ -3741,11 +3761,12 @@ body.is-edit-mode .task-label-meta.is-empty { display: flex; }
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(245, 158, 11, 0.12);
   color: #b45309;
   letter-spacing: 0.2px;
   white-space: nowrap;
   flex-shrink: 0;
+  opacity: .85;
 }
 [data-theme="dark"] .task-mat-badge {
   background: rgba(245, 158, 11, 0.22);
@@ -4277,11 +4298,12 @@ body.is-edit-mode .task-label-meta.is-empty { display: flex; }
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(220, 38, 38, 0.08);
   color: #b91c1c;
   letter-spacing: 0.2px;
   white-space: nowrap;
   flex-shrink: 0;
+  opacity: .85;
 }
 [data-theme="dark"] .task-crit-badge {
   background: rgba(248, 113, 113, 0.18);

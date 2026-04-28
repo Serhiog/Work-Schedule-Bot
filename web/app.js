@@ -1678,7 +1678,7 @@ function renderGantt() {
     const isSub = !!sec.sub;
     const collapsed = state.collapsedSections.has(sec.id);
     const secId = escapeHtml(sec.id);
-    body += `<div class="section-label${isSub ? ' is-sub' : ''}${collapsed ? ' section-label--collapsed' : ''}" data-section-id="${secId}" role="button" tabindex="0" aria-expanded="${collapsed ? 'false' : 'true'}" title="${collapsed ? 'Развернуть' : 'Свернуть'} группу">
+    body += `<div class="section-label${isSub ? ' is-sub' : ''}${collapsed ? ' section-label--collapsed' : ''}" data-section-id="${secId}" style="--sec-color:${sec.color}" role="button" tabindex="0" aria-expanded="${collapsed ? 'false' : 'true'}" title="${collapsed ? 'Развернуть' : 'Свернуть'} группу">
       <span class="section-chevron" aria-hidden="true">▾</span>
       <span class="section-dot section-dot-edit" style="background:${sec.color}" data-section-id="${secId}" title="Сменить цвет"></span>
       <span class="section-name" data-section-id="${secId}" data-edit-name title="Кликни в режиме правки, чтобы переименовать">${escapeHtml(sec.name)}</span>
