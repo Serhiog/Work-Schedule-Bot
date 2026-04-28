@@ -742,7 +742,9 @@
       "section": "мойка",
       "stage": "ST1",
       "planStart": "2026-04-27",
-      "planEnd": "2026-05-04"
+      "planEnd": "2026-05-04",
+      "actualStart": "2026-05-01",
+      "actualEnd": "2026-05-10"
     },
     {
       "id": "40",
