@@ -59,7 +59,12 @@ const state = {
 
 function getProjectSlug() {
   const m = window.location.pathname.match(/^\/p\/([a-z0-9][a-z0-9-]*)\/?$/i);
-  return m ? m[1].toLowerCase() : 'orange-1801';
+  return m ? m[1].toLowerCase() : null;
+}
+
+function isRootPath() {
+  const p = window.location.pathname;
+  return p === '' || p === '/' || p === '/p' || p === '/p/';
 }
 
 function scheduleJsonUrl(slug) {
@@ -140,22 +145,127 @@ function renderDatelessView(s) {
   document.head.appendChild(style);
 }
 
+function hideAdminMenu() {
+  const m = document.getElementById('admin-menu');
+  if (m) m.style.display = 'none';
+}
+
+function clearPageBelowTopbar() {
+  const page = document.querySelector('.page');
+  if (!page) return null;
+  const topBar = page.querySelector('.top-bar');
+  Array.from(page.children).forEach((c) => { if (c !== topBar) c.remove(); });
+  return page;
+}
+
+function injectLandingStyles() {
+  if (document.getElementById('landing-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'landing-styles';
+  s.textContent = `
+    .landing-wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 80px; font-family: 'Inter', -apple-system, sans-serif; }
+    .landing-head { margin-bottom: 28px; }
+    .landing-title { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; color: var(--text-strong, #1e3b60); margin: 0 0 8px; line-height: 1.15; }
+    .landing-sub { font-size: 14px; color: var(--text-muted, #64748b); line-height: 1.55; max-width: 600px; }
+    .landing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .landing-card { display: block; text-decoration: none; background: var(--card-bg, #fff); border: 1px solid var(--card-border, #e5e7eb); border-radius: 12px; padding: 16px 18px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+    .landing-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #2563eb; }
+    .landing-card-name { font-size: 15px; font-weight: 600; color: var(--text-strong, #1e3b60); margin-bottom: 4px; letter-spacing: -0.2px; line-height: 1.3; }
+    .landing-card-meta { font-size: 11px; color: var(--text-muted, #64748b); font-family: 'JetBrains Mono', monospace; letter-spacing: 0; }
+    .landing-empty { background: var(--card-bg, #fff); border: 1px dashed var(--card-border, #e5e7eb); border-radius: 14px; padding: 56px 24px; text-align: center; }
+    .landing-empty-ico { font-size: 44px; margin-bottom: 10px; }
+    .landing-empty-title { font-size: 17px; font-weight: 600; color: var(--text-strong, #1e3b60); margin-bottom: 6px; }
+    .landing-empty-sub { font-size: 13px; color: var(--text-muted, #64748b); max-width: 380px; margin: 0 auto; line-height: 1.55; }
+    .landing-empty-sub code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .landing-loading { color: var(--text-muted, #64748b); font-size: 14px; padding: 40px 0; }
+    .landing-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+    @media (max-width: 720px) {
+      .landing-wrap { padding: 32px 16px 60px; }
+      .landing-title { font-size: 24px; }
+      .landing-grid { grid-template-columns: 1fr; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+async function renderLandingView() {
+  document.title = 'CYFR · Графики работ';
+  hideAdminMenu();
+  injectLandingStyles();
+
+  const page = clearPageBelowTopbar();
+  if (!page) return;
+  const wrap = document.createElement('section');
+  wrap.className = 'landing-wrap';
+  wrap.innerHTML = `<div class="landing-loading">Загружаю проекты…</div>`;
+  page.appendChild(wrap);
+
+  let projects = [];
+  let error = null;
+  try {
+    const r = await fetch('/api/data?action=projects:list-all', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    projects = Array.isArray(j.projects) ? j.projects : [];
+  } catch (e) {
+    error = e.message || 'Не удалось загрузить список проектов';
+  }
+
+  projects.sort((a, b) => {
+    if (a.createdAt && b.createdAt) return String(b.createdAt).localeCompare(String(a.createdAt));
+    return String(a.slug || '').localeCompare(String(b.slug || ''));
+  });
+
+  const cards = projects.map((p) => {
+    const subtitle = p.clientName ? `${p.clientName}` : `/p/${p.slug}`;
+    return `<a class="landing-card" href="/p/${escapeHtml(p.slug)}">
+      <div class="landing-card-name">${escapeHtml(p.name || p.slug)}</div>
+      <div class="landing-card-meta">${escapeHtml(subtitle)}</div>
+    </a>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="landing-head">
+      <h1 class="landing-title">Проекты в работе</h1>
+      <div class="landing-sub">Открой проект, чтобы посмотреть график. Для управления голосом — пиши боту в Telegram, он умеет переключаться между проектами и обновлять данные.</div>
+    </div>
+    ${error ? `<div class="landing-error">⚠ ${escapeHtml(error)}</div>` : ''}
+    ${projects.length
+      ? `<div class="landing-grid">${cards}</div>`
+      : `<div class="landing-empty">
+           <div class="landing-empty-ico">📭</div>
+           <div class="landing-empty-title">Активных проектов нет</div>
+           <div class="landing-empty-sub">Отправь смету боту в Telegram — он создаст первый проект и пришлёт ссылку.</div>
+         </div>`}
+  `;
+}
+
 function showProjectNotFound(slug) {
   const safe = String(slug).replace(/[<>&]/g, '');
-  document.body.innerHTML = `<div style="padding:56px 24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto">
-    <div style="font-size:48px;margin-bottom:16px">🗂️</div>
-    <h2 style="font-weight:600;font-size:22px;margin:0 0 8px">Проект не найден</h2>
-    <p style="color:#64748b;font-size:14px;margin:0 0 24px">Слаг <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">${safe}</code> не существует или ещё не задеплоен.</p>
-    <a href="/p/orange-1801" style="color:#2563eb;text-decoration:none;font-weight:500">→ Orange Group Office 1801</a>
-  </div>`;
+  hideAdminMenu();
+  injectLandingStyles();
+  const page = clearPageBelowTopbar();
+  if (page) {
+    const wrap = document.createElement('section');
+    wrap.className = 'landing-wrap';
+    wrap.innerHTML = `
+      <div class="landing-empty">
+        <div class="landing-empty-ico">🗂️</div>
+        <div class="landing-empty-title">Проект не найден</div>
+        <div class="landing-empty-sub">Слаг <code>${safe}</code> не существует или удалён. Возвращаю на главную…</div>
+      </div>`;
+    page.appendChild(wrap);
+  }
+  setTimeout(() => { window.location.replace('/'); }, 1500);
 }
 
 async function init() {
-  // Normalize URL: bare / → /p/orange-1801 (so the URL bar reflects the project)
-  if (window.location.pathname === '/') {
-    window.history.replaceState(null, '', '/p/orange-1801' + window.location.search + window.location.hash);
+  // Root path → landing (список проектов или empty state)
+  if (isRootPath()) {
+    return renderLandingView();
   }
   const slug = getProjectSlug();
+  if (!slug) { return renderLandingView(); }
   state.projectSlug = slug;
   const res = await fetch(scheduleJsonUrl(slug), { cache: 'no-store' });
   if (!res.ok) { showProjectNotFound(slug); return; }
@@ -1537,6 +1647,20 @@ function attachToolbarHandlers() {
       state.editMode = !state.editMode;
       editBtn.setAttribute('data-active', String(state.editMode));
       document.body.classList.toggle('is-edit-mode', state.editMode);
+      // При входе в Правку — гасим оверлеи Тикетов и Загрузки, чтобы фокус был только на редактировании.
+      if (state.editMode) {
+        if (state.showTickets) {
+          state.showTickets = false;
+          const tb = $('#btn-tickets');
+          if (tb) tb.setAttribute('data-active', 'false');
+        }
+        if (state.showHeatmap) {
+          state.showHeatmap = false;
+          const hb = $('#btn-heatmap');
+          if (hb) hb.setAttribute('data-active', 'false');
+          if (typeof renderResourceHeatmap === 'function') renderResourceHeatmap();
+        }
+      }
       renderGantt();
     });
     document.body.classList.toggle('is-edit-mode', state.editMode);
