@@ -14,7 +14,13 @@
     "lastUpdated": "2026-04-28T18:24:28.188Z",
     "lastUpdatedBy": "Bot (voice create)"
   },
-  "sections": [],
+  "sections": [
+    {
+      "id": "v-a",
+      "name": "Подготовка",
+      "color": "#8b5cf6"
+    }
+  ],
   "tasks": [],
   "stages": [],
   "milestones": [],
