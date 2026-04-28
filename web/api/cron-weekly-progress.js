@@ -15,9 +15,10 @@ function addDays(d, n) { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n)
 function fmtRu(d) { return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' }); }
 
 async function fetchSchedule(slug) {
-  const r = await fetch(`${APP_HOST}/schedules/${slug}.json?t=${Date.now()}`);
+  const r = await fetch(`${APP_HOST}/api/data?slug=${slug}&schedule=1&t=${Date.now()}`);
   if (!r.ok) throw new Error(`schedule ${slug} not found`);
-  return r.json();
+  const j = await r.json();
+  return j && j.schedule ? j.schedule : j;
 }
 
 async function listForemen() {

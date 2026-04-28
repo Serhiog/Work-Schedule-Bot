@@ -29,9 +29,11 @@ function fmtRu(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-R
 function diffDays(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
 
 async function fetchSchedule(slug) {
-  const r = await fetch(`${APP_HOST}/schedules/${slug}.json?t=${Date.now()}`);
+  // Через /api/data?schedule=1 — свежий через GitHub Contents API, без 5-минутного кеша.
+  const r = await fetch(`${APP_HOST}/api/data?slug=${slug}&schedule=1&t=${Date.now()}`);
   if (!r.ok) throw new Error(`schedule ${slug} not found`);
-  return r.json();
+  const j = await r.json();
+  return j && j.schedule ? j.schedule : j;
 }
 
 async function fetchProjectData(slug) {
@@ -106,9 +108,10 @@ function buildEvents(schedule, today, projectData) {
       overdueAny.push({ t, days: diffDays(t.planEnd, today) });
       continue;
     }
+    // ВСЕ работы в активной фазе сегодня (план запущен, факт начат, не закрыта).
+    // Показываем все, чтобы прораб мог обновить % (не только инициализировать).
     if (t.actualStart && t.planEnd > today) {
-      const noProgressYet = typeof t.progress !== 'number' || t.progress === 0 || t.progress === 0.01;
-      if (noProgressYet) inProgressNoPct.push(t);
+      inProgressNoPct.push(t);
     }
   }
 
@@ -135,9 +138,14 @@ function buildEvents(schedule, today, projectData) {
     parts.push('');
   }
   if (inProgressNoPct.length) {
-    parts.push('📊 <b>В работе — сколько % сейчас?</b>');
-    for (const t of inProgressNoPct.slice(0, 8)) parts.push(`  • <b>${t.name}</b> <i>(${sec(t)})</i>`);
-    if (inProgressNoPct.length > 8) parts.push(`  • …и ещё ${inProgressNoPct.length - 8}`);
+    parts.push('📊 <b>В работе — какой % сейчас?</b>');
+    for (const t of inProgressNoPct.slice(0, 12)) {
+      const pct = typeof t.progress === 'number' && t.progress > 0.01
+        ? ` · <i>сейчас ${Math.round(t.progress * 100)}%</i>`
+        : ' · <i>ещё не отмечали</i>';
+      parts.push(`  • <b>${t.name}</b>${pct} <i>(${sec(t)})</i>`);
+    }
+    if (inProgressNoPct.length > 12) parts.push(`  • …и ещё ${inProgressNoPct.length - 12}`);
     parts.push('');
   }
   if (materialRisks.length) {
