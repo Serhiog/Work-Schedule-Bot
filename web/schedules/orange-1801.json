@@ -115,6 +115,12 @@
       "id": "a",
       "name": "Еще раздел",
       "color": "#f59e0b"
+    },
+    {
+      "id": "ba",
+      "name": "для суба",
+      "color": "#14b8a6",
+      "sub": true
     }
   ],
   "stages": [
