@@ -1,7 +1,7 @@
 {
   "project": {
     "slug": "maiami",
-    "name": "Майами",
+    "name": "Майами Beach",
     "contractor": "",
     "customer": "",
     "location": "",
@@ -11,8 +11,8 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 90,
-    "lastUpdated": "2026-04-28T17:01:11.832Z",
-    "lastUpdatedBy": "Bot (voice create)"
+    "lastUpdated": "2026-04-28T17:01:14.947Z",
+    "lastUpdatedBy": "Bot (voice rename)"
   },
   "sections": [],
   "tasks": [],
