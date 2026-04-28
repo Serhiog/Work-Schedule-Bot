@@ -6673,12 +6673,12 @@ body.is-bar-dragging * { user-select: none !important; }
 }
 .edit-form-fact-clear:hover { background: rgba(239, 68, 68, .08); border-color: #b91c1c; }
 
-/* Danger-вариант пункта в admin-меню */
+/* Danger-пункт «Удалить проект» — виден ТОЛЬКО в режиме «✎ Правка» */
 .admin-dropdown-item--danger {
   border-top: 1px solid var(--line-2);
+  display: none;
 }
+body.is-edit-mode .admin-dropdown-item--danger { display: flex; }
 .admin-dropdown-item--danger .admin-dropdown-name { color: #b91c1c; }
-.admin-dropdown-item--danger:hover {
-  background: rgba(239, 68, 68, .08);
-}
+.admin-dropdown-item--danger:hover { background: rgba(239, 68, 68, .08); }
 .admin-dropdown-item--danger:hover .admin-dropdown-name { color: #991b1b; }

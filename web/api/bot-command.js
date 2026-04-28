@@ -111,14 +111,10 @@ async function classify(text, ctx) {
     '    color по умолчанию задаст система.',
     '    → { action:"add_section", name, sub?:boolean }',
     '',
-    '12. delete_project — удалить ТЕКУЩИЙ проект полностью (schedule.json + Airtable)',
-    '    Только если пользователь явно сказал «удали проект» / «снеси проект» / «обнули проект».',
-    '    Требует, чтобы ОН ЯВНО назвал имя проекта в фразе для безопасности (передавай в confirmName).',
-    '    Пример: «Удали проект Офис JLT Cluster X».',
-    '    → { action:"delete_project", confirmName }',
-    '',
-    '13. unknown — фраза не относится к бот-командам',
+    '12. unknown — фраза не относится к бот-командам',
     '    → { action:"unknown", reason }',
+    '',
+    'ВАЖНО: бот НЕ умеет удалять проекты целиком. Если просят «удали проект» — отвечай action:"unknown" с reason="удаление проектов делается только из веб-интерфейса в режиме Правка".',
     '',
     'СПИСОК ТИКЕТОВ ПРОЕКТА (id → краткое название):',
     ctx.ticketsList || '(тикетов нет)',
@@ -337,18 +333,9 @@ module.exports = async function handler(req, res) {
         applied = true; break;
       }
       case 'delete_project': {
-        const projName = schedule?.project?.name || '';
-        if (!cmd.confirmName) {
-          replyHtml = `⚠️ Опасное действие. Чтобы удалить, повтори фразой с явным именем проекта, например: «Удали проект ${projName}».`;
-          break;
-        }
-        if (String(cmd.confirmName).trim().toLowerCase() !== projName.trim().toLowerCase()) {
-          replyHtml = `⚠️ Имя не совпало. Текущий проект: <b>${escapeHtmlSimple(projName)}</b>. Скажи это имя точно — иначе не удалю.`;
-          break;
-        }
-        const r = await postData('project:delete', { slug, confirmName: cmd.confirmName });
-        replyHtml = `🗑 Проект <b>«${escapeHtmlSimple(projName)}»</b> удалён.\nschedule.json — ✓\nAirtable — ${r?.result?.airtableDeleted ?? 0} записей.`;
-        applied = true; break;
+        // Бот специально НЕ умеет удалять проекты — это разрушительное действие, только через веб.
+        replyHtml = `⚠️ Удаление проектов через бота не поддерживается. Открой проект в браузере → нажми <b>✎ Правка</b> → ⚙ Сервисные функции → <b>🗑 Удалить этот проект</b>.`;
+        break;
       }
       case 'unknown':
       default:
