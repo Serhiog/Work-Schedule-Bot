@@ -36,6 +36,15 @@
       "planStart": "2026-04-28",
       "planEnd": "2026-05-05",
       "actualStart": "2026-04-28"
+    },
+    {
+      "id": "2",
+      "name": "Демонтаж стен",
+      "section": "a",
+      "stage": "rough",
+      "planStart": "2026-04-28",
+      "planEnd": "2026-05-05",
+      "subcontractorName": "Альтар"
     }
   ],
   "stages": [],
