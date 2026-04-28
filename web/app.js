@@ -1436,7 +1436,8 @@ function applyFilterToTasks(tasks) {
     if (state.filterSection && t.section !== state.filterSection) return false;
     if (state.filterSubOnly) {
       const sec = state.sectionById[t.section];
-      if (!sec || !sec.sub) return false;
+      const isTaskSub = t.sub === true || (sec && sec.sub);
+      if (!isTaskSub) return false;
     }
     return true;
   });
@@ -1721,7 +1722,9 @@ function renderGantt() {
         </div>`;
       }
 
-      const subBadge = sec.sub ? '<span class="sub-badge">СУБ</span>' : '';
+      const isTaskSub = t.sub === true || sec.sub;
+      const subTitle = t.subcontractorName ? `Субподрядчик: ${t.subcontractorName}` : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик');
+      const subBadge = isTaskSub ? `<span class="sub-badge" title="${escapeHtml(subTitle)}">СУБ${t.subcontractorName ? '·' + escapeHtml(t.subcontractorName.split(' ')[0]) : ''}</span>` : '';
       const prog = taskProgress(t);
       const progPct = Math.round(prog * 100);
       let progBadge = '';
@@ -2265,7 +2268,10 @@ function openDrawer(tid) {
     ? `${fmtDate(t.actualStart)} → ${t.actualEnd ? fmtDate(t.actualEnd) : 'в работе'}`
     : '—';
 
-  const contractorLabel = sec.sub ? 'Субподрядчик' : 'CYFR FITOUT';
+  const isTaskSub = t.sub === true || sec.sub;
+  const contractorLabel = isTaskSub
+    ? (t.subcontractorName ? `Субподрядчик · ${t.subcontractorName}` : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик'))
+    : 'CYFR FITOUT';
 
   // Progress color by status
   const progColor = status === 'done' ? '#15803d'
@@ -6701,6 +6707,16 @@ function openAddTaskForm(sectionId, anchorEl) {
           <label><span>Факт: финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="ef-actual-end" /></label>
         </div>
       </div>
+      <div class="edit-form-section-h" style="margin-top:18px">👷 Подрядчик</div>
+      <label class="edit-form-toggle">
+        <input type="checkbox" id="ef-is-sub"${sec.sub ? ' checked disabled' : ''} />
+        <span>🟡 Эту работу делает субподрядчик${sec.sub ? ' <em class="muted">(весь раздел уже на субе)</em>' : ''}</span>
+      </label>
+      <div class="edit-form-sub-block" id="ef-sub-block" hidden>
+        <label class="edit-form-row"><span>Имя/название субподрядчика <em class="muted">(необязательно)</em></span>
+          <input type="text" id="ef-sub-name" maxlength="120" placeholder="Например: Альтаир Электро" />
+        </label>
+      </div>
       <div class="edit-form-actions">
         <button type="button" class="edit-form-cancel">Отмена</button>
         <button type="button" class="edit-form-submit">Создать</button>
@@ -6714,10 +6730,14 @@ function openAddTaskForm(sectionId, anchorEl) {
   overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   overlay.querySelector('#ef-name').focus();
-  // Тогглим блок факта
   const hasFactCb = overlay.querySelector('#ef-has-fact');
   const factBlock = overlay.querySelector('#ef-fact-block');
   hasFactCb.addEventListener('change', () => { factBlock.hidden = !hasFactCb.checked; });
+  // Sub-блок: если раздел уже SUB → чекбокс заблокирован но имя SUB поле всё равно видно
+  const isSubCb = overlay.querySelector('#ef-is-sub');
+  const subBlock = overlay.querySelector('#ef-sub-block');
+  if (sec.sub) subBlock.hidden = false;
+  isSubCb.addEventListener('change', () => { subBlock.hidden = !isSubCb.checked; });
   overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
     const name = overlay.querySelector('#ef-name').value.trim();
     const stage = overlay.querySelector('#ef-stage').value;
@@ -6734,11 +6754,14 @@ function openAddTaskForm(sectionId, anchorEl) {
         err.textContent = 'Финиш факта не может быть раньше старта факта'; return;
       }
     }
+    // Sub-флаг применяем только если раздел НЕ SUB (иначе наследуется)
+    const sub = !sec.sub && isSubCb.checked ? true : undefined;
+    const subcontractorName = (subBlock.hidden ? '' : (overlay.querySelector('#ef-sub-name').value || '').trim()) || undefined;
     err.textContent = '';
     const submitBtn = overlay.querySelector('.edit-form-submit');
     submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
     try {
-      const r = await postDataAction('task:create', { slug: state.projectSlug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage });
+      const r = await postDataAction('task:create', { slug: state.projectSlug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage, sub, subcontractorName });
       if (r.schedule) state.schedule = r.schedule;
       try { renderProjectAnalytics(); } catch (_) {}
       renderGantt();
@@ -6755,6 +6778,7 @@ function openAddTaskForm(sectionId, anchorEl) {
 function openTaskDatesEditor(taskId) {
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
   if (!t) return;
+  const sec = state.sectionById[t.section] || {};
   const overlay = document.createElement('div');
   overlay.className = 'edit-form-overlay';
   const ps = t.planStart || t.start || '';
@@ -6762,6 +6786,9 @@ function openTaskDatesEditor(taskId) {
   const aS = t.actualStart || '';
   const aE = t.actualEnd || '';
   const hasFact = !!(aS || aE);
+  const taskSub = t.sub === true;
+  const taskSubName = t.subcontractorName || '';
+  const sectionForcesSub = !!sec.sub; // если раздел уже SUB — флаг работы наследуется, но имя задаётся отдельно
   overlay.innerHTML = `
     <div class="edit-form-card">
       <div class="edit-form-head">
@@ -6785,6 +6812,16 @@ function openTaskDatesEditor(taskId) {
         </div>
         <button type="button" class="edit-form-fact-clear" id="td-fact-clear" title="Полностью убрать фактические даты">Убрать факт целиком</button>
       </div>
+      <div class="edit-form-section-h" style="margin-top:18px">👷 Подрядчик</div>
+      <label class="edit-form-toggle">
+        <input type="checkbox" id="td-is-sub" ${(taskSub || sectionForcesSub) ? 'checked' : ''} ${sectionForcesSub ? 'disabled' : ''} />
+        <span>🟡 Эту работу делает субподрядчик${sectionForcesSub ? ' <em class="muted">(весь раздел на субе)</em>' : ''}</span>
+      </label>
+      <div class="edit-form-sub-block" id="td-sub-block" ${(taskSub || sectionForcesSub || taskSubName) ? '' : 'hidden'}>
+        <label class="edit-form-row"><span>Имя/название субподрядчика <em class="muted">(необязательно)</em></span>
+          <input type="text" id="td-sub-name" maxlength="120" value="${escapeHtml(taskSubName)}" placeholder="Например: Альтаир Электро" />
+        </label>
+      </div>
       <div class="edit-form-actions">
         <button type="button" class="edit-form-cancel">Отмена</button>
         <button type="button" class="edit-form-submit">Сохранить</button>
@@ -6805,6 +6842,14 @@ function openTaskDatesEditor(taskId) {
     overlay.querySelector('#td-actual-end').value = '';
     cb.checked = false;
     block.hidden = true;
+  });
+  // Sub-блок toggle
+  const subCb = overlay.querySelector('#td-is-sub');
+  const subBlock = overlay.querySelector('#td-sub-block');
+  subCb.addEventListener('change', () => {
+    if (sectionForcesSub) return; // disabled — игнор
+    subBlock.hidden = !subCb.checked;
+    if (!subCb.checked) overlay.querySelector('#td-sub-name').value = '';
   });
   overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
     const planStart = overlay.querySelector('#td-plan-start').value;
@@ -6828,10 +6873,17 @@ function openTaskDatesEditor(taskId) {
       if (aEnd && aEnd !== aE) patch.actualEnd = aEnd;
       if (!aEnd && aE) patch.actualEnd = null;
     } else {
-      // Чекбокс выключен — снять обе фактические даты, если были
       if (aS) patch.actualStart = null;
       if (aE) patch.actualEnd = null;
     }
+    // Sub-флаг и имя — только если раздел НЕ forces (иначе наследуется)
+    if (!sectionForcesSub) {
+      const wantSub = subCb.checked;
+      if (wantSub !== taskSub) patch.sub = wantSub ? true : null;
+    }
+    const newSubName = (subBlock.hidden ? '' : (overlay.querySelector('#td-sub-name').value || '').trim());
+    if (newSubName !== taskSubName) patch.subcontractorName = newSubName ? newSubName : null;
+
     if (!Object.keys(patch).length) { close(); return; }
 
     // Сохраняем inverse для undo

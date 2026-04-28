@@ -97,10 +97,12 @@ async function classify(text, ctx) {
     '   deltaDays: положительное = вперёд, отрицательное = назад. kind: "plan" (по умолчанию) или "fact".',
     '   → { action:"shift_task_dates", taskId, deltaDays, kind:"plan"|"fact" }',
     '',
-    '9. set_task_dates — задать конкретные даты работе',
-    '   Примеры: «У плитки старт 5 мая, финиш 12 мая», «Демонтаж: фактически начали 28 апреля».',
+    '9. set_task_dates — задать конкретные даты работе И/ИЛИ пометить как субподряд',
+    '   Примеры: «У плитки старт 5 мая, финиш 12 мая», «Демонтаж: фактически начали 28 апреля»,',
+    '   «Покраска стен — субподрядчик Альтаир Электро», «Снять субподряд с работы 18».',
     '   ISO YYYY-MM-DD. Поля любые из: planStart, planEnd, actualStart, actualEnd.',
-    '   → { action:"set_task_dates", taskId, dates:{planStart?, planEnd?, actualStart?, actualEnd?} }',
+    '   sub: true|false — пометить/снять с работы флаг субподряда. subcontractorName — имя субподрядчика.',
+    '   → { action:"set_task_dates", taskId, dates?:{planStart?, planEnd?, actualStart?, actualEnd?}, sub?:bool, subcontractorName? }',
     '',
     '10. delete_task — удалить работу',
     '    Пример: «Удали работу 34».',
@@ -302,17 +304,24 @@ module.exports = async function handler(req, res) {
         applied = true; break;
       }
       case 'set_task_dates': {
-        if (!cmd.taskId || !cmd.dates || typeof cmd.dates !== 'object') { replyHtml = '⚠️ Не понял какую работу и какие даты.'; break; }
+        if (!cmd.taskId) { replyHtml = '⚠️ Не понял какую работу.'; break; }
         const t = tasks.find(x => String(x.id) === String(cmd.taskId));
         if (!t) { replyHtml = `⚠️ Работа <b>${cmd.taskId}</b> не найдена.`; break; }
         const allowed = ['planStart','planEnd','actualStart','actualEnd'];
         const patch = {};
-        for (const k of allowed) {
-          if (cmd.dates[k] && /^\d{4}-\d{2}-\d{2}$/.test(cmd.dates[k])) patch[k] = cmd.dates[k];
+        if (cmd.dates && typeof cmd.dates === 'object') {
+          for (const k of allowed) {
+            if (cmd.dates[k] && /^\d{4}-\d{2}-\d{2}$/.test(cmd.dates[k])) patch[k] = cmd.dates[k];
+          }
         }
-        if (!Object.keys(patch).length) { replyHtml = '⚠️ Даты в неверном формате (нужно YYYY-MM-DD).'; break; }
+        if (cmd.sub === true) patch.sub = true;
+        else if (cmd.sub === false) patch.sub = null;
+        if (typeof cmd.subcontractorName === 'string') {
+          patch.subcontractorName = cmd.subcontractorName.trim() || null;
+        }
+        if (!Object.keys(patch).length) { replyHtml = '⚠️ Не понял что менять.'; break; }
         await postData('task:update', { slug, taskId: String(cmd.taskId), patch });
-        const summary = Object.entries(patch).map(([k,v]) => `${k}=${v}`).join(', ');
+        const summary = Object.entries(patch).map(([k,v]) => v === null ? `${k}=пусто` : `${k}=${v}`).join(', ');
         replyHtml = `✅ Работа <b>${cmd.taskId}</b> «${escapeHtmlSimple(t.name)}»: ${summary}`;
         applied = true; break;
       }

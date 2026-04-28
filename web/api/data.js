@@ -417,7 +417,7 @@ function nextSectionId(schedule, baseName) {
 
 async function actionTaskUpdate({ slug, taskId, patch }) {
   if (!slug || !taskId || !patch) throw new Error('slug, taskId, patch required');
-  const allowed = ['name', 'planStart', 'planEnd', 'actualStart', 'actualEnd', 'section', 'stage', 'progress'];
+  const allowed = ['name', 'planStart', 'planEnd', 'actualStart', 'actualEnd', 'section', 'stage', 'progress', 'sub', 'subcontractorName'];
   const updated = await mutateSchedule(slug, (sched) => {
     const t = (sched.tasks || []).find(x => String(x.id) === String(taskId));
     if (!t) throw Object.assign(new Error('task not found'), { status: 404 });
@@ -429,6 +429,15 @@ async function actionTaskUpdate({ slug, taskId, patch }) {
         if (v === null) { delete t[k]; changes.push(`${k}=null`); continue; }
         v = isoOnly(v);
         if (!v) throw new Error(`${k} must be YYYY-MM-DD`);
+      }
+      // Boolean / nullable string поля — null/false/'' стирают поле
+      if (k === 'sub') {
+        if (v === true) { t.sub = true; changes.push('sub=true'); continue; }
+        delete t.sub; changes.push('sub=cleared'); continue;
+      }
+      if (k === 'subcontractorName') {
+        if (v && String(v).trim()) { t.subcontractorName = String(v).trim().slice(0, 120); changes.push(`subcontractorName=${t.subcontractorName}`); continue; }
+        delete t.subcontractorName; changes.push('subcontractorName=cleared'); continue;
       }
       t[k] = v;
       changes.push(`${k}=${v}`);
@@ -442,7 +451,7 @@ async function actionTaskUpdate({ slug, taskId, patch }) {
   return { task, schedule: updated };
 }
 
-async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage }) {
+async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, actualStart, actualEnd, stage, sub, subcontractorName }) {
   if (!slug || !name) throw new Error('slug, name required');
   const updated = await mutateSchedule(slug, (sched) => {
     if (sectionId && !(sched.sections || []).some(s => s.id === sectionId)) {
@@ -464,9 +473,13 @@ async function actionTaskCreate({ slug, sectionId, name, planStart, planEnd, act
     const aE = isoOnly(actualEnd);
     if (aS) t.actualStart = aS;
     if (aE) t.actualEnd = aE;
+    if (sub === true) t.sub = true;
+    if (subcontractorName && String(subcontractorName).trim()) {
+      t.subcontractorName = String(subcontractorName).trim().slice(0, 120);
+    }
     sched.tasks = sched.tasks || [];
     sched.tasks.push(t);
-    return `task ${id} created: "${t.name}"${aS ? ` actualStart=${aS}` : ''}${aE ? ` actualEnd=${aE}` : ''}`;
+    return `task ${id} created: "${t.name}"${t.sub ? ' [SUB]' : ''}${t.subcontractorName ? ` (${t.subcontractorName})` : ''}`;
   });
   return { task: updated.tasks[updated.tasks.length - 1], schedule: updated };
 }
