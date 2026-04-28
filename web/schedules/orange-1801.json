@@ -16,7 +16,7 @@
     "endDate": "2026-06-20",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-28T13:56:56.580Z",
+    "lastUpdated": "2026-04-28T13:59:26.275Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -121,6 +121,11 @@
       "name": "для суба",
       "color": "#14b8a6",
       "sub": true
+    },
+    {
+      "id": "по_работам",
+      "name": "по работам",
+      "color": "#94a3b8"
     }
   ],
   "stages": [
@@ -976,6 +981,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «подключение лампочек»"
+    },
+    {
+      "at": "2026-04-28T13:59:26.275Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «по работам»"
     }
   ]
 }
