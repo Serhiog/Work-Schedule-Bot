@@ -14,7 +14,13 @@
     "lastUpdated": "2026-04-28T17:29:50.285Z",
     "lastUpdatedBy": "Bot (voice create)"
   },
-  "sections": [],
+  "sections": [
+    {
+      "id": "hhhh",
+      "name": "hhhh",
+      "color": "#ec4899"
+    }
+  ],
   "tasks": [],
   "stages": [],
   "milestones": [],
