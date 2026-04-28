@@ -16,7 +16,7 @@
     "endDate": "2026-06-20",
     "durationDays": 120,
     "contractEndDate": "2026-06-05",
-    "lastUpdated": "2026-04-27T18:38:35.301Z",
+    "lastUpdated": "2026-04-28T13:46:52.657Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -217,9 +217,17 @@
       "unit": "",
       "costIncVat": 51972.8,
       "planStart": "2026-02-26",
-      "planEnd": "2026-03-26",
+      "planEnd": "2026-03-31",
       "actualStart": "2026-02-24",
-      "actualEnd": "2026-03-19"
+      "actualEnd": "2026-03-19",
+      "history": [
+        {
+          "at": "2026-04-28T13:46:52.657Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Демонтажные работы новые» [план]: +5 дн. → 31 мар"
+        }
+      ]
     },
     {
       "id": "2",
@@ -887,6 +895,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «мойка»"
+    },
+    {
+      "at": "2026-04-28T13:46:52.657Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Демонтажные работы новые» [план]: +5 дн. → 31 мар"
     }
   ]
 }
