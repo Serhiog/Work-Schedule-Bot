@@ -169,8 +169,8 @@
       "durationDaysPlanned": 7,
       "planStart": "2025-05-26",
       "planEnd": "2025-06-07",
-      "actualStart": "2026-05-26",
-      "actualEnd": "2026-05-28"
+      "sub": true,
+      "subcontractorName": "Аль"
     },
     {
       "id": "4",
