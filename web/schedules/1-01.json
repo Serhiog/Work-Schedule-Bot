@@ -6,7 +6,7 @@
     "customer": "",
     "location": "",
     "startDate": "2026-04-28",
-    "endDate": "2026-07-27",
+    "endDate": "2026-05-05",
     "currency": "AED",
     "totalExVat": 0,
     "totalIncVat": 0,
@@ -21,7 +21,16 @@
       "color": "#ec4899"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "1",
+      "name": "jhbkjnkj",
+      "section": "hhhh",
+      "stage": "rough",
+      "planStart": "2026-04-28",
+      "planEnd": "2026-05-05"
+    }
+  ],
   "stages": [],
   "milestones": [],
   "holidays": [],
