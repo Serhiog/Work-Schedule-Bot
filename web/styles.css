@@ -6716,3 +6716,17 @@ body.is-edit-mode .admin-dropdown-item--danger { display: flex; }
 .admin-dropdown-item--danger .admin-dropdown-name { color: #b91c1c; }
 .admin-dropdown-item--danger:hover { background: rgba(239, 68, 68, .08); }
 .admin-dropdown-item--danger:hover .admin-dropdown-name { color: #991b1b; }
+
+/* В режиме Правки — кнопки Тикетов и Загрузки заблокированы (нельзя включить) */
+body.is-edit-mode #btn-tickets,
+body.is-edit-mode #btn-heatmap {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto; /* оставляем чтобы click ловил toast-предупреждение */
+}
+body.is-edit-mode #btn-tickets:hover,
+body.is-edit-mode #btn-heatmap:hover {
+  background: var(--surface, #f1f5f9);
+  transform: none;
+  box-shadow: none;
+}

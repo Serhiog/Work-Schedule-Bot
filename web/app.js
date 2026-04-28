@@ -1623,6 +1623,8 @@ function attachToolbarHandlers() {
   const ticketsBtn = $('#btn-tickets');
   if (ticketsBtn) {
     ticketsBtn.addEventListener('click', () => {
+      // Блокируем переключение пока активна Правка
+      if (state.editMode) { showToast('Выключи «✎ Правка», чтобы включить Тикеты'); return; }
       state.showTickets = !state.showTickets;
       ticketsBtn.setAttribute('data-active', String(state.showTickets));
       renderGantt();
@@ -1632,6 +1634,7 @@ function attachToolbarHandlers() {
   const heatmapBtn = $('#btn-heatmap');
   if (heatmapBtn) {
     heatmapBtn.addEventListener('click', () => {
+      if (state.editMode) { showToast('Выключи «✎ Правка», чтобы включить Загрузку'); return; }
       state.showHeatmap = !state.showHeatmap;
       heatmapBtn.setAttribute('data-active', String(state.showHeatmap));
       renderResourceHeatmap();
