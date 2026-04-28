@@ -37,6 +37,16 @@
       "planEnd": "2026-05-14",
       "actualStart": "2026-04-27",
       "actualEnd": "2026-04-30"
+    },
+    {
+      "id": "2",
+      "name": "Демонтаж стен",
+      "section": "a-2",
+      "stage": "ST1",
+      "planStart": "2026-05-06",
+      "planEnd": "2026-05-13",
+      "actualStart": "2026-05-07",
+      "subcontractorName": "Мухамед"
     }
   ],
   "stages": [
