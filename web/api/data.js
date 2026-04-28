@@ -26,8 +26,8 @@ const TABLES = {
   taskResources:       'TaskResources',
   taskMaterials:       'TaskMaterials',
   taskDependencies:    'TaskDependencies',
-  projects:            'Projects',         // справочник проектов
-  botUserContext:      'BotUserContext'    // выбранный текущий проект на пользователя бота (опционально)
+  projects:            'tblJCAgd956UPBRCn',  // Projects — справочник проектов
+  botUserContext:      'tblTDghlbwBc7TKdw'   // BotUserContext — выбранный текущий проект на пользователя бота
 };
 
 function bad(res, code, msg, extra) {
