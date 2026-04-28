@@ -111,7 +111,13 @@ async function classify(text, ctx) {
     '    color по умолчанию задаст система.',
     '    → { action:"add_section", name, sub?:boolean }',
     '',
-    '12. unknown — фраза не относится к бот-командам',
+    '12. delete_project — удалить ТЕКУЩИЙ проект полностью (schedule.json + Airtable)',
+    '    Только если пользователь явно сказал «удали проект» / «снеси проект» / «обнули проект».',
+    '    Требует, чтобы ОН ЯВНО назвал имя проекта в фразе для безопасности (передавай в confirmName).',
+    '    Пример: «Удали проект Офис JLT Cluster X».',
+    '    → { action:"delete_project", confirmName }',
+    '',
+    '13. unknown — фраза не относится к бот-командам',
     '    → { action:"unknown", reason }',
     '',
     'СПИСОК ТИКЕТОВ ПРОЕКТА (id → краткое название):',
@@ -328,6 +334,20 @@ module.exports = async function handler(req, res) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         const r = await postData('section:create', { slug, name: String(cmd.name).slice(0, 80), color, sub: !!cmd.sub });
         replyHtml = `✅ Раздел <b>«${escapeHtmlSimple(cmd.name)}»</b> создан${cmd.sub ? ' (субподрядчик)' : ''}.`;
+        applied = true; break;
+      }
+      case 'delete_project': {
+        const projName = schedule?.project?.name || '';
+        if (!cmd.confirmName) {
+          replyHtml = `⚠️ Опасное действие. Чтобы удалить, повтори фразой с явным именем проекта, например: «Удали проект ${projName}».`;
+          break;
+        }
+        if (String(cmd.confirmName).trim().toLowerCase() !== projName.trim().toLowerCase()) {
+          replyHtml = `⚠️ Имя не совпало. Текущий проект: <b>${escapeHtmlSimple(projName)}</b>. Скажи это имя точно — иначе не удалю.`;
+          break;
+        }
+        const r = await postData('project:delete', { slug, confirmName: cmd.confirmName });
+        replyHtml = `🗑 Проект <b>«${escapeHtmlSimple(projName)}»</b> удалён.\nschedule.json — ✓\nAirtable — ${r?.result?.airtableDeleted ?? 0} записей.`;
         applied = true; break;
       }
       case 'unknown':

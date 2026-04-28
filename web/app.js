@@ -5085,8 +5085,37 @@ function setupAdminMenu() {
       const action = item.dataset.adminAction;
       close();
       if (action === 'meeting') openMeetingModal();
+      else if (action === 'delete-project') confirmDeleteProject();
     });
   });
+}
+
+async function confirmDeleteProject() {
+  const p = state.schedule?.project;
+  if (!p) { alert('Проект не загружен'); return; }
+  const expected = (p.name || '').trim();
+  const typed = prompt(
+    `⚠️ Удалить ВЕСЬ проект «${expected}»?\n\n` +
+    `Будут удалены:\n` +
+    `  • schedule.json в GitHub\n` +
+    `  • запись в Airtable Projects\n` +
+    `  • все материалы / ресурсы / зависимости / заметки\n\n` +
+    `Это НЕЛЬЗЯ отменить.\n\n` +
+    `Введи название проекта точно как «${expected}» для подтверждения:`
+  );
+  if (typed === null) return; // Cancel
+  if ((typed || '').trim().toLowerCase() !== expected.toLowerCase()) {
+    alert('Название не совпало. Удаление отменено.');
+    return;
+  }
+  showToast('Удаляю проект…');
+  try {
+    const r = await postDataAction('project:delete', { slug: p.slug, confirmName: typed });
+    showToast(`✓ «${r.name || expected}» удалён. Airtable: ${r.airtableDeleted || 0} записей.`);
+    setTimeout(() => { window.location.href = '/'; }, 1500);
+  } catch (e) {
+    showToast('Не удалось: ' + (e.message || e), 'error');
+  }
 }
 
 /* ──────────────────────────────────────────────────────────── */

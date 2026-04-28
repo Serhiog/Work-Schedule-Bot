@@ -547,6 +547,70 @@ async function actionSectionUpdate({ slug, sectionId, patch }) {
   return { section: (updated.sections || []).find(s => s.id === sectionId), schedule: updated };
 }
 
+async function actionProjectDelete({ slug, confirmName }) {
+  if (!slug) throw new Error('slug required');
+  // Read schedule first so we can return its name + verify confirmName matches.
+  const { schedule, sha } = await ghReadSchedule(slug);
+  const realName = schedule?.project?.name || slug;
+  // confirmName — мягкая страховка от опечаток. Если передано — должно совпадать (case-insensitive).
+  if (confirmName && String(confirmName).trim().toLowerCase() !== String(realName).trim().toLowerCase()) {
+    throw new Error(`confirmName mismatch: expected "${realName}", got "${confirmName}"`);
+  }
+
+  // 1. Delete schedule.json from GitHub
+  const path = `web/schedules/${slug}.json`;
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const ghDel = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${GH_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: JSON.stringify({
+      message: `chore: delete project "${realName}" (slug: ${slug})`,
+      sha,
+      branch: GH_BRANCH
+    })
+  });
+  if (!ghDel.ok && ghDel.status !== 404) {
+    const txt = await ghDel.text().catch(() => '');
+    throw new Error(`GitHub delete failed ${ghDel.status}: ${txt.slice(0, 300)}`);
+  }
+
+  // 2. Delete Airtable Projects record (table tblJCAgd956UPBRCn) by ProjectId.
+  let airtableDeleted = 0;
+  if (AT_PAT) {
+    try {
+      const projTable = 'tblJCAgd956UPBRCn';
+      const projRecs = await listAll(projTable, `{ProjectId}='${escapeFormula(slug)}'`);
+      if (projRecs.length) {
+        const params = new URLSearchParams();
+        projRecs.forEach(r => params.append('records[]', r.id));
+        await airtable('DELETE', `${BASE}/${projTable}?${params.toString()}`);
+        airtableDeleted += projRecs.length;
+      }
+      // 3. Чистим связанные таблицы по ProjectSlug
+      for (const tbl of [TABLES.assignees, TABLES.updates, TABLES.ticketMeetingNotes, TABLES.taskMeetingNotes, TABLES.taskResources, TABLES.taskMaterials, TABLES.taskDependencies]) {
+        const recs = await listAll(tbl, `{ProjectSlug}='${escapeFormula(slug)}'`);
+        if (!recs.length) continue;
+        // Airtable DELETE max 10 records per call
+        for (let i = 0; i < recs.length; i += 10) {
+          const params = new URLSearchParams();
+          recs.slice(i, i + 10).forEach(r => params.append('records[]', r.id));
+          await airtable('DELETE', `${BASE}/${tbl}?${params.toString()}`);
+        }
+        airtableDeleted += recs.length;
+      }
+    } catch (e) {
+      console.warn('project:delete — Airtable cleanup partial:', e.message);
+    }
+  }
+
+  return { ok: true, slug, name: realName, airtableDeleted };
+}
+
 async function actionSectionDelete({ slug, sectionId }) {
   if (!slug || !sectionId) throw new Error('slug, sectionId required');
   const updated = await mutateSchedule(slug, (sched) => {
@@ -577,7 +641,8 @@ const ACTIONS = {
   'task:bulk-shift':       actionTaskBulkShift,
   'section:create':        actionSectionCreate,
   'section:update':        actionSectionUpdate,
-  'section:delete':        actionSectionDelete
+  'section:delete':        actionSectionDelete,
+  'project:delete':        actionProjectDelete
 };
 
 module.exports = async function handler(req, res) {
@@ -606,8 +671,8 @@ module.exports = async function handler(req, res) {
       }
       const { action, payload } = body || {};
       if (!action || !ACTIONS[action]) return bad(res, 400, `Unknown action: ${action}`);
-      // task:* / section:* идут в GitHub, остальное — в Airtable. Проверяем только для Airtable-actions.
-      const isScheduleMutation = action.startsWith('task:') || action.startsWith('section:');
+      // task:* / section:* / project:* идут в GitHub. Остальные — Airtable.
+      const isScheduleMutation = action.startsWith('task:') || action.startsWith('section:') || action.startsWith('project:');
       if (!isScheduleMutation && !AT_PAT) return bad(res, 500, 'AIRTABLE_PAT env missing');
       const result = await ACTIONS[action](payload || {});
       return res.status(200).json({ ok: true, action, result });
