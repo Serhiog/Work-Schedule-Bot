@@ -1738,20 +1738,29 @@ function renderGantt() {
         ? `<span class="task-mat-badge" title="Заказать до ${escapeHtml(fmtDate(toISO(matRisk.orderBy)))} · ${matRisk.riskyCount} материалов в риске">📦 ${matRisk.daysToStart > 0 ? '−' + (matRisk.maxLead - matRisk.daysToStart) + 'д' : 'срочно'}</span>`
         : '';
       const matRiskCls = matRisk ? ' task-mat-risk' : '';
+      // Двухстрочный layout: сверху имя на полную ширину + →,
+      // снизу компактная полоса маркеров (id · КП · 📦 · % · СУБ · edit actions).
+      const hasMeta = !!(critBadge || matBadge || progBadge || subBadge);
       body += `<div class="task-label${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
         <span class="tbullet" style="background:${catColor}"></span>
-        <span class="tid">${escapeHtml(t.id)}</span>
-        <span class="tname" data-tid="${t.id}" data-edit-name title="Кликни в режиме правки, чтобы переименовать">${escapeHtml(t.name)}</span>
-        ${critBadge}
-        ${matBadge}
-        ${progBadge}
-        ${subBadge}
-        <span class="edit-only-actions" aria-hidden="true">
-          <button type="button" class="row-edit-btn" data-edit-task="${t.id}" title="Переименовать">✎</button>
-          <button type="button" class="row-dates-btn" data-dates-task="${t.id}" title="Изменить даты плана и факта">📅</button>
-          <button type="button" class="row-del-btn" data-del-task="${t.id}" title="Удалить работу">🗑</button>
-        </span>
-        <button class="task-open-btn" data-tid="${t.id}" tabindex="-1" title="Подробнее" aria-label="Открыть детали: ${escapeHtml(t.name)}">→</button>
+        <div class="task-label-body">
+          <div class="task-label-top">
+            <span class="tname" data-tid="${t.id}" data-edit-name title="${escapeHtml(t.name)} — кликни в режиме Правка чтобы переименовать">${escapeHtml(t.name)}</span>
+            <button class="task-open-btn" data-tid="${t.id}" tabindex="-1" title="Подробнее" aria-label="Открыть детали: ${escapeHtml(t.name)}">→</button>
+          </div>
+          <div class="task-label-meta${hasMeta ? '' : ' is-empty'}">
+            <span class="tid">№${escapeHtml(t.id)}</span>
+            ${critBadge}
+            ${matBadge}
+            ${progBadge}
+            ${subBadge}
+            <span class="edit-only-actions" aria-hidden="true">
+              <button type="button" class="row-edit-btn" data-edit-task="${t.id}" title="Переименовать">✎</button>
+              <button type="button" class="row-dates-btn" data-dates-task="${t.id}" title="Изменить даты плана и факта">📅</button>
+              <button type="button" class="row-del-btn" data-del-task="${t.id}" title="Удалить работу">🗑</button>
+            </span>
+          </div>
+        </div>
       </div>`;
       const progFill = prog > 0 ? `<div class="bar-plan-progress" style="width:${progPct}%; background:${bTop}" aria-hidden="true"></div>` : '';
       const ticketBadge = buildTaskTicketBadge(t.id, pLeft, pWidth);

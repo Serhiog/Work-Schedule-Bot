@@ -754,9 +754,9 @@ button.stat { -webkit-appearance: none; appearance: none; }
   background: #ffffff;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line-2);
-  padding: 8px 10px 8px 14px;
+  padding: 6px 10px 6px 12px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -770,22 +770,33 @@ button.stat { -webkit-appearance: none; appearance: none; }
 }
 .task-label:hover { background: #fafafa; }
 .task-label:hover::after { background: #fafafa; }
-.task-label .tid {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 9px;
-  color: var(--muted-2);
-  width: 28px;
+.task-label .tbullet {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
   flex-shrink: 0;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
 }
-.task-label .tname {
-  font-size: 12px;
-  color: var(--ink-2);
-  font-weight: 500;
-  line-height: 1.25;
+.task-label-body {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+.task-label-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.task-label .tname {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -793,31 +804,43 @@ button.stat { -webkit-appearance: none; appearance: none; }
   -webkit-box-orient: vertical;
   word-break: break-word;
 }
-.task-label .tbullet {
-  width: 3px;
-  align-self: stretch;
-  border-radius: 2px;
+.task-label-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 1;
+  min-height: 14px;
+}
+.task-label-meta.is-empty { display: none; }
+body.is-edit-mode .task-label-meta.is-empty { display: flex; }
+.task-label .tid {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
   flex-shrink: 0;
 }
 .task-label .pbadge {
-  margin-left: auto;
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--muted);
   background: var(--line-2);
-  padding: 2px 7px;
+  padding: 1px 6px;
   border-radius: 999px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 .task-label .pbadge.pbadge-done {
   background: #dcfce7;
   color: #15803d;
 }
-.task-label .pbadge + .sub-badge,
-.task-label .pbadge + .task-open-btn { margin-left: 6px; }
-.task-label .sub-badge { margin-left: 6px; }
+.task-label .sub-badge { flex-shrink: 0; }
+.task-label .edit-only-actions { margin-left: auto; }
 
 /* Task row: right grid (cells) */
 .task-grid {
@@ -3720,9 +3743,9 @@ button.stat { -webkit-appearance: none; appearance: none; }
   border-radius: 4px;
   background: rgba(245, 158, 11, 0.18);
   color: #b45309;
-  letter-spacing: 0.3px;
-  margin-left: 4px;
+  letter-spacing: 0.2px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 [data-theme="dark"] .task-mat-badge {
   background: rgba(245, 158, 11, 0.22);
@@ -4256,9 +4279,9 @@ button.stat { -webkit-appearance: none; appearance: none; }
   border-radius: 4px;
   background: rgba(220, 38, 38, 0.12);
   color: #b91c1c;
-  letter-spacing: 0.4px;
-  margin-left: 4px;
+  letter-spacing: 0.2px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 [data-theme="dark"] .task-crit-badge {
   background: rgba(248, 113, 113, 0.18);
@@ -6249,17 +6272,18 @@ button.stat { -webkit-appearance: none; appearance: none; }
   align-items: center;
 }
 body.is-edit-mode .edit-only-actions { display: inline-flex; }
-.row-edit-btn, .row-del-btn {
+.row-edit-btn, .row-del-btn, .row-dates-btn {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
-  width: 24px; height: 24px;
-  font-size: 13px;
+  border-radius: 4px;
+  width: 18px; height: 18px;
+  font-size: 11px;
   line-height: 1;
   color: var(--muted);
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   transition: background 120ms, color 120ms, border-color 120ms;
+  padding: 0;
 }
 .row-edit-btn:hover { background: rgba(99, 102, 241, .12); color: #4338ca; border-color: rgba(99, 102, 241, .3); }
 .row-del-btn:hover { background: rgba(239, 68, 68, .12); color: #b91c1c; border-color: rgba(239, 68, 68, .3); }
@@ -6641,19 +6665,7 @@ body.is-bar-dragging * { user-select: none !important; }
 @keyframes efBlockIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .edit-form-fact-block .muted { color: #94a3b8; font-style: italic; font-size: 10px; font-weight: 400; }
 
-/* ─── Кнопка 📅 в edit-mode + «Убрать факт» в форме ─── */
-.row-dates-btn {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  width: 24px; height: 24px;
-  font-size: 13px;
-  line-height: 1;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-  transition: background 120ms, color 120ms, border-color 120ms;
-}
+/* ─── Hover для 📅 (стили базовых размеров — выше, объединены с ✎ 🗑) ─── */
 .row-dates-btn:hover {
   background: rgba(99, 102, 241, .12);
   color: #4338ca;
