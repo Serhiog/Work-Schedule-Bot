@@ -19,6 +19,12 @@
       "id": "v-a",
       "name": "Подготовка",
       "color": "#8b5cf6"
+    },
+    {
+      "id": "a",
+      "name": "Демонтаж",
+      "color": "#f43f5e",
+      "sub": true
     }
   ],
   "tasks": [
