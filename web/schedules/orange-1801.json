@@ -826,8 +826,8 @@
       "name": "Мойка стен",
       "section": "мойка",
       "stage": "ST3",
-      "planStart": "2026-04-28",
-      "planEnd": "2026-05-05",
+      "planStart": "2026-04-17",
+      "planEnd": "2026-04-24",
       "actualStart": "2026-04-28",
       "sub": true,
       "subcontractorName": "Альтар"
