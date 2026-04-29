@@ -810,8 +810,8 @@
       "name": "Новый демонтаж",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-04-29",
-      "planEnd": "2026-05-06",
+      "planStart": "2026-04-24",
+      "planEnd": "2026-05-11",
       "actualStart": "2026-04-29"
     }
   ],
