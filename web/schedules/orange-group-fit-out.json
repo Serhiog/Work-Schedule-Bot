@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T14:31:42.045Z",
+    "lastUpdated": "2026-04-29T14:33:57.522Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -47,7 +47,7 @@
   "sections": [
     {
       "id": "demolition",
-      "name": "Демонтаж",
+      "name": "демонтаж плюс",
       "color": "#64748b"
     },
     {
@@ -861,6 +861,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «мойка потолка»"
+    },
+    {
+      "at": "2026-04-29T14:33:57.522Z",
+      "by": "Sergei Grishenkov",
+      "type": "rename_section",
+      "summary": "Раздел переименован: «Демонтаж» → «демонтаж плюс»"
     }
   ]
 }
