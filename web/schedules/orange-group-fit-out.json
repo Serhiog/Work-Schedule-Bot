@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T11:51:16.619Z",
+    "lastUpdated": "2026-04-29T14:25:34.801Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -252,8 +252,8 @@
       "unit": "",
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
-      "planStart": "2026-04-27",
-      "planEnd": "2026-05-21",
+      "planStart": "2026-05-07",
+      "planEnd": "2026-05-31",
       "actualStart": "2026-04-20",
       "history": [
         {
@@ -285,6 +285,12 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Демонтажные работы» [факт, только начало]: -2 дн. начало → 27 апр"
+        },
+        {
+          "at": "2026-04-29T14:25:34.801Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «Демонтаж» [план]: +10 дн. — 2 задач"
         }
       ]
     },
@@ -738,8 +744,16 @@
       "name": "Hhh",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-04-21",
-      "planEnd": "2026-05-30"
+      "planStart": "2026-05-01",
+      "planEnd": "2026-06-09",
+      "history": [
+        {
+          "at": "2026-04-29T14:25:34.801Z",
+          "by": "Sergei Grishenkov",
+          "type": "bulk_shift_section",
+          "summary": "Раздел «Демонтаж» [план]: +10 дн. — 2 задач"
+        }
+      ]
     }
   ],
   "history": [
@@ -790,6 +804,12 @@
       "by": "Sergei Grishenkov",
       "type": "set_dates",
       "summary": "«Демонтаж окон» [план]: 29 апр — 10 май"
+    },
+    {
+      "at": "2026-04-29T14:25:34.801Z",
+      "by": "Sergei Grishenkov",
+      "type": "bulk_shift_section",
+      "summary": "Раздел «Демонтаж» [план]: +10 дн. — 2 задач"
     }
   ]
 }
