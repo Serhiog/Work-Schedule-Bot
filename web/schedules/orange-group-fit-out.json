@@ -15,8 +15,8 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-28T20:25:15.184Z",
-    "lastUpdatedBy": "Sergio",
+    "lastUpdated": "2026-04-29T10:19:10.880Z",
+    "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
         "id": "P1",
@@ -108,6 +108,11 @@
       "id": "materials",
       "name": "Логистика и материалы",
       "color": "#d4a017"
+    },
+    {
+      "id": "мойка_окон",
+      "name": "мойка окон",
+      "color": "#94a3b8"
     }
   ],
   "stages": [
@@ -671,6 +676,14 @@
       "planEnd": "2026-10-26",
       "actualStart": null,
       "actualEnd": null
+    }
+  ],
+  "history": [
+    {
+      "at": "2026-04-29T10:19:10.880Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «мойка окон»"
     }
   ]
 }
