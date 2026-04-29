@@ -732,6 +732,14 @@
           "summary": "«Демонтаж окон» [план]: 29 апр — 10 май"
         }
       ]
+    },
+    {
+      "id": "40",
+      "name": "Hhh",
+      "section": "demolition",
+      "stage": "ST1",
+      "planStart": "2026-04-29",
+      "planEnd": "2026-05-06"
     }
   ],
   "history": [
