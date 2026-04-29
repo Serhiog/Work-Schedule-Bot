@@ -375,7 +375,7 @@
     {
       "id": "15",
       "section": "drywall",
-      "stage": "ST2",
+      "stage": "ST1",
       "name": "Проклейка стыков стен",
       "qty": null,
       "unit": "",
@@ -667,7 +667,7 @@
     {
       "id": "36",
       "section": "electrical",
-      "stage": "ST3",
+      "stage": "ST1",
       "name": "Чистовая электрика",
       "qty": null,
       "unit": "",
@@ -681,7 +681,7 @@
     {
       "id": "37",
       "section": "furniture",
-      "stage": "ST4",
+      "stage": "ST1",
       "name": "Установка аксессуаров",
       "qty": null,
       "unit": "",
