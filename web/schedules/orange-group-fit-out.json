@@ -262,7 +262,7 @@
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
       "planStart": "2026-04-25",
-      "planEnd": "2026-05-31",
+      "planEnd": "2026-06-06",
       "actualStart": "2026-04-20",
       "history": [
         {
@@ -765,8 +765,8 @@
       "name": "Hhh",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-05-01",
-      "planEnd": "2026-06-09",
+      "planStart": "2026-06-07",
+      "planEnd": "2026-07-16",
       "history": [
         {
           "at": "2026-04-29T14:25:34.801Z",
@@ -780,8 +780,8 @@
       "id": "41",
       "name": "мойка пола",
       "section": "demolition",
-      "planStart": "2026-04-20",
-      "planEnd": "2026-05-20",
+      "planStart": "2026-07-17",
+      "planEnd": "2026-08-16",
       "start": "2026-04-20",
       "end": "2026-05-20",
       "progress": 0,
