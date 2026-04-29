@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T10:19:10.880Z",
+    "lastUpdated": "2026-04-29T11:12:32.300Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -252,10 +252,18 @@
       "unit": "",
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
-      "planStart": "2026-04-29",
+      "planStart": "2026-05-03",
       "planEnd": "2026-05-16",
       "actualStart": "2026-04-29",
-      "actualEnd": "2026-05-06"
+      "actualEnd": "2026-05-06",
+      "history": [
+        {
+          "at": "2026-04-29T11:12:32.299Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Демонтажные работы» [план, только начало]: +4 дн. начало → 3 май"
+        }
+      ]
     },
     {
       "id": "9",
@@ -684,6 +692,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «мойка окон»"
+    },
+    {
+      "at": "2026-04-29T11:12:32.299Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Демонтажные работы» [план, только начало]: +4 дн. начало → 3 май"
     }
   ]
 }
