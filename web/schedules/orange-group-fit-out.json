@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T14:33:57.522Z",
+    "lastUpdated": "2026-04-29T14:34:38.960Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -769,7 +769,7 @@
     },
     {
       "id": "41",
-      "name": "мойка потолка",
+      "name": "мойка пола",
       "section": "demolition",
       "planStart": "2026-04-20",
       "planEnd": "2026-05-20",
@@ -785,6 +785,12 @@
           "by": "Sergei Grishenkov",
           "type": "add_task",
           "summary": "Добавлена задача «мойка потолка»"
+        },
+        {
+          "at": "2026-04-29T14:34:38.960Z",
+          "by": "Sergei Grishenkov",
+          "type": "rename_task",
+          "summary": "Переименовано: «мойка потолка» → «мойка пола»"
         }
       ]
     }
@@ -867,6 +873,12 @@
       "by": "Sergei Grishenkov",
       "type": "rename_section",
       "summary": "Раздел переименован: «Демонтаж» → «демонтаж плюс»"
+    },
+    {
+      "at": "2026-04-29T14:34:38.960Z",
+      "by": "Sergei Grishenkov",
+      "type": "rename_task",
+      "summary": "Переименовано: «мойка потолка» → «мойка пола»"
     }
   ]
 }
