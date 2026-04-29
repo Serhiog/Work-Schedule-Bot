@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T11:34:32.281Z",
+    "lastUpdated": "2026-04-29T11:35:25.197Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -273,6 +273,12 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Демонтажные работы» [план, только начало]: -2 дн. начало → 27 апр"
+        },
+        {
+          "at": "2026-04-29T11:35:25.197Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Демонтажные работы» [факт, только начало]: 0 дн. начало → 29 апр"
         }
       ]
     },
@@ -719,6 +725,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Демонтажные работы» [план, только начало]: -2 дн. начало → 27 апр"
+    },
+    {
+      "at": "2026-04-29T11:35:25.197Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Демонтажные работы» [факт, только начало]: 0 дн. начало → 29 апр"
     }
   ]
 }
