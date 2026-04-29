@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T14:34:38.960Z",
+    "lastUpdated": "2026-04-29T16:03:33.396Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -170,8 +170,17 @@
       "durationDaysPlanned": 10,
       "planStart": "2026-04-29",
       "planEnd": "2026-05-08",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-04-29",
+      "actualEnd": null,
+      "progress": 0.01,
+      "history": [
+        {
+          "at": "2026-04-29T16:03:33.396Z",
+          "by": "Sergei Grishenkov",
+          "type": "mark_started",
+          "summary": "«Штукатурка по маякам» — начата 29 апр"
+        }
+      ]
     },
     {
       "id": "3",
@@ -879,6 +888,12 @@
       "by": "Sergei Grishenkov",
       "type": "rename_task",
       "summary": "Переименовано: «мойка потолка» → «мойка пола»"
+    },
+    {
+      "at": "2026-04-29T16:03:33.396Z",
+      "by": "Sergei Grishenkov",
+      "type": "mark_started",
+      "summary": "«Штукатурка по маякам» — начата 29 апр"
     }
   ]
 }
