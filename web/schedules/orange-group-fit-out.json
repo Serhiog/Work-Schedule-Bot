@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T11:50:31.235Z",
+    "lastUpdated": "2026-04-29T11:51:16.619Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -711,7 +711,7 @@
       "name": "Демонтаж окон",
       "section": "мойка_окон",
       "planStart": "2026-04-29",
-      "planEnd": "2026-04-29",
+      "planEnd": "2026-05-10",
       "start": "2026-04-29",
       "end": "2026-04-29",
       "progress": 0,
@@ -724,6 +724,12 @@
           "by": "Sergei Grishenkov",
           "type": "add_task",
           "summary": "Добавлена задача «Демонтаж окон»"
+        },
+        {
+          "at": "2026-04-29T11:51:16.618Z",
+          "by": "Sergei Grishenkov",
+          "type": "set_dates",
+          "summary": "«Демонтаж окон» [план]: 29 апр — 10 май"
         }
       ]
     }
@@ -770,6 +776,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Демонтаж окон»"
+    },
+    {
+      "at": "2026-04-29T11:51:16.618Z",
+      "by": "Sergei Grishenkov",
+      "type": "set_dates",
+      "summary": "«Демонтаж окон» [план]: 29 апр — 10 май"
     }
   ]
 }
