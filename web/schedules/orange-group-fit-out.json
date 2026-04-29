@@ -389,7 +389,7 @@
     {
       "id": "16",
       "section": "drywall",
-      "stage": "ST2",
+      "stage": "ST1",
       "name": "Угловые профили стен",
       "qty": null,
       "unit": "",
@@ -429,7 +429,7 @@
     {
       "id": "19",
       "section": "drywall",
-      "stage": "ST2",
+      "stage": "ST1",
       "name": "ГКЛ потолки с каркасом",
       "qty": null,
       "unit": "",
