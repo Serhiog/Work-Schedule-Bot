@@ -11,7 +11,7 @@
     "vatRate": 0.05,
     "totalExVat": 799675,
     "totalIncVat": 839659,
-    "startDate": "2026-04-14",
+    "startDate": "2026-04-11",
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
@@ -261,7 +261,7 @@
       "unit": "",
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
-      "planStart": "2026-04-16",
+      "planStart": "2026-04-11",
       "planEnd": "2026-07-09",
       "actualStart": "2026-04-20",
       "history": [
