@@ -15,7 +15,7 @@
     "endDate": "2026-10-26",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T14:26:49.517Z",
+    "lastUpdated": "2026-04-29T14:31:42.045Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -766,6 +766,27 @@
           "summary": "Раздел «Демонтаж» [план]: +10 дн. — 2 задач"
         }
       ]
+    },
+    {
+      "id": "41",
+      "name": "мойка потолка",
+      "section": "demolition",
+      "planStart": "2026-04-20",
+      "planEnd": "2026-05-20",
+      "start": "2026-04-20",
+      "end": "2026-05-20",
+      "progress": 0,
+      "contractor": "CYFR",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-29T14:31:42.045Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «мойка потолка»"
+        }
+      ]
     }
   ],
   "history": [
@@ -834,6 +855,12 @@
       "by": "Sergei Grishenkov",
       "type": "set_dates",
       "summary": "«Демонтажные работы» [план]: начало → 25 апр"
+    },
+    {
+      "at": "2026-04-29T14:31:42.045Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «мойка потолка»"
     }
   ]
 }
