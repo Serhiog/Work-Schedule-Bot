@@ -855,8 +855,8 @@
       "end": "2026-05-04",
       "progress": 0,
       "contractor": null,
-      "actualStart": null,
-      "actualEnd": null,
+      "actualStart": "2026-04-26",
+      "actualEnd": "2026-04-30",
       "history": [
         {
           "at": "2026-04-30T14:54:33.883Z",
@@ -864,7 +864,8 @@
           "type": "add_task",
           "summary": "Добавлена задача «Закупка огнетушителей»"
         }
-      ]
+      ],
+      "sub": false
     }
   ],
   "history": [
