@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-30T14:54:33.883Z",
+    "lastUpdated": "2026-04-30T15:18:54.536Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -866,6 +866,28 @@
         }
       ],
       "sub": false
+    },
+    {
+      "id": "46",
+      "name": "Покраска потолка",
+      "section": "finishing",
+      "stage": "ST1",
+      "planStart": "2026-05-05",
+      "planEnd": "2026-05-10",
+      "start": "2026-05-05",
+      "end": "2026-05-10",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-30T15:18:54.536Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Покраска потолка»"
+        }
+      ]
     }
   ],
   "history": [
@@ -970,6 +992,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Закупка огнетушителей»"
+    },
+    {
+      "at": "2026-04-30T15:18:54.536Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Покраска потолка»"
     }
   ]
 }
