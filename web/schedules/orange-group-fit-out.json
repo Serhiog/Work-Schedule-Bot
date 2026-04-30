@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-30T15:18:54.536Z",
+    "lastUpdated": "2026-04-30T15:27:11.899Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -888,6 +888,28 @@
           "summary": "Добавлена задача «Покраска потолка»"
         }
       ]
+    },
+    {
+      "id": "47",
+      "name": "Чистка системы канализации",
+      "section": "plumbing",
+      "stage": "ST1",
+      "planStart": "2026-05-07",
+      "planEnd": "2026-05-09",
+      "start": "2026-05-07",
+      "end": "2026-05-09",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-30T15:27:11.899Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Чистка системы канализации»"
+        }
+      ]
     }
   ],
   "history": [
@@ -998,6 +1020,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Покраска потолка»"
+    },
+    {
+      "at": "2026-04-30T15:27:11.899Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Чистка системы канализации»"
     }
   ]
 }
