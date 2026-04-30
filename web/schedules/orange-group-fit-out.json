@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-30T14:27:24.732Z",
+    "lastUpdated": "2026-04-30T14:54:33.883Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -843,6 +843,28 @@
           "summary": "Добавлена задача «Подметание полов»"
         }
       ]
+    },
+    {
+      "id": "45",
+      "name": "Закупка огнетушителей",
+      "section": "fire_safety",
+      "stage": "ST1",
+      "planStart": "2026-05-01",
+      "planEnd": "2026-05-04",
+      "start": "2026-05-01",
+      "end": "2026-05-04",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-30T14:54:33.883Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Закупка огнетушителей»"
+        }
+      ]
     }
   ],
   "history": [
@@ -941,6 +963,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Подметание полов»"
+    },
+    {
+      "at": "2026-04-30T14:54:33.883Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Закупка огнетушителей»"
     }
   ]
 }
