@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-04-29T17:20:11.155Z",
+    "lastUpdated": "2026-04-30T14:27:24.732Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -822,6 +822,27 @@
       "planStart": "2026-04-30",
       "planEnd": "2026-05-07",
       "actualStart": "2026-04-20"
+    },
+    {
+      "id": "44",
+      "name": "Подметание полов",
+      "section": "flooring",
+      "planStart": "2026-05-01",
+      "planEnd": "2026-05-10",
+      "start": "2026-05-01",
+      "end": "2026-05-10",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-04-30T14:27:24.732Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Подметание полов»"
+        }
+      ]
     }
   ],
   "history": [
@@ -914,6 +935,12 @@
       "by": "Sergei Grishenkov",
       "type": "mark_started",
       "summary": "«Штукатурка по маякам» — начата 29 апр"
+    },
+    {
+      "at": "2026-04-30T14:27:24.732Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Подметание полов»"
     }
   ]
 }
