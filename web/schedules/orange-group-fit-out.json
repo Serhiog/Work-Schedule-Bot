@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T17:44:36.274Z",
+    "lastUpdated": "2026-05-01T17:46:12.341Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -117,6 +117,11 @@
     {
       "id": "отмывка",
       "name": "Отмывка",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "двери",
+      "name": "Двери",
       "color": "#94a3b8"
     }
   ],
@@ -1170,6 +1175,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Обготовка полос к выравнению»"
+    },
+    {
+      "at": "2026-05-01T17:46:12.341Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Двери»"
     }
   ]
 }
