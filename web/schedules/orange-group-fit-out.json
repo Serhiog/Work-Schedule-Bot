@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T20:08:16.823Z",
+    "lastUpdated": "2026-05-01T20:10:31.819Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -180,7 +180,7 @@
       "costIncVat": 8103.63,
       "durationDaysPlanned": 10,
       "planStart": "2026-04-29",
-      "planEnd": "2026-05-12",
+      "planEnd": "2026-05-17",
       "actualStart": "2026-04-29",
       "actualEnd": null,
       "progress": 0.6,
@@ -190,6 +190,12 @@
           "by": "Sergei Grishenkov",
           "type": "mark_started",
           "summary": "«Штукатурка по маякам» — начата 29 апр"
+        },
+        {
+          "at": "2026-05-01T20:10:31.819Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Штукатурка по маякам» [план, только конец]: +5 дн. конец → 17 май"
         }
       ],
       "pauses": [
@@ -1424,6 +1430,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Установка стёкол» [план, только конец]: +3 дн. конец → 11 июн"
+    },
+    {
+      "at": "2026-05-01T20:10:31.819Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Штукатурка по маякам» [план, только конец]: +5 дн. конец → 17 май"
     }
   ]
 }
