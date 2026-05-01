@@ -748,8 +748,8 @@
       "unit": "",
       "costIncVat": 12473.48,
       "durationDaysPlanned": 3,
-      "planStart": "2026-10-22",
-      "planEnd": "2026-10-24",
+      "planStart": "2026-10-25",
+      "planEnd": "2026-11-01",
       "actualStart": null,
       "actualEnd": null
     },
@@ -762,8 +762,8 @@
       "unit": "",
       "costIncVat": 20581.23,
       "durationDaysPlanned": 2,
-      "planStart": "2026-10-25",
-      "planEnd": "2026-10-26",
+      "planStart": "2026-11-02",
+      "planEnd": "2026-11-03",
       "actualStart": null,
       "actualEnd": null
     },
