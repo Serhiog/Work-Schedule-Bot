@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T13:22:59.984Z",
+    "lastUpdated": "2026-05-01T17:44:36.274Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -996,6 +996,28 @@
           "summary": "«Очистка рам» [план, только конец]: +5 дн. конец → 8 июн"
         }
       ]
+    },
+    {
+      "id": "51",
+      "name": "Обготовка полос к выравнению",
+      "section": "flooring",
+      "stage": "ST2",
+      "planStart": "2026-05-01",
+      "planEnd": "2026-05-07",
+      "start": "2026-05-01",
+      "end": "2026-05-07",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-01T17:44:36.274Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Обготовка полос к выравнению»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1142,6 +1164,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Очистка рам» [план, только конец]: +5 дн. конец → 8 июн"
+    },
+    {
+      "at": "2026-05-01T17:44:36.274Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Обготовка полос к выравнению»"
     }
   ]
 }
