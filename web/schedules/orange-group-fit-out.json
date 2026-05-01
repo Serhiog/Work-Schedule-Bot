@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T19:30:53.997Z",
+    "lastUpdated": "2026-05-01T19:45:25.414Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -1147,6 +1147,28 @@
           "summary": "Добавлена задача «Стройка стены»"
         }
       ]
+    },
+    {
+      "id": "56",
+      "name": "Установка стёкол",
+      "section": "мойка_окон",
+      "stage": "ST2",
+      "planStart": "2026-06-01",
+      "planEnd": "2026-06-08",
+      "start": "2026-06-01",
+      "end": "2026-06-08",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-01T19:45:25.414Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка стёкол»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1365,6 +1387,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Стройка стены»"
+    },
+    {
+      "at": "2026-05-01T19:45:25.414Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка стёкол»"
     }
   ]
 }
