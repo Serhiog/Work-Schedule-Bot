@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T18:19:28.603Z",
+    "lastUpdated": "2026-05-01T18:20:47.631Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -880,7 +880,7 @@
       "name": "Закупка огнетушителей",
       "section": "fire_safety",
       "stage": "ST1",
-      "planStart": "2026-04-27",
+      "planStart": "2026-04-24",
       "planEnd": "2026-05-12",
       "start": "2026-05-01",
       "end": "2026-05-04",
@@ -912,6 +912,12 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Закупка огнетушителей» [план, только конец]: +3 дн. конец → 12 май"
+        },
+        {
+          "at": "2026-05-01T18:20:47.631Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Закупка огнетушителей» [план, только начало]: -3 дн. начало → 24 апр"
         }
       ],
       "sub": false
@@ -1269,6 +1275,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Закупка огнетушителей» [план, только конец]: +3 дн. конец → 12 май"
+    },
+    {
+      "at": "2026-05-01T18:20:47.631Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Закупка огнетушителей» [план, только начало]: -3 дн. начало → 24 апр"
     }
   ]
 }
