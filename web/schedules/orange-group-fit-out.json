@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T17:49:12.756Z",
+    "lastUpdated": "2026-05-01T17:50:21.741Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -765,7 +765,7 @@
       "progress": 0.01,
       "contractor": "CYFR",
       "actualStart": "2026-04-29",
-      "actualEnd": null,
+      "actualEnd": "2026-05-15",
       "history": [
         {
           "at": "2026-04-29T11:50:31.235Z",
@@ -784,6 +784,12 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Демонтаж окон» [план, только конец]: +5 дн. конец → 15 май"
+        },
+        {
+          "at": "2026-05-01T17:50:21.741Z",
+          "by": "Sergei Grishenkov",
+          "type": "set_dates",
+          "summary": "«Демонтаж окон» [факт]: конец → 15 май"
         }
       ]
     },
@@ -1221,6 +1227,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Демонтаж окон» [план, только конец]: +5 дн. конец → 15 май"
+    },
+    {
+      "at": "2026-05-01T17:50:21.741Z",
+      "by": "Sergei Grishenkov",
+      "type": "set_dates",
+      "summary": "«Демонтаж окон» [факт]: конец → 15 май"
     }
   ]
 }
