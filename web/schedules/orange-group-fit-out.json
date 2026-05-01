@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T09:50:24.928Z",
+    "lastUpdated": "2026-05-01T13:16:56.846Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -932,6 +932,28 @@
           "summary": "Добавлена задача «Демонтаж старых плинтусов»"
         }
       ]
+    },
+    {
+      "id": "49",
+      "name": "Установка деревьев",
+      "section": "flooring",
+      "stage": "ST2",
+      "planStart": "2026-05-10",
+      "planEnd": "2026-05-20",
+      "start": "2026-05-10",
+      "end": "2026-05-20",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-01T13:16:56.846Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка деревьев»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1054,6 +1076,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Демонтаж старых плинтусов»"
+    },
+    {
+      "at": "2026-05-01T13:16:56.846Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка деревьев»"
     }
   ]
 }
