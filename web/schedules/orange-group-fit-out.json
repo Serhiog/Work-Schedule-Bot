@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T19:46:13.972Z",
+    "lastUpdated": "2026-05-01T19:59:38.698Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -759,7 +759,7 @@
       "name": "Демонтаж окон",
       "section": "мойка_окон",
       "planStart": "2026-04-29",
-      "planEnd": "2026-05-15",
+      "planEnd": "2026-05-18",
       "start": "2026-04-29",
       "end": "2026-04-29",
       "progress": 0.01,
@@ -790,6 +790,15 @@
           "by": "Sergei Grishenkov",
           "type": "set_dates",
           "summary": "«Демонтаж окон» [факт]: конец → 15 май"
+        }
+      ],
+      "pauses": [
+        {
+          "id": "p_du7jjm0w",
+          "from": "2026-05-06",
+          "to": "2026-05-08",
+          "reason": "Поставщик не привёз материал.",
+          "at": "2026-05-01T19:59:38.698Z"
         }
       ]
     },
