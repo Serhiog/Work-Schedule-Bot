@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T13:20:04.297Z",
+    "lastUpdated": "2026-05-01T13:22:59.984Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -966,7 +966,7 @@
       "section": "отмывка",
       "stage": "ST2",
       "planStart": "2026-06-01",
-      "planEnd": "2026-06-03",
+      "planEnd": "2026-06-08",
       "start": "2026-06-01",
       "end": "2026-06-03",
       "progress": 0,
@@ -979,6 +979,12 @@
           "by": "Sergei Grishenkov",
           "type": "add_task",
           "summary": "Добавлена задача «Очистка рам»"
+        },
+        {
+          "at": "2026-05-01T13:22:59.984Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Очистка рам» [план, только конец]: +5 дн. конец → 8 июн"
         }
       ]
     }
@@ -1121,6 +1127,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Очистка рам»"
+    },
+    {
+      "at": "2026-05-01T13:22:59.984Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Очистка рам» [план, только конец]: +5 дн. конец → 8 июн"
     }
   ]
 }
