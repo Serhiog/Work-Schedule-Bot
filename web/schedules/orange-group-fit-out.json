@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T18:20:47.631Z",
+    "lastUpdated": "2026-05-01T19:03:25.329Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -1081,6 +1081,28 @@
           "summary": "Добавлена задача «Установка дверей»"
         }
       ]
+    },
+    {
+      "id": "53",
+      "name": "Установка выключательная",
+      "section": "electrical",
+      "stage": "ST1",
+      "planStart": "2026-06-01",
+      "planEnd": "2026-06-03",
+      "start": "2026-06-01",
+      "end": "2026-06-03",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-01T19:03:25.329Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка выключательная»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1281,6 +1303,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Закупка огнетушителей» [план, только начало]: -3 дн. начало → 24 апр"
+    },
+    {
+      "at": "2026-05-01T19:03:25.329Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка выключательная»"
     }
   ]
 }
