@@ -26,7 +26,17 @@
       "color": "#06b6d4"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "1",
+      "name": "Свет",
+      "section": "a",
+      "stage": "ST1",
+      "planStart": "2026-05-02",
+      "planEnd": "2026-05-09",
+      "actualStart": "2026-05-02"
+    }
+  ],
   "stages": [
     {
       "id": "ST1",
