@@ -11,7 +11,7 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T14:33:53.682Z",
+    "lastUpdated": "2026-05-02T14:35:05.432Z",
     "lastUpdatedBy": "Sergei Grishenkov"
   },
   "sections": [
@@ -21,7 +21,30 @@
       "color": "#94a3b8"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "1",
+      "name": "Покраска стен",
+      "section": "малярка",
+      "stage": "ST2",
+      "planStart": "2026-06-01",
+      "planEnd": "2026-06-20",
+      "start": "2026-06-01",
+      "end": "2026-06-20",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-02T14:35:05.432Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Покраска стен»"
+        }
+      ]
+    }
+  ],
   "stages": [
     {
       "id": "ST1",
@@ -73,6 +96,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «Малярка»"
+    },
+    {
+      "at": "2026-05-02T14:35:05.432Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Покраска стен»"
     }
   ]
 }
