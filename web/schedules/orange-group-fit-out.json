@@ -15,7 +15,7 @@
     "endDate": "2026-12-24",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-02T14:15:58.002Z",
+    "lastUpdated": "2026-05-02T14:18:17.625Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -301,7 +301,7 @@
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
       "planStart": "2026-07-11",
-      "planEnd": "2026-10-19",
+      "planEnd": "2026-10-24",
       "actualStart": "2026-03-22",
       "history": [
         {
@@ -359,7 +359,17 @@
           "summary": "«Демонтажные работы» [план, только конец]: +5 дн. конец → 19 окт"
         }
       ],
-      "actualEnd": "2026-04-24"
+      "actualEnd": "2026-04-24",
+      "pauses": [
+        {
+          "id": "p_2tjtcrdm",
+          "from": "2026-08-01",
+          "to": "2026-08-05",
+          "reason": "Каникулы.",
+          "dateType": "plan",
+          "at": "2026-05-02T14:18:17.625Z"
+        }
+      ]
     },
     {
       "id": "9",
