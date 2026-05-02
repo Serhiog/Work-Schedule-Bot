@@ -11,7 +11,7 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T11:51:55.075Z",
+    "lastUpdated": "2026-05-02T11:52:47.395Z",
     "lastUpdatedBy": "Sergei Grishenkov"
   },
   "sections": [
@@ -45,6 +45,28 @@
       "planStart": "2026-05-02",
       "planEnd": "2026-05-09",
       "actualStart": "2026-05-02"
+    },
+    {
+      "id": "2",
+      "name": "Установка сплинклеров",
+      "section": "пожарка",
+      "stage": "ST2",
+      "planStart": "2026-05-15",
+      "planEnd": "2026-05-20",
+      "start": "2026-05-15",
+      "end": "2026-05-20",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-02T11:52:47.395Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка сплинклеров»"
+        }
+      ]
     }
   ],
   "stages": [
@@ -110,6 +132,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «Пожарка»"
+    },
+    {
+      "at": "2026-05-02T11:52:47.395Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка сплинклеров»"
     }
   ]
 }
