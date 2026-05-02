@@ -743,7 +743,8 @@
       "planStart": "2026-10-14",
       "planEnd": "2026-10-21",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "sub": false
     },
     {
       "id": "37",
