@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-02T10:12:48.798Z",
+    "lastUpdated": "2026-05-02T10:13:32.313Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -1211,6 +1211,28 @@
       "planStart": "2026-04-27",
       "planEnd": "2026-05-11",
       "actualStart": "2026-04-29"
+    },
+    {
+      "id": "58",
+      "name": "Установка окон",
+      "section": "окна",
+      "stage": "ST2",
+      "planStart": "2026-05-01",
+      "planEnd": "2026-05-20",
+      "start": "2026-05-01",
+      "end": "2026-05-20",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-02T10:13:32.313Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка окон»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1459,6 +1481,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «Окна»"
+    },
+    {
+      "at": "2026-05-02T10:13:32.313Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка окон»"
     }
   ]
 }
