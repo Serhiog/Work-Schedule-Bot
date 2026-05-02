@@ -11,7 +11,7 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T11:37:21.826Z",
+    "lastUpdated": "2026-05-02T11:51:55.075Z",
     "lastUpdatedBy": "Sergei Grishenkov"
   },
   "sections": [
@@ -28,6 +28,11 @@
     {
       "id": "сантехника",
       "name": "Сантехника",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "пожарка",
+      "name": "Пожарка",
       "color": "#94a3b8"
     }
   ],
@@ -99,6 +104,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «Сантехника»"
+    },
+    {
+      "at": "2026-05-02T11:51:55.075Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Пожарка»"
     }
   ]
 }
