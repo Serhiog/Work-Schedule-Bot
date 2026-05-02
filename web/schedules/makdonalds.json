@@ -1,0 +1,66 @@
+{
+  "project": {
+    "slug": "makdonalds",
+    "name": "Макдональдс",
+    "contractor": "",
+    "customer": "",
+    "location": "",
+    "startDate": "2026-04-18",
+    "endDate": "2026-07-31",
+    "currency": "AED",
+    "totalExVat": 0,
+    "totalIncVat": 0,
+    "durationDays": 104,
+    "lastUpdated": "2026-05-02T14:32:36.850Z",
+    "lastUpdatedBy": "Bot (voice create)"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Подготовка (разрешения, документы)",
+      "color": "#64748b"
+    },
+    {
+      "id": "ST2",
+      "name": "Демонтаж",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST3",
+      "name": "Черновые (MEP, инженерия)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST4",
+      "name": "Конструкции (ГКЛ, полы)",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "ST5",
+      "name": "Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST6",
+      "name": "Двери, стекло, мебель",
+      "color": "#8a5a44"
+    },
+    {
+      "id": "ST7",
+      "name": "Сдача (уборка, приёмка)",
+      "color": "#22c55e"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-05-02T14:32:36.850Z",
+      "by": "Bot (voice create)",
+      "type": "create_project_blank",
+      "summary": "Проект «Макдональдс» создан (пустой)"
+    }
+  ]
+}
