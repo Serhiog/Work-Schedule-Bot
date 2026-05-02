@@ -869,7 +869,7 @@
       "section": "demolition",
       "stage": "ST1",
       "planStart": "2026-04-24",
-      "planEnd": "2026-05-01",
+      "planEnd": "2026-05-13",
       "actualStart": "2026-04-16",
       "actualEnd": "2026-05-02"
     },
@@ -1209,8 +1209,8 @@
       "name": "Новая раьота",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-04-27",
-      "planEnd": "2026-05-11",
+      "planStart": "2026-05-14",
+      "planEnd": "2026-05-28",
       "actualStart": "2026-04-29"
     },
     {
