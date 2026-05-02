@@ -33,8 +33,8 @@
       "end": "2026-06-20",
       "progress": 0,
       "contractor": null,
-      "actualStart": null,
-      "actualEnd": null,
+      "actualStart": "2026-05-01",
+      "actualEnd": "2026-05-02",
       "history": [
         {
           "at": "2026-05-02T14:35:05.432Z",
