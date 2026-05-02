@@ -11,7 +11,7 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T11:53:19.197Z",
+    "lastUpdated": "2026-05-02T11:54:16.886Z",
     "lastUpdatedBy": "Sergei Grishenkov"
   },
   "sections": [
@@ -52,7 +52,7 @@
       "section": "пожарка",
       "stage": "ST2",
       "planStart": "2026-05-15",
-      "planEnd": "2026-05-25",
+      "planEnd": "2026-05-28",
       "start": "2026-05-15",
       "end": "2026-05-20",
       "progress": 0,
@@ -71,6 +71,16 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Установка сплинклеров» [план, только конец]: +5 дн. конец → 25 май"
+        }
+      ],
+      "pauses": [
+        {
+          "id": "p_fdl8n96u",
+          "from": "2026-05-18",
+          "to": "2026-05-20",
+          "reason": "Нет рабочих",
+          "dateType": "plan",
+          "at": "2026-05-02T11:54:16.886Z"
         }
       ]
     }
