@@ -12,7 +12,7 @@
     "totalExVat": 799675,
     "totalIncVat": 839659,
     "startDate": "2026-04-11",
-    "endDate": "2026-12-22",
+    "endDate": "2026-12-24",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
     "lastUpdated": "2026-05-02T10:52:41.100Z",
@@ -272,7 +272,7 @@
       "costIncVat": 26194.29,
       "durationDaysPlanned": 14,
       "planStart": "2026-06-13",
-      "planEnd": "2026-06-23",
+      "planEnd": "2026-07-10",
       "actualStart": null,
       "actualEnd": null
     },
@@ -299,8 +299,8 @@
       "unit": "",
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
-      "planStart": "2026-07-09",
-      "planEnd": "2026-10-12",
+      "planStart": "2026-07-11",
+      "planEnd": "2026-10-14",
       "actualStart": "2026-03-22",
       "history": [
         {
@@ -825,8 +825,8 @@
       "name": "Hhh",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-10-13",
-      "planEnd": "2026-11-21",
+      "planStart": "2026-10-15",
+      "planEnd": "2026-11-23",
       "history": [
         {
           "at": "2026-04-29T14:25:34.801Z",
@@ -840,8 +840,8 @@
       "id": "41",
       "name": "мойка пола",
       "section": "demolition",
-      "planStart": "2026-11-22",
-      "planEnd": "2026-12-22",
+      "planStart": "2026-11-24",
+      "planEnd": "2026-12-24",
       "start": "2026-04-20",
       "end": "2026-05-20",
       "progress": 0,
