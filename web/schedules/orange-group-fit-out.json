@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-02T10:51:30.539Z",
+    "lastUpdated": "2026-05-02T10:52:41.100Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -1218,7 +1218,7 @@
       "section": "окна",
       "stage": "ST2",
       "planStart": "2026-04-28",
-      "planEnd": "2026-05-27",
+      "planEnd": "2026-06-01",
       "start": "2026-05-01",
       "end": "2026-05-20",
       "progress": 0,
@@ -1246,7 +1246,17 @@
         }
       ],
       "sub": true,
-      "subcontractorName": "Оконщики"
+      "subcontractorName": "Оконщики",
+      "pauses": [
+        {
+          "id": "p_fka1th7q",
+          "from": "2026-05-05",
+          "to": "2026-05-09",
+          "reason": "Поставщик не привёз окна.",
+          "dateType": "plan",
+          "at": "2026-05-02T10:52:41.100Z"
+        }
+      ]
     }
   ],
   "history": [
