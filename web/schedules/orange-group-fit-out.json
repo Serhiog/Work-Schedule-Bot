@@ -1223,7 +1223,7 @@
       "end": "2026-05-20",
       "progress": 0,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-02",
       "actualEnd": null,
       "history": [
         {
@@ -1232,7 +1232,9 @@
           "type": "add_task",
           "summary": "Добавлена задача «Установка окон»"
         }
-      ]
+      ],
+      "sub": true,
+      "subcontractorName": "Оконщики"
     }
   ],
   "history": [
