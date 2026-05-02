@@ -1,0 +1,344 @@
+{
+  "project": {
+    "slug": "fit-out-works",
+    "code": "FIT-OUT-WO",
+    "name": "Fit-Out Works",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2025-05-20",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 329000,
+    "totalIncVat": 345450,
+    "startDate": "2026-04-18",
+    "endDate": "2026-09-11",
+    "durationDays": 147,
+    "contractEndDate": "2026-09-11",
+    "lastUpdated": "2026-05-02T14:42:46.382Z",
+    "lastUpdatedBy": "Sergio",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "fire_safety",
+      "name": "Пожаробезопасность",
+      "color": "#dc2626",
+      "sub": true
+    },
+    {
+      "id": "hvac",
+      "name": "ОВиК (вентиляция)",
+      "color": "#06b6d4",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "paint",
+      "name": "Покраска",
+      "color": "#22c55e"
+    },
+    {
+      "id": "furniture",
+      "name": "Мебель и декор",
+      "color": "#475569"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Сопровождение разрешительной документации",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 63000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-05-02",
+      "planEnd": "2026-05-11",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Замена и перенос вентиляции",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 63000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-05-12",
+      "planEnd": "2026-05-21",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "fire_safety",
+      "stage": "ST1",
+      "name": "Перенос системы пожаротушения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 22050,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-05-22",
+      "planEnd": "2026-05-31",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтажные работы в двух санузлах",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 21000,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-06-01",
+      "planEnd": "2026-06-07",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "hvac",
+      "stage": "ST2",
+      "name": "Замена вентиляции",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 31500,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-06-08",
+      "planEnd": "2026-06-17",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "electrical",
+      "stage": "ST2",
+      "name": "Чистовая электрика",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 17850,
+      "durationDaysPlanned": 20,
+      "planStart": "2026-06-18",
+      "planEnd": "2026-07-07",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "plumbing",
+      "stage": "ST2",
+      "name": "Чистовая сантехника",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 8400,
+      "durationDaysPlanned": 15,
+      "planStart": "2026-07-08",
+      "planEnd": "2026-07-22",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Установка перегородок из ГКЛ",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 17850,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-07-23",
+      "planEnd": "2026-08-01",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "materials",
+      "stage": "ST2",
+      "name": "Шумоизоляция стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-08-02",
+      "planEnd": "2026-08-11",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "section": "materials",
+      "stage": "ST2",
+      "name": "Covering surfaces with protective material",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 10500,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-08-12",
+      "planEnd": "2026-08-16",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "11",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Painting work on partitions from both sides",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 15750,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-08-17",
+      "planEnd": "2026-08-21",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "12",
+      "section": "flooring",
+      "stage": "ST3",
+      "name": "Лaying floor tiles (medium size)",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 21000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-08-22",
+      "planEnd": "2026-08-31",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "13",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Painting the main ceiling",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 20825,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-09-01",
+      "planEnd": "2026-09-05",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "14",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Montage skirting boards on the floor",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 2625,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-09-06",
+      "planEnd": "2026-09-08",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "15",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Garbage removal",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 3150,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-09-09",
+      "planEnd": "2026-09-11",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
