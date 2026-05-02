@@ -983,7 +983,7 @@
       "end": "2026-05-09",
       "progress": 0,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-02",
       "actualEnd": null,
       "history": [
         {
@@ -992,7 +992,8 @@
           "type": "add_task",
           "summary": "Добавлена задача «Чистка системы канализации»"
         }
-      ]
+      ],
+      "subcontractorName": "Ахмед"
     },
     {
       "id": "48",
