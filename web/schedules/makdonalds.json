@@ -11,10 +11,16 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T14:32:36.850Z",
-    "lastUpdatedBy": "Bot (voice create)"
+    "lastUpdated": "2026-05-02T14:33:53.682Z",
+    "lastUpdatedBy": "Sergei Grishenkov"
   },
-  "sections": [],
+  "sections": [
+    {
+      "id": "малярка",
+      "name": "Малярка",
+      "color": "#94a3b8"
+    }
+  ],
   "tasks": [],
   "stages": [
     {
@@ -61,6 +67,12 @@
       "by": "Bot (voice create)",
       "type": "create_project_blank",
       "summary": "Проект «Макдональдс» создан (пустой)"
+    },
+    {
+      "at": "2026-05-02T14:33:53.682Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Малярка»"
     }
   ]
 }
