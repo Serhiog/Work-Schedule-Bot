@@ -11,7 +11,7 @@
     "totalExVat": 0,
     "totalIncVat": 0,
     "durationDays": 104,
-    "lastUpdated": "2026-05-02T11:25:50.325Z",
+    "lastUpdated": "2026-05-02T11:37:21.826Z",
     "lastUpdatedBy": "Sergei Grishenkov"
   },
   "sections": [
@@ -24,6 +24,11 @@
       "id": "a",
       "name": "Электрика",
       "color": "#06b6d4"
+    },
+    {
+      "id": "сантехника",
+      "name": "Сантехника",
+      "color": "#94a3b8"
     }
   ],
   "tasks": [
@@ -88,6 +93,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_section",
       "summary": "Добавлен раздел «Малярка»"
+    },
+    {
+      "at": "2026-05-02T11:37:21.826Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Сантехника»"
     }
   ]
 }
