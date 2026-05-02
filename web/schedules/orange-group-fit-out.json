@@ -15,7 +15,7 @@
     "endDate": "2026-11-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-01T20:13:13.352Z",
+    "lastUpdated": "2026-05-02T10:12:48.798Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -122,6 +122,11 @@
     {
       "id": "двери",
       "name": "Двери",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "окна",
+      "name": "Окна",
       "color": "#94a3b8"
     }
   ],
@@ -1448,6 +1453,12 @@
       "by": "Sergei Grishenkov",
       "type": "shift_dates",
       "summary": "«Штукатурка по маякам» [план, только начало]: +3 дн. начало → 2 май"
+    },
+    {
+      "at": "2026-05-02T10:12:48.798Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Окна»"
     }
   ]
 }
