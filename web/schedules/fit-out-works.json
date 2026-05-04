@@ -44,7 +44,10 @@
       }
     ],
     "isPlanning": false,
-    "startedAt": "2026-05-04T18:36:17.269Z"
+    "startedAt": "2026-05-04T18:36:17.269Z",
+    "isPaused": true,
+    "pausedAt": "2026-05-04T18:36:23.044Z",
+    "pauseReason": "Просьба клиента"
   },
   "sections": [
     {
@@ -329,6 +332,12 @@
       "type": "project_started",
       "by": "web",
       "at": "2026-05-04T18:36:17.269Z"
+    },
+    {
+      "type": "project_paused",
+      "by": "web",
+      "at": "2026-05-04T18:36:23.044Z",
+      "reason": "Просьба клиента"
     }
   ]
 }
