@@ -890,9 +890,42 @@
       "section": "demolition",
       "stage": "ST1",
       "planStart": "2026-04-29",
-      "planEnd": "2026-05-14",
+      "planEnd": "2026-05-19",
       "actualStart": "2026-03-31",
-      "actualEnd": "2026-04-18"
+      "actualEnd": "2026-04-18",
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T16:39:59.794Z",
+          "before": {
+            "planStart": "2026-04-29",
+            "planEnd": "2026-05-14",
+            "actualStart": "2026-03-31",
+            "actualEnd": "2026-04-18",
+            "name": "Новый демонтаж",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-04-29",
+            "planEnd": "2026-05-19",
+            "actualStart": "2026-03-31",
+            "actualEnd": "2026-04-18",
+            "name": "Новый демонтаж",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Просьба клиента",
+          "planning": false,
+          "summary": "planEnd=2026-05-19"
+        }
+      ]
     },
     {
       "id": "43",
@@ -1231,8 +1264,8 @@
       "name": "Новая раьота",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-05-08",
-      "planEnd": "2026-05-22",
+      "planStart": "2026-05-20",
+      "planEnd": "2026-06-03",
       "actualStart": "2026-04-29"
     },
     {
