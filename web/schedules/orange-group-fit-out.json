@@ -1215,6 +1215,32 @@
           "reason": "Задержка подрядчика",
           "planning": false,
           "summary": "planStart=2026-04-27"
+        },
+        {
+          "type": "pause_task",
+          "by": "web",
+          "at": "2026-05-04T18:08:10.265Z",
+          "reason": "ждем поставку",
+          "pauseIds": [
+            "p_7zd5mwum"
+          ],
+          "pauseId": "p_7zd5mwum",
+          "from": "2026-05-04",
+          "to": "2026-05-10",
+          "dateType": "plan",
+          "planEndBefore": "2026-05-23",
+          "planEndAfter": "2026-05-23",
+          "summary": "Пауза «Новый демонтаж» (план) с 2026-05-04 по 2026-05-10 · причина: ждем поставку"
+        }
+      ],
+      "pauses": [
+        {
+          "id": "p_7zd5mwum",
+          "from": "2026-05-04",
+          "to": "2026-05-10",
+          "reason": "ждем поставку",
+          "dateType": "plan",
+          "at": "2026-05-04T18:08:10.265Z"
         }
       ]
     },
