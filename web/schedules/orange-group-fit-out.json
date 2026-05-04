@@ -1328,7 +1328,7 @@
       "stage": "ST1",
       "planStart": "2026-05-24",
       "planEnd": "2026-06-07",
-      "actualStart": "2026-04-29",
+      "actualStart": "2026-04-24",
       "actualEnd": "2026-05-04",
       "history": [
         {
@@ -1361,6 +1361,37 @@
           "reason": "Форс-мажор",
           "planning": false,
           "summary": "actualEnd=2026-05-04"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T16:40:28.045Z",
+          "before": {
+            "planStart": "2026-05-24",
+            "planEnd": "2026-06-07",
+            "actualStart": "2026-04-29",
+            "actualEnd": "2026-05-04",
+            "name": "Новая раьота",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-24",
+            "planEnd": "2026-06-07",
+            "actualStart": "2026-04-24",
+            "actualEnd": "2026-05-04",
+            "name": "Новая раьота",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": "Форс-мажор",
+          "planning": false,
+          "summary": "actualStart=2026-04-24"
         }
       ]
     },
