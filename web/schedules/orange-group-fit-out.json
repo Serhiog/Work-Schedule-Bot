@@ -15,7 +15,7 @@
     "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-04T10:11:44.777Z",
+    "lastUpdated": "2026-05-04T16:43:58.904Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -289,10 +289,20 @@
       "costIncVat": 49478.1,
       "durationDaysPlanned": 18,
       "planStart": "2026-05-17",
-      "planEnd": "2026-06-15",
+      "planEnd": "2026-06-23",
       "actualStart": "2026-04-25",
       "actualEnd": "2026-05-02",
-      "subcontractorName": "Али"
+      "subcontractorName": "Али",
+      "pauses": [
+        {
+          "id": "p_ix0goyxo",
+          "from": "2026-05-04",
+          "to": "2026-05-11",
+          "reason": "Нет рабочих",
+          "dateType": "plan",
+          "at": "2026-05-04T16:43:58.904Z"
+        }
+      ]
     },
     {
       "id": "8",
