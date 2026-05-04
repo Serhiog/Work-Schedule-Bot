@@ -15,7 +15,7 @@
     "endDate": "2026-12-24",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-02T14:22:57.506Z",
+    "lastUpdated": "2026-05-04T10:11:44.777Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -1299,6 +1299,28 @@
           "summary": "Добавлена задача «Добавление светильников»"
         }
       ]
+    },
+    {
+      "id": "60",
+      "name": "Установка АКВАРД СВИНИЛ",
+      "section": "двери",
+      "stage": "ST2",
+      "planStart": "2026-05-10",
+      "planEnd": "2026-05-15",
+      "start": "2026-05-10",
+      "end": "2026-05-15",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-04T10:11:44.777Z",
+          "by": "Sergei Grishenkov",
+          "type": "add_task",
+          "summary": "Добавлена задача «Установка АКВАРД СВИНИЛ»"
+        }
+      ]
     }
   ],
   "history": [
@@ -1577,6 +1599,12 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Добавление светильников»"
+    },
+    {
+      "at": "2026-05-04T10:11:44.777Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_task",
+      "summary": "Добавлена задача «Установка АКВАРД СВИНИЛ»"
     }
   ]
 }
