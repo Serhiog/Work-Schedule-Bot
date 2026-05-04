@@ -42,7 +42,9 @@
         "share": 0.1,
         "note": "Устранение замечаний и сдача"
       }
-    ]
+    ],
+    "isPlanning": false,
+    "startedAt": "2026-05-04T16:29:54.387Z"
   },
   "sections": [
     {
@@ -1607,6 +1609,11 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Установка АКВАРД СВИНИЛ»"
+    },
+    {
+      "type": "project_started",
+      "by": "web",
+      "at": "2026-05-04T16:29:54.387Z"
     }
   ]
 }
