@@ -12,7 +12,7 @@
     "totalExVat": 799675,
     "totalIncVat": 839659,
     "startDate": "2026-04-11",
-    "endDate": "2026-12-24",
+    "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
     "lastUpdated": "2026-05-04T10:11:44.777Z",
@@ -304,7 +304,7 @@
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
       "planStart": "2026-07-11",
-      "planEnd": "2026-10-24",
+      "planEnd": "2026-10-18",
       "actualStart": "2026-03-22",
       "history": [
         {
@@ -360,6 +360,37 @@
           "by": "Sergei Grishenkov",
           "type": "shift_dates",
           "summary": "«Демонтажные работы» [план, только конец]: +5 дн. конец → 19 окт"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T16:41:24.167Z",
+          "before": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-10-24",
+            "actualStart": "2026-03-22",
+            "actualEnd": "2026-04-24",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-10-18",
+            "actualStart": "2026-03-22",
+            "actualEnd": "2026-04-24",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Перенос по доступу на объект",
+          "planning": false,
+          "summary": "planEnd=2026-10-18"
         }
       ],
       "actualEnd": "2026-04-24",
@@ -846,8 +877,8 @@
       "name": "Hhh",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-10-15",
-      "planEnd": "2026-11-23",
+      "planStart": "2026-10-19",
+      "planEnd": "2026-11-27",
       "history": [
         {
           "at": "2026-04-29T14:25:34.801Z",
@@ -861,8 +892,8 @@
       "id": "41",
       "name": "мойка пола",
       "section": "demolition",
-      "planStart": "2026-11-24",
-      "planEnd": "2026-12-24",
+      "planStart": "2026-11-28",
+      "planEnd": "2026-12-28",
       "start": "2026-04-20",
       "end": "2026-05-20",
       "progress": 0,
