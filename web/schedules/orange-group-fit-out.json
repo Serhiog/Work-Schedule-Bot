@@ -15,7 +15,7 @@
     "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-04T16:43:58.904Z",
+    "lastUpdated": "2026-05-04T17:44:11.531Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -347,7 +347,7 @@
       "costIncVat": 41162.46,
       "durationDaysPlanned": 7,
       "planStart": "2026-07-11",
-      "planEnd": "2026-10-18",
+      "planEnd": "2026-10-28",
       "actualStart": "2026-03-22",
       "history": [
         {
@@ -434,6 +434,14 @@
           "reason": "Перенос по доступу на объект",
           "planning": false,
           "summary": "planEnd=2026-10-18"
+        },
+        {
+          "at": "2026-05-04T17:44:11.531Z",
+          "by": "Sergei Grishenkov",
+          "type": "shift_dates",
+          "summary": "«Демонтажные работы» [план, только конец]: +10 дн. конец → 28 окт · Отсутствие финансирования",
+          "reason": "Отсутствие финансирования",
+          "planning": false
         }
       ],
       "actualEnd": "2026-04-24",
@@ -445,6 +453,15 @@
           "reason": "Каникулы.",
           "dateType": "plan",
           "at": "2026-05-02T14:18:17.625Z"
+        }
+      ],
+      "delays": [
+        {
+          "date": "2026-05-04",
+          "days": 10,
+          "reason": "Отсутствие финансирования",
+          "dateType": "plan",
+          "shiftStart": false
         }
       ]
     },
@@ -1888,6 +1905,14 @@
       "at": "2026-05-04T16:39:46.712Z",
       "pausedAt": "2026-05-04T16:39:16.888Z",
       "pauseReason": "Просьба клиента"
+    },
+    {
+      "at": "2026-05-04T17:44:11.531Z",
+      "by": "Sergei Grishenkov",
+      "type": "shift_dates",
+      "summary": "«Демонтажные работы» [план, только конец]: +10 дн. конец → 28 окт · Отсутствие финансирования",
+      "reason": "Отсутствие финансирования",
+      "planning": false
     }
   ]
 }
