@@ -15,8 +15,8 @@
     "endDate": "2026-09-11",
     "durationDays": 147,
     "contractEndDate": "2026-09-11",
-    "lastUpdated": "2026-05-02T14:42:46.382Z",
-    "lastUpdatedBy": "Sergio",
+    "lastUpdated": "2026-05-04T07:54:31.880Z",
+    "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
         "id": "P1",
@@ -103,6 +103,11 @@
       "id": "materials",
       "name": "Логистика и материалы",
       "color": "#d4a017"
+    },
+    {
+      "id": "sec_qwl5pi",
+      "name": "Светильники.",
+      "color": "#94a3b8"
     }
   ],
   "stages": [
@@ -339,6 +344,28 @@
       "planEnd": "2026-09-11",
       "actualStart": null,
       "actualEnd": null
+    },
+    {
+      "id": "16",
+      "name": "Установка светильников",
+      "section": "sec_qwl5pi",
+      "stage": "ST2",
+      "planStart": "2026-05-04",
+      "planEnd": "2026-05-04",
+      "start": "2026-05-04",
+      "end": "2026-05-04",
+      "progress": 0,
+      "contractor": null,
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ],
+  "history": [
+    {
+      "at": "2026-05-04T07:54:31.880Z",
+      "by": "Sergei Grishenkov",
+      "type": "add_section",
+      "summary": "Добавлен раздел «Светильники.» + работа «Установка светильников»"
     }
   ]
 }
