@@ -889,7 +889,7 @@
       "name": "Новый демонтаж",
       "section": "demolition",
       "stage": "ST1",
-      "planStart": "2026-04-29",
+      "planStart": "2026-04-27",
       "planEnd": "2026-05-23",
       "actualStart": "2026-03-31",
       "actualEnd": "2026-04-18",
@@ -955,6 +955,37 @@
           "reason": "Просьба клиента",
           "planning": false,
           "summary": "planEnd=2026-05-23"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T16:40:15.571Z",
+          "before": {
+            "planStart": "2026-04-29",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-03-31",
+            "actualEnd": "2026-04-18",
+            "name": "Новый демонтаж",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-04-27",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-03-31",
+            "actualEnd": "2026-04-18",
+            "name": "Новый демонтаж",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart"
+          ],
+          "reason": "Задержка подрядчика",
+          "planning": false,
+          "summary": "planStart=2026-04-27"
         }
       ]
     },
