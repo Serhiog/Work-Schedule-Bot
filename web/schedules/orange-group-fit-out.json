@@ -45,7 +45,9 @@
     ],
     "isPlanning": false,
     "startedAt": "2026-05-04T16:29:54.387Z",
-    "isPaused": false
+    "isPaused": true,
+    "pausedAt": "2026-05-04T16:38:42.404Z",
+    "pauseReason": "Задержка финансирования"
   },
   "sections": [
     {
@@ -1628,6 +1630,12 @@
       "at": "2026-05-04T16:30:19.606Z",
       "pausedAt": "2026-05-04T16:30:10.928Z",
       "pauseReason": "Форс-мажор"
+    },
+    {
+      "type": "project_paused",
+      "by": "web",
+      "at": "2026-05-04T16:38:42.404Z",
+      "reason": "Задержка финансирования"
     }
   ]
 }
