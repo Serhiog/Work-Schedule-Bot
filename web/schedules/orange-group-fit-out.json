@@ -348,7 +348,7 @@
       "durationDaysPlanned": 7,
       "planStart": "2026-07-11",
       "planEnd": "2026-11-04",
-      "actualStart": "2026-03-22",
+      "actualStart": "2026-03-19",
       "history": [
         {
           "at": "2026-04-29T11:12:32.299Z",
@@ -555,6 +555,37 @@
             "dateType": "actual"
           },
           "summary": "Пауза «Демонтажные работы» обновлена: 2026-08-24→2026-09-03 → 2026-08-17→2026-09-03"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T18:09:28.315Z",
+          "before": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-11-04",
+            "actualStart": "2026-03-22",
+            "actualEnd": "2026-04-24",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-11-04",
+            "actualStart": "2026-03-19",
+            "actualEnd": "2026-04-24",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": "Перенос по доступу на объект",
+          "planning": false,
+          "summary": "actualStart=2026-03-19"
         }
       ],
       "actualEnd": "2026-04-24",
