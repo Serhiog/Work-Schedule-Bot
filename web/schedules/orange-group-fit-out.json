@@ -586,9 +586,40 @@
           "reason": "Перенос по доступу на объект",
           "planning": false,
           "summary": "actualStart=2026-03-19"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T18:09:35.292Z",
+          "before": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-11-04",
+            "actualStart": "2026-03-19",
+            "actualEnd": "2026-04-24",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-11",
+            "planEnd": "2026-11-04",
+            "actualStart": "2026-03-19",
+            "actualEnd": "2026-05-01",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualEnd"
+          ],
+          "reason": "Форс-мажор",
+          "planning": false,
+          "summary": "actualEnd=2026-05-01"
         }
       ],
-      "actualEnd": "2026-04-24",
+      "actualEnd": "2026-05-01",
       "pauses": [
         {
           "id": "p_2tjtcrdm",
