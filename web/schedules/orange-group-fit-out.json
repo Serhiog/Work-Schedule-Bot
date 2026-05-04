@@ -289,7 +289,7 @@
       "costIncVat": 49478.1,
       "durationDaysPlanned": 18,
       "planStart": "2026-05-17",
-      "planEnd": "2026-06-23",
+      "planEnd": "2026-06-30",
       "actualStart": "2026-04-25",
       "actualEnd": "2026-05-02",
       "subcontractorName": "Али",
@@ -301,6 +301,39 @@
           "reason": "Нет рабочих",
           "dateType": "plan",
           "at": "2026-05-04T16:43:58.904Z"
+        }
+      ],
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-04T16:45:48.287Z",
+          "before": {
+            "planStart": "2026-05-17",
+            "planEnd": "2026-06-23",
+            "actualStart": "2026-04-25",
+            "actualEnd": "2026-05-02",
+            "name": "Черновая электрика",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": "Али"
+          },
+          "after": {
+            "planStart": "2026-05-17",
+            "planEnd": "2026-06-30",
+            "actualStart": "2026-04-25",
+            "actualEnd": "2026-05-02",
+            "name": "Черновая электрика",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": "Али"
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Перенос по доступу на объект",
+          "planning": false,
+          "summary": "planEnd=2026-06-30"
         }
       ]
     },
