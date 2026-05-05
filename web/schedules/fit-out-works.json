@@ -15,8 +15,8 @@
     "endDate": "2026-10-30",
     "durationDays": 180,
     "contractEndDate": "2026-10-16",
-    "lastUpdated": "2026-05-04T10:21:34.571Z",
-    "lastUpdatedBy": "Sergio",
+    "lastUpdated": "2026-05-05T06:23:45.570Z",
+    "lastUpdatedBy": "Антон П.",
     "paymentStages": [
       {
         "id": "P1",
@@ -183,8 +183,9 @@
       "durationDaysPlanned": 10,
       "planStart": "2026-07-07",
       "planEnd": "2026-07-16",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-05-05",
+      "actualEnd": null,
+      "progress": 0.01
     },
     {
       "id": "5",
@@ -197,8 +198,9 @@
       "durationDaysPlanned": 14,
       "planStart": "2026-07-17",
       "planEnd": "2026-07-30",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-05-05",
+      "actualEnd": null,
+      "progress": 0.01
     },
     {
       "id": "6",
@@ -253,8 +255,9 @@
       "durationDaysPlanned": 10,
       "planStart": "2026-08-27",
       "planEnd": "2026-09-05",
-      "actualStart": null,
-      "actualEnd": null
+      "actualStart": "2026-08-27",
+      "actualEnd": null,
+      "progress": 0.6
     },
     {
       "id": "10",
