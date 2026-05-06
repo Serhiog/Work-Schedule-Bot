@@ -1858,7 +1858,8 @@
       "actualStart": null,
       "actualEnd": null,
       "cost": 0,
-      "history": []
+      "history": [],
+      "stage": "ST1"
     },
     {
       "id": "permit-gate-pass",
@@ -1872,7 +1873,8 @@
       "actualStart": null,
       "actualEnd": null,
       "cost": 0,
-      "history": []
+      "history": [],
+      "stage": "ST1"
     },
     {
       "id": "permit-work-permit",
@@ -1886,7 +1888,8 @@
       "actualStart": null,
       "actualEnd": null,
       "cost": 0,
-      "history": []
+      "history": [],
+      "stage": "ST1"
     }
   ],
   "history": [
