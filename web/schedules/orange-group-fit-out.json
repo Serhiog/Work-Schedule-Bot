@@ -15,7 +15,7 @@
     "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-04T18:24:45.765Z",
+    "lastUpdated": "2026-05-06T15:56:43.556Z",
     "lastUpdatedBy": "Sergei Grishenkov",
     "paymentStages": [
       {
@@ -176,7 +176,7 @@
       "planEnd": "2026-04-28",
       "actualStart": "2026-04-29",
       "actualEnd": null,
-      "progress": 0.01
+      "progress": 0.8
     },
     {
       "id": "2",
@@ -1347,7 +1347,8 @@
       "stage": "ST1",
       "planStart": "2026-04-24",
       "planEnd": "2026-05-11",
-      "actualStart": "2026-04-20"
+      "actualStart": "2026-04-20",
+      "progress": 0.4
     },
     {
       "id": "44",
@@ -1755,7 +1756,7 @@
       "planEnd": "2026-06-01",
       "start": "2026-05-01",
       "end": "2026-05-20",
-      "progress": 0,
+      "progress": 0.15,
       "contractor": null,
       "actualStart": "2026-05-02",
       "actualEnd": null,
