@@ -21,6 +21,12 @@
       "id": "малярка",
       "name": "Малярка",
       "color": "#94a3b8"
+    },
+    {
+      "id": "permits",
+      "name": "Разрешения",
+      "stage": "ST1",
+      "isPermits": true
     }
   ],
   "tasks": [
@@ -45,6 +51,48 @@
           "summary": "Добавлена задача «Покраска стен»"
         }
       ]
+    },
+    {
+      "id": "permit-noc",
+      "section": "permits",
+      "name": "NOC (No Objection Certificate)",
+      "permitType": "noc",
+      "isPermit": true,
+      "planStart": "2026-04-18",
+      "planEnd": "2026-07-31",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-gate-pass",
+      "section": "permits",
+      "name": "Gate Pass",
+      "permitType": "gate_pass",
+      "isPermit": true,
+      "planStart": "2026-04-18",
+      "planEnd": "2026-07-31",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-work-permit",
+      "section": "permits",
+      "name": "Work Permit",
+      "permitType": "work_permit",
+      "isPermit": true,
+      "planStart": "2026-04-18",
+      "planEnd": "2026-07-31",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
     }
   ],
   "stages": [
