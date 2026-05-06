@@ -12,7 +12,9 @@
     "totalIncVat": 0,
     "durationDays": 104,
     "lastUpdated": "2026-05-02T14:35:05.432Z",
-    "lastUpdatedBy": "Sergei Grishenkov"
+    "lastUpdatedBy": "Sergei Grishenkov",
+    "isPlanning": false,
+    "startedAt": "2026-05-06T16:43:23.655Z"
   },
   "sections": [
     {
@@ -102,6 +104,11 @@
       "by": "Sergei Grishenkov",
       "type": "add_task",
       "summary": "Добавлена задача «Покраска стен»"
+    },
+    {
+      "type": "project_started",
+      "by": "web",
+      "at": "2026-05-06T16:43:23.655Z"
     }
   ]
 }
