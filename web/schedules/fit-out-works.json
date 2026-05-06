@@ -101,6 +101,12 @@
       "id": "materials",
       "name": "Логистика и материалы",
       "color": "#d4a017"
+    },
+    {
+      "id": "permits",
+      "name": "Разрешения",
+      "stage": "ST1",
+      "isPermits": true
     }
   ],
   "stages": [
@@ -326,6 +332,48 @@
       "planEnd": "2026-10-30",
       "actualStart": null,
       "actualEnd": null
+    },
+    {
+      "id": "permit-noc",
+      "section": "permits",
+      "name": "NOC (No Objection Certificate)",
+      "permitType": "noc",
+      "isPermit": true,
+      "planStart": "2026-04-20",
+      "planEnd": "2026-10-30",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-gate-pass",
+      "section": "permits",
+      "name": "Gate Pass",
+      "permitType": "gate_pass",
+      "isPermit": true,
+      "planStart": "2026-04-20",
+      "planEnd": "2026-10-30",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-work-permit",
+      "section": "permits",
+      "name": "Work Permit",
+      "permitType": "work_permit",
+      "isPermit": true,
+      "planStart": "2026-04-20",
+      "planEnd": "2026-10-30",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
     }
   ],
   "history": [
