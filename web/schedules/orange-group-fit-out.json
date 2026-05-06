@@ -136,7 +136,8 @@
       "id": "permits",
       "name": "Разрешения",
       "stage": "ST1",
-      "isPermits": true
+      "isPermits": true,
+      "color": "#475569"
     }
   ],
   "stages": [
