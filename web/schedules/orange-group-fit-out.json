@@ -45,7 +45,9 @@
     ],
     "isPlanning": false,
     "startedAt": "2026-05-04T16:29:54.387Z",
-    "isPaused": false
+    "isPaused": true,
+    "pausedAt": "2026-05-07T11:06:17.982Z",
+    "pauseReason": "Просьба клиента"
   },
   "sections": [
     {
@@ -2267,6 +2269,12 @@
       "summary": "«Демонтажные работы» [план, только конец]: +7 дн. конец → 11 ноя · Пожелания клиента.",
       "reason": "Пожелания клиента.",
       "planning": false
+    },
+    {
+      "type": "project_paused",
+      "by": "web",
+      "at": "2026-05-07T11:06:17.982Z",
+      "reason": "Просьба клиента"
     }
   ]
 }
