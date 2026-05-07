@@ -2,7 +2,7 @@
   "project": {
     "slug": "fit-out-works",
     "code": "FIT-OUT-WO",
-    "name": "Fit-Out Works",
+    "name": "test",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-10-30",
     "durationDays": 180,
     "contractEndDate": "2026-10-16",
-    "lastUpdated": "2026-05-05T06:23:45.570Z",
-    "lastUpdatedBy": "Антон П.",
+    "lastUpdated": "2026-05-07T11:28:05.749Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
