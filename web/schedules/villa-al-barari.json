@@ -42,7 +42,9 @@
         "share": 0.1,
         "note": "Устранение замечаний и сдача"
       }
-    ]
+    ],
+    "isPlanning": false,
+    "startedAt": "2026-05-07T11:55:31.375Z"
   },
   "sections": [
     {
@@ -64,6 +66,13 @@
       "id": "materials",
       "name": "Логистика и материалы",
       "color": "#d4a017"
+    },
+    {
+      "id": "permits",
+      "name": "Разрешения",
+      "color": "#475569",
+      "stage": "ST1",
+      "isPermits": true
     }
   ],
   "stages": [
@@ -258,6 +267,58 @@
       "planEnd": "2026-07-22",
       "actualStart": null,
       "actualEnd": null
+    },
+    {
+      "id": "permit-noc",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "NOC (No Objection Certificate)",
+      "permitType": "noc",
+      "isPermit": true,
+      "planStart": "2026-04-23",
+      "planEnd": "2026-08-05",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-gate-pass",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Gate Pass",
+      "permitType": "gate_pass",
+      "isPermit": true,
+      "planStart": "2026-04-23",
+      "planEnd": "2026-08-05",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-work-permit",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Work Permit",
+      "permitType": "work_permit",
+      "isPermit": true,
+      "planStart": "2026-04-23",
+      "planEnd": "2026-08-05",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    }
+  ],
+  "history": [
+    {
+      "type": "project_started",
+      "by": "web",
+      "at": "2026-05-07T11:55:31.375Z"
     }
   ]
 }
