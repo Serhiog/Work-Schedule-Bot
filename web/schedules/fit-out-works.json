@@ -144,10 +144,28 @@
       "unit": "",
       "costIncVat": 63000,
       "durationDaysPlanned": 30,
-      "planStart": "2026-05-04",
-      "planEnd": "2026-06-16",
+      "planStart": "2026-05-09",
+      "planEnd": "2026-06-21",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "at": "2026-05-07T15:57:06.967Z",
+          "by": "Sergei test",
+          "action": "shift_plan_start",
+          "reason": "заказ материалов задержался",
+          "before": {
+            "planStart": "2026-05-04",
+            "planEnd": "2026-06-16",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-09",
+            "planEnd": "2026-06-21",
+            "actualStart": null
+          }
+        }
+      ]
     },
     {
       "id": "2",
@@ -186,11 +204,29 @@
       "unit": "",
       "costIncVat": 21000,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-07",
-      "planEnd": "2026-07-16",
+      "planStart": "2026-05-05",
+      "planEnd": "2026-05-14",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.1
+      "progress": 0.1,
+      "history": [
+        {
+          "at": "2026-05-07T15:57:06.967Z",
+          "by": "Sergei test",
+          "action": "accept_fact_as_plan",
+          "reason": "да, сдвигаем план под факт",
+          "before": {
+            "planStart": "2026-07-07",
+            "planEnd": "2026-07-16",
+            "actualStart": "2026-05-05"
+          },
+          "after": {
+            "planStart": "2026-05-05",
+            "planEnd": "2026-05-14",
+            "actualStart": "2026-05-05"
+          }
+        }
+      ]
     },
     {
       "id": "5",
@@ -201,11 +237,29 @@
       "unit": "",
       "costIncVat": 17850,
       "durationDaysPlanned": 14,
-      "planStart": "2026-07-17",
-      "planEnd": "2026-07-30",
+      "planStart": "2026-05-05",
+      "planEnd": "2026-05-18",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.2
+      "progress": 0.2,
+      "history": [
+        {
+          "at": "2026-05-07T15:57:06.967Z",
+          "by": "Sergei test",
+          "action": "accept_fact_as_plan",
+          "reason": "да, сдвигаем план под факт",
+          "before": {
+            "planStart": "2026-07-17",
+            "planEnd": "2026-07-30",
+            "actualStart": "2026-05-05"
+          },
+          "after": {
+            "planStart": "2026-05-05",
+            "planEnd": "2026-05-18",
+            "actualStart": "2026-05-05"
+          }
+        }
+      ]
     },
     {
       "id": "6",
