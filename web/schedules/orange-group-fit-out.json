@@ -45,9 +45,7 @@
     ],
     "isPlanning": false,
     "startedAt": "2026-05-04T16:29:54.387Z",
-    "isPaused": true,
-    "pausedAt": "2026-05-07T17:16:58.921Z",
-    "pauseReason": "Форс-мажор"
+    "isPaused": false
   },
   "sections": [
     {
@@ -2326,6 +2324,13 @@
       "by": "web",
       "at": "2026-05-07T17:16:58.921Z",
       "reason": "Форс-мажор"
+    },
+    {
+      "type": "project_resumed",
+      "by": "web",
+      "at": "2026-05-07T17:17:10.205Z",
+      "pausedAt": "2026-05-07T17:16:58.921Z",
+      "pauseReason": "Форс-мажор"
     }
   ]
 }
