@@ -15,8 +15,8 @@
     "endDate": "2026-10-30",
     "durationDays": 180,
     "contractEndDate": "2026-10-16",
-    "lastUpdated": "2026-05-07T11:28:05.749Z",
-    "lastUpdatedBy": "Bot (voice rename)",
+    "lastUpdated": "2026-05-07T15:21:05.420Z",
+    "lastUpdatedBy": "Foreman test",
     "paymentStages": [
       {
         "id": "P1",
@@ -190,7 +190,7 @@
       "planEnd": "2026-07-16",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.01
+      "progress": 0.1
     },
     {
       "id": "5",
@@ -205,7 +205,7 @@
       "planEnd": "2026-07-30",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.01
+      "progress": 0.2
     },
     {
       "id": "6",
@@ -262,7 +262,7 @@
       "planEnd": "2026-09-05",
       "actualStart": "2026-08-27",
       "actualEnd": null,
-      "progress": 0.6
+      "progress": 0.3
     },
     {
       "id": "10",
