@@ -314,9 +314,8 @@
       "durationDaysPlanned": 10,
       "planStart": "2026-08-27",
       "planEnd": "2026-09-05",
-      "actualStart": "2026-08-27",
       "actualEnd": null,
-      "progress": 0.37,
+      "progress": 0,
       "notes": [
         {
           "date": "2026-05-07",
@@ -331,6 +330,38 @@
           "summary": "«Укладка плитки на пол (средний размер)» — заметка добавлена",
           "reason": null,
           "planning": false
+        },
+        {
+          "type": "update_task",
+          "by": "audit-2026-05-09",
+          "at": "2026-05-08T20:22:24.237Z",
+          "before": {
+            "planStart": "2026-08-27",
+            "planEnd": "2026-09-05",
+            "actualStart": "2026-08-27",
+            "actualEnd": null,
+            "name": "Укладка плитки на пол (средний размер)",
+            "section": "flooring",
+            "progress": 0.37,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-27",
+            "planEnd": "2026-09-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Укладка плитки на пол (средний размер)",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "progress"
+          ],
+          "reason": "data cleanup: actualStart был ошибочно проставлен в будущее (август)",
+          "planning": false,
+          "summary": "actualStart=null, progress=0"
         }
       ]
     },
