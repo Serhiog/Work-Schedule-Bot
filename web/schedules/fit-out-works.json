@@ -204,7 +204,7 @@
       "unit": "",
       "costIncVat": 21000,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-10",
+      "planStart": "2026-05-05",
       "planEnd": "2026-05-14",
       "actualStart": "2026-05-05",
       "actualEnd": null,
@@ -256,6 +256,37 @@
           "reason": "revert cascade test",
           "planning": false,
           "summary": "planEnd=2026-05-14"
+        },
+        {
+          "type": "set_dates",
+          "by": "audit",
+          "at": "2026-05-08T21:06:54.848Z",
+          "before": {
+            "planStart": "2026-05-10",
+            "planEnd": "2026-05-14",
+            "actualStart": "2026-05-05",
+            "actualEnd": null,
+            "name": "Демонтажные работы в двух санузлах",
+            "section": "demolition",
+            "progress": 0.15,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-05",
+            "planEnd": "2026-05-14",
+            "actualStart": "2026-05-05",
+            "actualEnd": null,
+            "name": "Демонтажные работы в двух санузлах",
+            "section": "demolition",
+            "progress": 0.15,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart"
+          ],
+          "reason": "revert remaining",
+          "planning": false,
+          "summary": "planStart=2026-05-05"
         }
       ]
     },
