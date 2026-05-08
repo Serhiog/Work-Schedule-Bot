@@ -15,8 +15,8 @@
     "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-06T16:17:06.003Z",
-    "lastUpdatedBy": "Sergei Grishenkov",
+    "lastUpdated": "2026-05-08T16:27:53.117Z",
+    "lastUpdatedBy": "Foreman test",
     "paymentStages": [
       {
         "id": "P1",
@@ -183,7 +183,7 @@
       "planEnd": "2026-04-28",
       "actualStart": "2026-04-29",
       "actualEnd": null,
-      "progress": 0.6
+      "progress": 0.1
     },
     {
       "id": "2",
@@ -198,7 +198,7 @@
       "planEnd": "2026-05-17",
       "actualStart": "2026-04-29",
       "actualEnd": null,
-      "progress": 0.63,
+      "progress": 0.2,
       "history": [
         {
           "at": "2026-04-29T16:03:33.396Z",
@@ -774,7 +774,8 @@
           "planning": false,
           "summary": "actualStart=2026-05-07"
         }
-      ]
+      ],
+      "progress": 0.72
     },
     {
       "id": "13",
@@ -1426,7 +1427,7 @@
       "planStart": "2026-04-24",
       "planEnd": "2026-05-11",
       "actualStart": "2026-04-20",
-      "progress": 0.66
+      "progress": 0.45
     },
     {
       "id": "44",
@@ -1436,9 +1437,9 @@
       "planEnd": "2026-05-10",
       "start": "2026-05-01",
       "end": "2026-05-10",
-      "progress": 0,
+      "progress": 0.25,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-01",
       "actualEnd": null,
       "history": [
         {
@@ -1505,9 +1506,9 @@
       "planEnd": "2026-05-10",
       "start": "2026-05-05",
       "end": "2026-05-10",
-      "progress": 0,
+      "progress": 0.27,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-05",
       "actualEnd": null,
       "history": [
         {
@@ -1550,9 +1551,9 @@
       "planEnd": "2026-05-10",
       "start": "2026-05-03",
       "end": "2026-05-10",
-      "progress": 0,
+      "progress": 0.29,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-03",
       "actualEnd": null,
       "history": [
         {
@@ -1622,9 +1623,9 @@
       "planEnd": "2026-05-07",
       "start": "2026-05-01",
       "end": "2026-05-07",
-      "progress": 0,
+      "progress": 0.3,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-01",
       "actualEnd": null,
       "history": [
         {
@@ -1644,9 +1645,9 @@
       "planEnd": "2026-05-11",
       "start": "2026-05-02",
       "end": "2026-05-11",
-      "progress": 0,
+      "progress": 0.31,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-02",
       "actualEnd": null,
       "history": [
         {
@@ -1688,9 +1689,9 @@
       "planEnd": "2026-05-08",
       "start": "2026-05-02",
       "end": "2026-05-08",
-      "progress": 0,
+      "progress": 0.33,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-02",
       "actualEnd": null,
       "history": [
         {
@@ -1710,9 +1711,9 @@
       "planEnd": "2026-05-08",
       "start": "2026-05-02",
       "end": "2026-05-08",
-      "progress": 0,
+      "progress": 0.4,
       "contractor": null,
-      "actualStart": null,
+      "actualStart": "2026-05-02",
       "actualEnd": null,
       "history": [
         {
