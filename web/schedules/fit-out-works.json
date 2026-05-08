@@ -268,8 +268,8 @@
       "unit": "",
       "costIncVat": 17850,
       "durationDaysPlanned": 14,
-      "planStart": "2026-05-20",
-      "planEnd": "2026-06-02",
+      "planStart": "2026-05-05",
+      "planEnd": "2026-05-18",
       "actualStart": "2026-05-05",
       "actualEnd": null,
       "progress": 0.3,
@@ -289,6 +289,38 @@
             "planEnd": "2026-05-18",
             "actualStart": "2026-05-05"
           }
+        },
+        {
+          "type": "set_dates",
+          "by": "audit",
+          "at": "2026-05-08T21:06:34.849Z",
+          "before": {
+            "planStart": "2026-05-20",
+            "planEnd": "2026-06-02",
+            "actualStart": "2026-05-05",
+            "actualEnd": null,
+            "name": "Возведение перегородок из ГКЛ",
+            "section": "drywall",
+            "progress": 0.3,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-05",
+            "planEnd": "2026-05-18",
+            "actualStart": "2026-05-05",
+            "actualEnd": null,
+            "name": "Возведение перегородок из ГКЛ",
+            "section": "drywall",
+            "progress": 0.3,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "revert cascade test",
+          "planning": false,
+          "summary": "planStart=2026-05-05, planEnd=2026-05-18"
         }
       ]
     },
