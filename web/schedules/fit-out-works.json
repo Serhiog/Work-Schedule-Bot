@@ -15,7 +15,7 @@
     "endDate": "2026-10-30",
     "durationDays": 180,
     "contractEndDate": "2026-10-16",
-    "lastUpdated": "2026-05-08T15:50:23.796Z",
+    "lastUpdated": "2026-05-09T15:06:46.425Z",
     "lastUpdatedBy": "Foreman test",
     "paymentStages": [
       {
@@ -146,7 +146,7 @@
       "durationDaysPlanned": 30,
       "planStart": "2026-05-09",
       "planEnd": "2026-06-21",
-      "actualStart": null,
+      "actualStart": "2026-05-09",
       "actualEnd": null,
       "history": [
         {
@@ -165,7 +165,8 @@
             "actualStart": null
           }
         }
-      ]
+      ],
+      "progress": 0.01
     },
     {
       "id": "2",
@@ -208,7 +209,7 @@
       "planEnd": "2026-05-14",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.15,
+      "progress": 0.2,
       "history": [
         {
           "at": "2026-05-07T15:57:06.967Z",
@@ -303,7 +304,7 @@
       "planEnd": "2026-05-18",
       "actualStart": "2026-05-05",
       "actualEnd": null,
-      "progress": 0.3,
+      "progress": 0.35,
       "history": [
         {
           "at": "2026-05-07T15:57:06.967Z",
