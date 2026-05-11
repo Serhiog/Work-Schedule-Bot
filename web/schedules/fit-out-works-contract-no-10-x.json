@@ -9,13 +9,13 @@
     "contractDate": "2025-12-27",
     "currency": "AED",
     "vatRate": 0.05,
-    "totalExVat": 700000,
-    "totalIncVat": 735000,
+    "totalExVat": 748571,
+    "totalIncVat": 786000,
     "startDate": "2026-05-11",
-    "endDate": "2027-03-16",
-    "durationDays": 310,
-    "contractEndDate": "2027-03-16",
-    "lastUpdated": "2026-05-11T18:09:51.593Z",
+    "endDate": "2027-04-10",
+    "durationDays": 335,
+    "contractEndDate": "2027-04-10",
+    "lastUpdated": "2026-05-11T19:26:18.198Z",
     "lastUpdatedBy": "Sergio",
     "paymentStages": [
       {
@@ -886,6 +886,34 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
+    },
+    {
+      "id": "51",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Проектирование и инженерные решения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 5714.29,
+      "durationDaysPlanned": 15,
+      "planStart": "2027-03-17",
+      "planEnd": "2027-03-31",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "52",
+      "section": "hvac",
+      "stage": "ST2",
+      "name": "Модификация системы кондиционирования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 42857.14,
+      "durationDaysPlanned": 10,
+      "planStart": "2027-04-01",
+      "planEnd": "2027-04-10",
+      "actualStart": null,
+      "actualEnd": null
     }
   ]
 }
