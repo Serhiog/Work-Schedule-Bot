@@ -15,7 +15,7 @@
     "endDate": "2027-04-04",
     "durationDays": 329,
     "contractEndDate": "2027-04-04",
-    "lastUpdated": "2026-05-11T16:05:56.284Z",
+    "lastUpdated": "2026-05-11T16:28:09.489Z",
     "lastUpdatedBy": "Sergio",
     "paymentStages": [
       {
@@ -45,6 +45,13 @@
     ]
   },
   "sections": [
+    {
+      "id": "permits",
+      "name": "Разрешения",
+      "color": "#475569",
+      "stage": "ST1",
+      "isPermits": true
+    },
     {
       "id": "demolition",
       "name": "Демонтаж",
@@ -135,6 +142,51 @@
   "milestones": [],
   "holidays": [],
   "tasks": [
+    {
+      "id": "permit-noc",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "NOC (No Objection Certificate)",
+      "permitType": "noc",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2027-04-04",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-gate-pass",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Gate Pass",
+      "permitType": "gate_pass",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2027-04-04",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-work-permit",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Work Permit",
+      "permitType": "work_permit",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2027-04-04",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
     {
       "id": "1",
       "section": "plumbing",
