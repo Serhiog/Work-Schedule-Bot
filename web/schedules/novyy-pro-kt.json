@@ -1,0 +1,166 @@
+{
+  "project": {
+    "slug": "novyy-pro-kt",
+    "code": "NOVYY-PRO-",
+    "name": "Новый проект",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "Ms. Amina Toka",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2025-12-27",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 48571,
+    "totalIncVat": 51000,
+    "startDate": "2026-05-11",
+    "endDate": "2026-08-09",
+    "durationDays": 91,
+    "contractEndDate": "2026-08-09",
+    "lastUpdated": "2026-05-11T19:19:45.047Z",
+    "lastUpdatedBy": "Sergio",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "hvac",
+      "name": "ОВиК (вентиляция)",
+      "color": "#06b6d4",
+      "sub": true
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    },
+    {
+      "id": "permits",
+      "name": "Разрешения",
+      "color": "#475569",
+      "stage": "ST1",
+      "isPermits": true
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Проектирование и инженерные решения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 5714.29,
+      "durationDaysPlanned": 15,
+      "planStart": "2026-05-11",
+      "planEnd": "2026-05-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "hvac",
+      "stage": "ST2",
+      "name": "Модификация системы кондиционирования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 42857.14,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-05-26",
+      "planEnd": "2026-06-04",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "permit-noc",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "NOC (No Objection Certificate)",
+      "permitType": "noc",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2026-08-09",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-gate-pass",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Gate Pass",
+      "permitType": "gate_pass",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2026-08-09",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    },
+    {
+      "id": "permit-work-permit",
+      "section": "permits",
+      "stage": "ST1",
+      "name": "Work Permit",
+      "permitType": "work_permit",
+      "isPermit": true,
+      "planStart": "2026-05-11",
+      "planEnd": "2026-08-09",
+      "progress": 0,
+      "actualStart": null,
+      "actualEnd": null,
+      "cost": 0,
+      "history": []
+    }
+  ]
+}
