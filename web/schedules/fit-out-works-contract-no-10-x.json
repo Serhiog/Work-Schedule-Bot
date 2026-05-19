@@ -1147,7 +1147,7 @@
       "section": "a-a-1",
       "stage": "ST1",
       "planStart": "2026-06-06",
-      "planEnd": "2026-06-20",
+      "planEnd": "2026-06-27",
       "subcontractorName": "Фрост",
       "history": [
         {
@@ -1274,6 +1274,37 @@
           "reason": "Форс-мажор",
           "planning": false,
           "summary": "planStart=2026-06-06, planEnd=2026-06-20"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T16:24:23.106Z",
+          "before": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-20",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "after": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Задержка подрядчика",
+          "planning": false,
+          "summary": "planEnd=2026-06-27"
         }
       ]
     },
