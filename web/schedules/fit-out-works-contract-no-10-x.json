@@ -252,6 +252,32 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-05-28"
+        },
+        {
+          "type": "pause_task",
+          "by": "web",
+          "at": "2026-05-19T16:02:32.883Z",
+          "reason": "праздники",
+          "pauseIds": [
+            "p_7w6tc7nr"
+          ],
+          "pauseId": "p_7w6tc7nr",
+          "from": "2026-05-26",
+          "to": "2026-05-31",
+          "dateType": "plan",
+          "planEndBefore": "2026-05-28",
+          "planEndAfter": "2026-05-28",
+          "summary": "Пауза «Демонтажные работы» (план) с 2026-05-26 по 2026-05-31 · причина: праздники"
+        }
+      ],
+      "pauses": [
+        {
+          "id": "p_7w6tc7nr",
+          "from": "2026-05-26",
+          "to": "2026-05-31",
+          "reason": "праздники",
+          "dateType": "plan",
+          "at": "2026-05-19T16:02:32.883Z"
         }
       ]
     },
