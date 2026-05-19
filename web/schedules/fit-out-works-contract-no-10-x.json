@@ -1067,6 +1067,15 @@
       "cost": 0,
       "history": [],
       "durationDaysPlanned": 30
+    },
+    {
+      "id": "53",
+      "name": "Работа 1",
+      "section": "a-a-1",
+      "stage": "ST1",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-26",
+      "subcontractorName": "Фрост"
     }
   ],
   "history": [
