@@ -1074,8 +1074,41 @@
       "section": "a-a-1",
       "stage": "ST1",
       "planStart": "2026-05-19",
-      "planEnd": "2026-05-26",
-      "subcontractorName": "Фрост"
+      "planEnd": "2026-05-30",
+      "subcontractorName": "Фрост",
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T16:08:52.635Z",
+          "before": {
+            "planStart": "2026-05-19",
+            "planEnd": "2026-05-26",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Работа 1",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "after": {
+            "planStart": "2026-05-19",
+            "planEnd": "2026-05-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Работа 1",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Форс-мажор",
+          "planning": false,
+          "summary": "planEnd=2026-05-30"
+        }
+      ]
     }
   ],
   "history": [
