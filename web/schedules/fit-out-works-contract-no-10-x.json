@@ -1313,8 +1313,8 @@
       "name": "Чистовая сантехника кухни",
       "section": "a",
       "stage": "ST1",
-      "planStart": "2026-06-21",
-      "planEnd": "2026-06-28",
+      "planStart": "2026-06-28",
+      "planEnd": "2026-07-05",
       "history": [
         {
           "type": "set_dates",
@@ -1347,6 +1347,38 @@
           "reason": "-",
           "planning": false,
           "summary": "planStart=2026-06-21, planEnd=2026-06-28"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T16:24:31.543Z",
+          "before": {
+            "planStart": "2026-06-21",
+            "planEnd": "2026-06-28",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Чистовая сантехника кухни",
+            "section": "a",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-28",
+            "planEnd": "2026-07-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Чистовая сантехника кухни",
+            "section": "a",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Задержка подрядчика",
+          "planning": false,
+          "summary": "planStart=2026-06-28, planEnd=2026-07-05"
         }
       ]
     }
