@@ -201,10 +201,43 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-18",
+      "planStart": "2026-05-15",
       "planEnd": "2026-05-27",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T19:09:31.998Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-15",
+            "planEnd": "2026-05-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-05-15"
+        }
+      ]
     },
     {
       "id": "2",
