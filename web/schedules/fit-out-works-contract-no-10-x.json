@@ -160,7 +160,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
-      "planEnd": "2026-05-28",
+      "planEnd": "2026-05-25",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -305,6 +305,37 @@
             "reason": "праздники"
           },
           "summary": "Пауза «Демонтажные работы» удалена (была: 2026-05-25→2026-05-30 · праздники)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T16:13:27.286Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-28",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-25",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "тест",
+          "planning": false,
+          "summary": "planEnd=2026-05-25"
         }
       ]
     },
