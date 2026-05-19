@@ -1276,6 +1276,14 @@
           "summary": "planStart=2026-06-06, planEnd=2026-06-20"
         }
       ]
+    },
+    {
+      "id": "54",
+      "name": "Чистовая сантехника кухни",
+      "section": "a",
+      "stage": "ST1",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-26"
     }
   ],
   "history": [
