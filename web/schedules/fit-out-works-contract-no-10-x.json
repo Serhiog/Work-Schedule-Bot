@@ -1138,7 +1138,7 @@
     },
     {
       "id": "53",
-      "name": "Работа 1",
+      "name": "Кухонная мебель",
       "section": "a-a-1",
       "stage": "ST1",
       "planStart": "2026-05-19",
@@ -1206,6 +1206,37 @@
           "reason": "Форс-мажор",
           "planning": false,
           "summary": "planEnd=2026-06-02"
+        },
+        {
+          "type": "rename_task",
+          "by": "web",
+          "at": "2026-05-19T16:20:10.753Z",
+          "before": {
+            "planStart": "2026-05-19",
+            "planEnd": "2026-06-02",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Работа 1",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "after": {
+            "planStart": "2026-05-19",
+            "planEnd": "2026-06-02",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "a-a-1",
+            "progress": 0,
+            "subcontractorName": "Фрост"
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "name=Кухонная мебель"
         }
       ]
     }
