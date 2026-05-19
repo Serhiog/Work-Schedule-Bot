@@ -117,6 +117,12 @@
       "color": "#475569",
       "stage": "ST1",
       "isPermits": true
+    },
+    {
+      "id": "a-a-1",
+      "name": "Комната 1",
+      "color": "#6366f1",
+      "sub": true
     }
   ],
   "stages": [
