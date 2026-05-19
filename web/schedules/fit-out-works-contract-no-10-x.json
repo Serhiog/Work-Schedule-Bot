@@ -151,10 +151,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-05-11",
-      "planEnd": "2026-05-17",
+      "planStart": "2026-05-12",
+      "planEnd": "2026-05-18",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T15:34:47.056Z",
+          "before": {
+            "planStart": "2026-05-11",
+            "planEnd": "2026-05-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-12",
+            "planEnd": "2026-05-18",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-05-12, planEnd=2026-05-18"
+        }
+      ]
     },
     {
       "id": "1",
@@ -165,8 +199,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-05-27",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-28",
       "actualStart": null,
       "actualEnd": null
     },
@@ -179,8 +213,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-06-01",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-06-02",
       "actualStart": null,
       "actualEnd": null
     },
@@ -207,8 +241,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-06-01",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-06-02",
       "actualStart": null,
       "actualEnd": null
     },
@@ -221,8 +255,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-05-27",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-28",
       "actualStart": null,
       "actualEnd": null
     },
@@ -235,8 +269,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-06-01",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-06-02",
       "actualStart": null,
       "actualEnd": null
     },
@@ -249,8 +283,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-05-27",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-28",
       "actualStart": null,
       "actualEnd": null
     },
@@ -277,8 +311,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-05-22",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-05-23",
       "actualStart": null,
       "actualEnd": null
     },
@@ -291,8 +325,8 @@
       "unit": "",
       "costIncVat": 5714.29,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-06-01",
+      "planStart": "2026-05-19",
+      "planEnd": "2026-06-02",
       "actualStart": null,
       "actualEnd": null
     },
