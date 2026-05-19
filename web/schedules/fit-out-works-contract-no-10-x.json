@@ -43,10 +43,9 @@
         "note": "Устранение замечаний и сдача"
       }
     ],
-    "isPlanning": false,
+    "isPlanning": true,
     "isStarted": false,
-    "isPaused": false,
-    "startedAt": "2026-05-19T19:39:54.794Z"
+    "isPaused": false
   },
   "sections": [
     {
@@ -1507,6 +1506,12 @@
       "type": "project_started",
       "by": "smoke-test",
       "at": "2026-05-19T19:39:54.794Z"
+    },
+    {
+      "type": "project_back_to_planning",
+      "by": "smoke-test",
+      "at": "2026-05-19T19:40:06.661Z",
+      "reason": "smoke-test undo"
     }
   ]
 }
