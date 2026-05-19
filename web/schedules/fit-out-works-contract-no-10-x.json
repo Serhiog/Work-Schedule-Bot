@@ -156,7 +156,7 @@
       "durationDaysPlanned": 7,
       "planStart": "2026-05-11",
       "planEnd": "2026-05-23",
-      "actualStart": null,
+      "actualStart": "2026-05-06",
       "actualEnd": null,
       "history": [
         {
@@ -189,6 +189,37 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-05-23"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T19:09:55.850Z",
+          "before": {
+            "planStart": "2026-05-11",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-11",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-06",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "actualStart=2026-05-06"
         }
       ]
     },
