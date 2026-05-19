@@ -351,7 +351,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 15,
       "planStart": "2026-07-30",
-      "planEnd": "2026-08-14",
+      "planEnd": "2026-08-17",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -447,6 +447,37 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-08-14"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-19T19:34:50.688Z",
+          "before": {
+            "planStart": "2026-07-30",
+            "planEnd": "2026-08-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая и чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-30",
+            "planEnd": "2026-08-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая и чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-08-17"
         }
       ]
     },
@@ -459,8 +490,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-08-11",
-      "planEnd": "2026-08-21",
+      "planStart": "2026-08-14",
+      "planEnd": "2026-08-24",
       "actualStart": null,
       "actualEnd": null,
       "history": [
