@@ -42,7 +42,9 @@
         "share": 0.1,
         "note": "Устранение замечаний и сдача"
       }
-    ]
+    ],
+    "isPlanning": false,
+    "startedAt": "2026-05-19T16:01:22.532Z"
   },
   "sections": [
     {
@@ -1014,6 +1016,13 @@
       "cost": 0,
       "history": [],
       "durationDaysPlanned": 30
+    }
+  ],
+  "history": [
+    {
+      "type": "project_started",
+      "by": "web",
+      "at": "2026-05-19T16:01:22.532Z"
     }
   ]
 }
