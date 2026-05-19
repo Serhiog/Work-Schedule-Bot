@@ -124,6 +124,11 @@
       "name": "Мебель",
       "color": "#6366f1",
       "sub": true
+    },
+    {
+      "id": "a",
+      "name": "Плитка",
+      "color": "#eab308"
     }
   ],
   "stages": [
