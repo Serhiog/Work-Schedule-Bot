@@ -2029,7 +2029,7 @@
       "id": "48",
       "section": "finishing",
       "stage": "ST3",
-      "name": "Отделка скрытых дверей",
+      "name": "???Отделка скрытых дверей",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
@@ -2037,7 +2037,40 @@
       "planStart": "2027-03-04",
       "planEnd": "2027-03-08",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "rename_task",
+          "by": "web",
+          "at": "2026-05-20T17:06:05.620Z",
+          "before": {
+            "planStart": "2027-03-04",
+            "planEnd": "2027-03-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Отделка скрытых дверей",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2027-03-04",
+            "planEnd": "2027-03-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "???Отделка скрытых дверей",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "name=???Отделка скрытых дверей"
+        }
+      ]
     },
     {
       "id": "49",
