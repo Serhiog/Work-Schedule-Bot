@@ -103,11 +103,6 @@
       "color": "#475569"
     },
     {
-      "id": "cleaning",
-      "name": "Уборка",
-      "color": "#84cc16"
-    },
-    {
       "id": "materials",
       "name": "Логистика и материалы",
       "color": "#d4a017"
