@@ -3340,10 +3340,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2027-02-22",
-      "planEnd": "2027-03-03",
+      "planStart": "2027-01-18",
+      "planEnd": "2027-01-27",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:25:24.681Z",
+          "before": {
+            "planStart": "2027-02-22",
+            "planEnd": "2027-03-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2027-01-18",
+            "planEnd": "2027-01-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2027-01-18, planEnd=2027-01-27"
+        }
+      ]
     },
     {
       "id": "48",
