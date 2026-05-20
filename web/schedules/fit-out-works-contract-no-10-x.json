@@ -3371,8 +3371,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-11-12",
-      "planEnd": "2026-11-21",
+      "planStart": "2026-11-15",
+      "planEnd": "2026-11-24",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3471,6 +3471,38 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-11-12, planEnd=2026-11-21"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:25:59.295Z",
+          "before": {
+            "planStart": "2026-11-12",
+            "planEnd": "2026-11-21",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-15",
+            "planEnd": "2026-11-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-11-15, planEnd=2026-11-24"
         }
       ]
     },
