@@ -2106,20 +2106,6 @@
       ]
     },
     {
-      "id": "50",
-      "section": "furniture",
-      "stage": "ST3",
-      "name": "Установка аксессуаров",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 3,
-      "planStart": "2027-03-14",
-      "planEnd": "2027-03-16",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "permit-noc",
       "section": "permits",
       "stage": "ST1",
