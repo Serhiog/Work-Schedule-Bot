@@ -1271,7 +1271,7 @@
       "id": "39",
       "section": "flooring",
       "stage": "ST3",
-      "name": "Облицовка плиткой",
+      "name": "Облицовка плиткой полов",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
@@ -1279,7 +1279,40 @@
       "planStart": "2026-12-24",
       "planEnd": "2027-01-02",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "rename_task",
+          "by": "web",
+          "at": "2026-05-20T16:53:27.725Z",
+          "before": {
+            "planStart": "2026-12-24",
+            "planEnd": "2027-01-02",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-12-24",
+            "planEnd": "2027-01-02",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "name=Облицовка плиткой полов"
+        }
+      ]
     },
     {
       "id": "40",
