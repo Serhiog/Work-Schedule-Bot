@@ -2125,20 +2125,6 @@
       "actualEnd": null
     },
     {
-      "id": "44",
-      "section": "finishing",
-      "stage": "ST3",
-      "name": "Установка плинтусов",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 3,
-      "planStart": "2027-01-30",
-      "planEnd": "2027-02-01",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "45",
       "section": "flooring",
       "stage": "ST3",
