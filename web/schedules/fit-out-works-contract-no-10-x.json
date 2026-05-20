@@ -1320,20 +1320,6 @@
       "actualEnd": null
     },
     {
-      "id": "28",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Грунтовка перед стяжкой",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 92750.36,
-      "durationDaysPlanned": 1,
-      "planStart": "2026-11-16",
-      "planEnd": "2026-11-16",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "29",
       "section": "flooring",
       "stage": "ST2",
