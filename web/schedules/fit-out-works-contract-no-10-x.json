@@ -1277,8 +1277,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-23",
-      "planEnd": "2026-09-01",
+      "planStart": "2026-07-17",
+      "planEnd": "2026-07-26",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1473,6 +1473,38 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-08-23, planEnd=2026-09-01"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:47:24.148Z",
+          "before": {
+            "planStart": "2026-08-23",
+            "planEnd": "2026-09-01",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-17",
+            "planEnd": "2026-07-26",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-17, planEnd=2026-07-26"
         }
       ]
     },
