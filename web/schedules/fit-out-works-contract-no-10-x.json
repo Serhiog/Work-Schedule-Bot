@@ -1324,20 +1324,6 @@
       "actualEnd": null
     },
     {
-      "id": "43",
-      "section": "flooring",
-      "stage": "ST3",
-      "name": "Плитка",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 10,
-      "planStart": "2027-01-20",
-      "planEnd": "2027-01-29",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "44",
       "section": "finishing",
       "stage": "ST3",
