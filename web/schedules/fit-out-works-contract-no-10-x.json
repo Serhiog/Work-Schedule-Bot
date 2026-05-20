@@ -1573,20 +1573,6 @@
       "actualEnd": null
     },
     {
-      "id": "38",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Нанесение гидроизоляционного состава",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 3,
-      "planStart": "2026-12-21",
-      "planEnd": "2026-12-23",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "39",
       "section": "flooring",
       "stage": "ST3",
