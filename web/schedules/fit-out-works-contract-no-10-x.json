@@ -2261,8 +2261,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-10-25",
-      "planEnd": "2026-11-03",
+      "planStart": "2026-09-06",
+      "planEnd": "2026-09-15",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2328,6 +2328,38 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-10-25, planEnd=2026-11-03"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:22:53.610Z",
+          "before": {
+            "planStart": "2026-10-25",
+            "planEnd": "2026-11-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-06",
+            "planEnd": "2026-09-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-09-06, planEnd=2026-09-15"
         }
       ]
     },
