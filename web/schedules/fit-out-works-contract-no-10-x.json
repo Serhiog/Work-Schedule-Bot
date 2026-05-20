@@ -238,10 +238,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-08-14",
-      "planEnd": "2026-08-20",
+      "planStart": "2026-07-09",
+      "planEnd": "2026-07-15",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:40:13.158Z",
+          "before": {
+            "planStart": "2026-08-14",
+            "planEnd": "2026-08-20",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-09",
+            "planEnd": "2026-07-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-09, planEnd=2026-07-15"
+        }
+      ]
     },
     {
       "id": "8",
