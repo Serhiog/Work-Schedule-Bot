@@ -154,8 +154,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-11",
-      "planEnd": "2026-05-27",
+      "planStart": "2026-05-14",
+      "planEnd": "2026-05-30",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -344,6 +344,38 @@
           "reason": "smoke-revert",
           "planning": false,
           "summary": "planEnd=2026-05-27"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:38:38.589Z",
+          "before": {
+            "planStart": "2026-05-11",
+            "planEnd": "2026-05-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-14",
+            "planEnd": "2026-05-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-05-14, planEnd=2026-05-30"
         }
       ]
     },
@@ -356,8 +388,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-25",
-      "planEnd": "2026-06-08",
+      "planStart": "2026-05-28",
+      "planEnd": "2026-06-11",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -460,6 +492,40 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-05-25, planEnd=2026-06-08"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:38:38.699Z",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-28",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": 3,
+          "summary": "каскад +3 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
