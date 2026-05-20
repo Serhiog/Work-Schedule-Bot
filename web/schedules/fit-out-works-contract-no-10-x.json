@@ -1559,20 +1559,6 @@
       ]
     },
     {
-      "id": "30",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Нанесение гидроизоляционной ленты",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 2,
-      "planStart": "2026-11-24",
-      "planEnd": "2026-11-25",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "31",
       "section": "finishing",
       "stage": "ST2",
