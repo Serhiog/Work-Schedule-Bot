@@ -3593,8 +3593,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2027-01-17",
-      "planEnd": "2027-01-21",
+      "planStart": "2026-12-16",
+      "planEnd": "2026-12-20",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3660,6 +3660,38 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2027-01-17, planEnd=2027-01-21"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:26:42.211Z",
+          "before": {
+            "planStart": "2027-01-17",
+            "planEnd": "2027-01-21",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-12-16",
+            "planEnd": "2026-12-20",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-12-16, planEnd=2026-12-20"
         }
       ]
     },
