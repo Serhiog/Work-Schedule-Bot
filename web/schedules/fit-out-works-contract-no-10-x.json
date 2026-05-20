@@ -2062,7 +2062,7 @@
       "id": "49",
       "section": "furniture",
       "stage": "ST3",
-      "name": "Установка внутренних предметов",
+      "name": "Кухонная мебель",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
@@ -2070,7 +2070,40 @@
       "planStart": "2027-03-09",
       "planEnd": "2027-03-13",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "rename_task",
+          "by": "web",
+          "at": "2026-05-20T17:07:01.138Z",
+          "before": {
+            "planStart": "2027-03-09",
+            "planEnd": "2027-03-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Установка внутренних предметов",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2027-03-09",
+            "planEnd": "2027-03-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "name=Кухонная мебель"
+        }
+      ]
     },
     {
       "id": "50",
