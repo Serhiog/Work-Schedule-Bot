@@ -1392,20 +1392,6 @@
       "actualEnd": null
     },
     {
-      "id": "23",
-      "section": "drywall",
-      "stage": "ST2",
-      "name": "Установка уголков",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 2,
-      "planStart": "2026-10-31",
-      "planEnd": "2026-11-01",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "29",
       "section": "flooring",
       "stage": "ST2",
