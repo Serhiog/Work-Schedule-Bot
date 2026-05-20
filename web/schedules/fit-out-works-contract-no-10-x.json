@@ -1278,20 +1278,6 @@
       "actualEnd": null
     },
     {
-      "id": "19",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Шлифовка",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 3,
-      "planStart": "2026-10-19",
-      "planEnd": "2026-10-21",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "20",
       "section": "finishing",
       "stage": "ST2",
