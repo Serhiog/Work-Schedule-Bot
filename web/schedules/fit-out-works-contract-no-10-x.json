@@ -1834,7 +1834,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 3,
       "planStart": "2026-07-06",
-      "planEnd": "2026-07-08",
+      "planEnd": "2026-07-18",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2029,6 +2029,37 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-07-06, planEnd=2026-07-08"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:15:03.081Z",
+          "before": {
+            "planStart": "2026-07-06",
+            "planEnd": "2026-07-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-06",
+            "planEnd": "2026-07-18",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-07-18"
         }
       ]
     },
