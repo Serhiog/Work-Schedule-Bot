@@ -2133,8 +2133,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2027-02-02",
-      "planEnd": "2027-02-11",
+      "planStart": "2026-12-15",
+      "planEnd": "2026-12-24",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2199,6 +2199,38 @@
           "reason": null,
           "planning": true,
           "summary": "name=Облицовка плиткой стен"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:16:29.099Z",
+          "before": {
+            "planStart": "2027-02-02",
+            "planEnd": "2027-02-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-12-15",
+            "planEnd": "2026-12-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-12-15, planEnd=2026-12-24"
         }
       ]
     },
