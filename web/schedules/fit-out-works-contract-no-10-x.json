@@ -1573,20 +1573,6 @@
       "actualEnd": null
     },
     {
-      "id": "33",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Штукатурка с маяками",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 14,
-      "planStart": "2026-11-30",
-      "planEnd": "2026-12-13",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "34",
       "section": "finishing",
       "stage": "ST2",
