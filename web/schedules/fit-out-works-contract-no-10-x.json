@@ -493,20 +493,6 @@
       ]
     },
     {
-      "id": "3",
-      "section": "materials",
-      "stage": "ST1",
-      "name": "Получение разрешения",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 267344.14,
-      "durationDaysPlanned": 30,
-      "planStart": "2026-06-05",
-      "planEnd": "2026-07-04",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "4",
       "section": "hvac",
       "stage": "ST1",
