@@ -1316,6 +1316,15 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
+    },
+    {
+      "id": "51",
+      "name": "Кухонная мебель",
+      "section": "b",
+      "stage": "ST1",
+      "planStart": "2026-05-20",
+      "planEnd": "2026-05-27",
+      "subcontractorName": "Мебельщики"
     }
   ],
   "history": [
