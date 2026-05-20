@@ -2467,7 +2467,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-11-02",
-      "planEnd": "2026-11-08",
+      "planEnd": "2026-11-23",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2662,6 +2662,37 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-11-02, planEnd=2026-11-08"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:24:08.175Z",
+          "before": {
+            "planStart": "2026-11-02",
+            "planEnd": "2026-11-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-02",
+            "planEnd": "2026-11-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-11-23"
         }
       ]
     },
