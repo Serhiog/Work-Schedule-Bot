@@ -1161,20 +1161,6 @@
       "actualEnd": null
     },
     {
-      "id": "9",
-      "section": "materials",
-      "stage": "ST1",
-      "name": "Транспортные расходы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 10,
-      "planStart": "2026-08-31",
-      "planEnd": "2026-09-09",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "12",
       "section": "drywall",
       "stage": "ST2",
