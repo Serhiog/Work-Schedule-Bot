@@ -444,10 +444,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-20",
-      "planEnd": "2026-07-29",
+      "planStart": "2026-06-14",
+      "planEnd": "2026-06-23",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:54:01.108Z",
+          "before": {
+            "planStart": "2026-07-20",
+            "planEnd": "2026-07-29",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Перемещение спринклеров",
+            "section": "fire_safety",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-14",
+            "planEnd": "2026-06-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Перемещение спринклеров",
+            "section": "fire_safety",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-06-14, planEnd=2026-06-23"
+        }
+      ]
     },
     {
       "id": "6",
