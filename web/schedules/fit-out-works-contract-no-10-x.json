@@ -1573,20 +1573,6 @@
       "actualEnd": null
     },
     {
-      "id": "32",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Грунтовка перед штукатуркой",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 123968.31,
-      "durationDaysPlanned": 1,
-      "planStart": "2026-11-29",
-      "planEnd": "2026-11-29",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "33",
       "section": "finishing",
       "stage": "ST2",
