@@ -350,7 +350,7 @@
       "id": "6",
       "section": "plumbing",
       "stage": "ST1",
-      "name": "Сантехника черновая и чистовая на кухне",
+      "name": "Сантехника чистовая на кухне",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
@@ -455,6 +455,37 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-05-25, planEnd=2026-06-08"
+        },
+        {
+          "type": "rename_task",
+          "by": "web",
+          "at": "2026-05-20T16:43:52.112Z",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая и чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "name=Сантехника чистовая на кухне"
         }
       ]
     },
