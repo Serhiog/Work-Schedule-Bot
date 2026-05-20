@@ -1454,10 +1454,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-11-17",
-      "planEnd": "2026-11-23",
+      "planStart": "2026-10-24",
+      "planEnd": "2026-10-30",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:00.179Z",
+          "before": {
+            "planStart": "2026-11-17",
+            "planEnd": "2026-11-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-24",
+            "planEnd": "2026-10-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-10-24, planEnd=2026-10-30"
+        }
+      ]
     },
     {
       "id": "30",
