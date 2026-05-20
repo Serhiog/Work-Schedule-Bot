@@ -560,6 +560,32 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-07-18"
+        },
+        {
+          "type": "pause_task",
+          "by": "web",
+          "at": "2026-05-20T16:57:59.645Z",
+          "reason": "праздники",
+          "pauseIds": [
+            "p_vvr0bmk9"
+          ],
+          "pauseId": "p_vvr0bmk9",
+          "from": "2026-05-26",
+          "to": "2026-05-29",
+          "dateType": "plan",
+          "planEndBefore": "2026-07-18",
+          "planEndAfter": "2026-07-18",
+          "summary": "Пауза «Полная замена системы кондиционирования» (план) с 2026-05-26 по 2026-05-29 · причина: праздники"
+        }
+      ],
+      "pauses": [
+        {
+          "id": "p_vvr0bmk9",
+          "from": "2026-05-26",
+          "to": "2026-05-29",
+          "reason": "праздники",
+          "dateType": "plan",
+          "at": "2026-05-20T16:57:59.645Z"
         }
       ]
     },
