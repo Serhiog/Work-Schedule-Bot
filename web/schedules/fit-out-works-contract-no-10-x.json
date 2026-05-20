@@ -1320,20 +1320,6 @@
       "actualEnd": null
     },
     {
-      "id": "24",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Шпатлёвка (2 слоя)",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 5,
-      "planStart": "2026-11-02",
-      "planEnd": "2026-11-06",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "25",
       "section": "finishing",
       "stage": "ST2",
