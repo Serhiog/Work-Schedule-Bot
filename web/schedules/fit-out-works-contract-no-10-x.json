@@ -3657,7 +3657,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 5,
       "planStart": "2026-10-19",
-      "planEnd": "2026-10-23",
+      "planEnd": "2026-11-07",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3787,6 +3787,37 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-10-19, planEnd=2026-10-23"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:27:45.273Z",
+          "before": {
+            "planStart": "2026-10-19",
+            "planEnd": "2026-10-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-19",
+            "planEnd": "2026-11-07",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-11-07"
         }
       ]
     },
