@@ -1392,20 +1392,6 @@
       "actualEnd": null
     },
     {
-      "id": "22",
-      "section": "drywall",
-      "stage": "ST2",
-      "name": "Шовная лента для ГКЛ",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 3,
-      "planStart": "2026-10-28",
-      "planEnd": "2026-10-30",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "23",
       "section": "drywall",
       "stage": "ST2",
