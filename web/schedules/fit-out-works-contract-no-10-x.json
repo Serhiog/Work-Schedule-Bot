@@ -2130,49 +2130,6 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
-    },
-    {
-      "id": "51",
-      "name": "Кухонная мебель",
-      "section": "b",
-      "stage": "ST1",
-      "planStart": "2026-06-14",
-      "planEnd": "2026-06-21",
-      "subcontractorName": "Мебельщики",
-      "history": [
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:46:28.990Z",
-          "before": {
-            "planStart": "2026-05-20",
-            "planEnd": "2026-05-27",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Кухонная мебель",
-            "section": "b",
-            "progress": 0,
-            "subcontractorName": "Мебельщики"
-          },
-          "after": {
-            "planStart": "2026-06-14",
-            "planEnd": "2026-06-21",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Кухонная мебель",
-            "section": "b",
-            "progress": 0,
-            "subcontractorName": "Мебельщики"
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-06-14, planEnd=2026-06-21"
-        }
-      ]
     }
   ],
   "history": [
