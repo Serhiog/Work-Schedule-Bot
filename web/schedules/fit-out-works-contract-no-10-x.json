@@ -1484,7 +1484,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 5,
       "planStart": "2026-07-13",
-      "planEnd": "2026-07-17",
+      "planEnd": "2026-08-22",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1551,6 +1551,37 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-07-13, planEnd=2026-07-17"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:13:42.486Z",
+          "before": {
+            "planStart": "2026-07-13",
+            "planEnd": "2026-07-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-13",
+            "planEnd": "2026-08-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-08-22"
         }
       ]
     },
