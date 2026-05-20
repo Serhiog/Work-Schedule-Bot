@@ -1648,20 +1648,6 @@
       "actualEnd": null
     },
     {
-      "id": "42",
-      "section": "finishing",
-      "stage": "ST3",
-      "name": "Установка люков и отделка",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 5,
-      "planStart": "2027-01-15",
-      "planEnd": "2027-01-19",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "44",
       "section": "finishing",
       "stage": "ST3",
