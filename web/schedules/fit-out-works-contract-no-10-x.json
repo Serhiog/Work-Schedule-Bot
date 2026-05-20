@@ -305,10 +305,44 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-21",
-      "planEnd": "2026-06-04",
+      "planStart": "2026-05-30",
+      "planEnd": "2026-06-13",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:48:02.243Z",
+          "before": {
+            "planStart": "2026-05-21",
+            "planEnd": "2026-06-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-30",
+            "planEnd": "2026-06-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-05-30, planEnd=2026-06-13"
+        }
+      ]
     },
     {
       "id": "3",
