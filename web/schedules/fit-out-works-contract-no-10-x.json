@@ -118,6 +118,12 @@
       "color": "#475569",
       "stage": "ST1",
       "isPermits": true
+    },
+    {
+      "id": "b",
+      "name": "Мебель",
+      "color": "#eab308",
+      "sub": true
     }
   ],
   "stages": [
