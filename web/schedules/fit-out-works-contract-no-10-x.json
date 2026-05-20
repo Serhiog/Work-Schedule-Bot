@@ -1372,10 +1372,44 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 14,
-      "planStart": "2026-09-29",
-      "planEnd": "2026-10-12",
+      "planStart": "2026-07-22",
+      "planEnd": "2026-08-04",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:12:06.030Z",
+          "before": {
+            "planStart": "2026-09-29",
+            "planEnd": "2026-10-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-22",
+            "planEnd": "2026-08-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-22, planEnd=2026-08-04"
+        }
+      ]
     },
     {
       "id": "18",
