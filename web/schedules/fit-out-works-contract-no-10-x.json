@@ -1136,10 +1136,44 @@
       "unit": "",
       "costIncVat": 49719.08,
       "durationDaysPlanned": 5,
-      "planStart": "2026-09-18",
-      "planEnd": "2026-09-22",
+      "planStart": "2026-08-05",
+      "planEnd": "2026-08-09",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:10:01.799Z",
+          "before": {
+            "planStart": "2026-09-18",
+            "planEnd": "2026-09-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "ГКЛ конструкции",
+            "section": "drywall",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-05",
+            "planEnd": "2026-08-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "ГКЛ конструкции",
+            "section": "drywall",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-08-05, planEnd=2026-08-09"
+        }
+      ]
     },
     {
       "id": "13",
