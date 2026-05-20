@@ -1573,20 +1573,6 @@
       "actualEnd": null
     },
     {
-      "id": "34",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Грунтовка перед плиткой",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 1,
-      "planStart": "2026-12-14",
-      "planEnd": "2026-12-14",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "37",
       "section": "finishing",
       "stage": "ST2",
