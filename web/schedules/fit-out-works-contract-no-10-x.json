@@ -431,7 +431,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 15,
       "planStart": "2026-06-01",
-      "planEnd": "2026-07-11",
+      "planEnd": "2026-07-18",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -529,6 +529,37 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-07-11"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:55:46.094Z",
+          "before": {
+            "planStart": "2026-06-01",
+            "planEnd": "2026-07-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Полная замена системы кондиционирования",
+            "section": "hvac",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-01",
+            "planEnd": "2026-07-18",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Полная замена системы кондиционирования",
+            "section": "hvac",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-07-18"
         }
       ]
     },
