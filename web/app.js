@@ -1,3 +1,16 @@
+// __SERVER_API_REPOINT__ 2026-05-21 — весь backend на своём сервере (Hetzner, Postgres).
+// ВСЕ /api/* идут на сервер. Тикеты тоже на сервере (PlanRadar убран). Сайт = тонкий фронт.
+(function () {
+  const API_BASE = 'https://178-105-194-185.sslip.io';
+  const _f = window.fetch.bind(window);
+  window.fetch = (url, opts) => {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      return _f(API_BASE + url, opts);
+    }
+    return _f(url, opts);
+  };
+})();
+
 const $ = (sel) => document.querySelector(sel);
 const DAY_MS = 86400000;
 
@@ -9,7 +22,8 @@ const CELL_MAX = 80;
 const ZOOM_PRESETS = [6, 10, 14, 18, 22, 28, 36, 50, 70];
 const clampCell = (x) => Math.max(CELL_MIN, Math.min(CELL_MAX, x));
 const currentCellW = () => state.cellW;
-const currentLabelW = () => (isMobile() ? 0 : 260);
+const MOBILE_LABEL_W = 110;
+const currentLabelW = () => (isMobile() ? MOBILE_LABEL_W : 260);
 const zoomPct = () => Math.round((state.cellW / CELL_BASE) * 100);
 
 const state = {
@@ -45,7 +59,8 @@ const state = {
     taskMeetingNotes: {},   // { taskId: [{id,text,meetingDate,at}] }
     taskResources: {},      // { taskId: [{type,count}] }
     taskMaterials: {},      // { taskId: [{name,leadTime,ordered,expectedDate,note}] }
-    taskDependencies: []    // [{id, taskId, dependsOnTaskId, source: 'auto'|'manual', rationale, at}]
+    taskDependencies: [],   // [{id, taskId, dependsOnTaskId, source: 'auto'|'manual', rationale, at}]
+    progressLog: []         // [{id, taskId, taskName, action, prevProgress, newProgress, rawText, reason, reporterName, at}] — sorted desc by 'at'
   },
   dataLoaded: false,
   // Cached graph derived from taskDependencies
@@ -55,6 +70,7 @@ const state = {
   // Edit mode — включает inline-edit имени работы, кнопки + Раздел / + Работа,
   // удаление, drag дат на Гантте.
   editMode: false,
+  selectedBarTid: null,
 };
 
 function getProjectSlug() {
@@ -150,6 +166,13 @@ function hideAdminMenu() {
   if (m) m.style.display = 'none';
 }
 
+function hideMobileTasksFab() {
+  const fab = document.getElementById('tasks-fab');
+  if (fab) fab.style.display = 'none';
+  const sheet = document.getElementById('tasks-sheet');
+  if (sheet) sheet.style.display = 'none';
+}
+
 function clearPageBelowTopbar() {
   const page = document.querySelector('.page');
   if (!page) return null;
@@ -165,20 +188,21 @@ function injectLandingStyles() {
   s.textContent = `
     .landing-wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 80px; font-family: 'Inter', -apple-system, sans-serif; }
     .landing-head { margin-bottom: 28px; }
-    .landing-title { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; color: var(--text-strong, #1e3b60); margin: 0 0 8px; line-height: 1.15; }
-    .landing-sub { font-size: 14px; color: var(--text-muted, #64748b); line-height: 1.55; max-width: 600px; }
+    .landing-title { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; color: var(--ink); margin: 0 0 8px; line-height: 1.15; }
+    .landing-sub { font-size: 14px; color: var(--muted); line-height: 1.55; max-width: 600px; }
     .landing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-    .landing-card { display: block; text-decoration: none; background: var(--card-bg, #fff); border: 1px solid var(--card-border, #e5e7eb); border-radius: 12px; padding: 16px 18px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
-    .landing-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #2563eb; }
-    .landing-card-name { font-size: 15px; font-weight: 600; color: var(--text-strong, #1e3b60); margin-bottom: 4px; letter-spacing: -0.2px; line-height: 1.3; }
-    .landing-card-meta { font-size: 11px; color: var(--text-muted, #64748b); font-family: 'JetBrains Mono', monospace; letter-spacing: 0; }
-    .landing-empty { background: var(--card-bg, #fff); border: 1px dashed var(--card-border, #e5e7eb); border-radius: 14px; padding: 56px 24px; text-align: center; }
+    .landing-card { display: block; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+    .landing-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: var(--navy); }
+    .landing-card-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; letter-spacing: -0.2px; line-height: 1.3; }
+    .landing-card-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0; }
+    .landing-empty { background: var(--card); border: 1px dashed var(--line); border-radius: 14px; padding: 56px 24px; text-align: center; }
     .landing-empty-ico { font-size: 44px; margin-bottom: 10px; }
-    .landing-empty-title { font-size: 17px; font-weight: 600; color: var(--text-strong, #1e3b60); margin-bottom: 6px; }
-    .landing-empty-sub { font-size: 13px; color: var(--text-muted, #64748b); max-width: 380px; margin: 0 auto; line-height: 1.55; }
-    .landing-empty-sub code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
-    .landing-loading { color: var(--text-muted, #64748b); font-size: 14px; padding: 40px 0; }
+    .landing-empty-title { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .landing-empty-sub { font-size: 13px; color: var(--muted); max-width: 380px; margin: 0 auto; line-height: 1.55; }
+    .landing-empty-sub code { background: var(--surface-2); color: var(--ink); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .landing-loading { color: var(--muted); font-size: 14px; padding: 40px 0; }
     .landing-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+    [data-theme="dark"] .landing-error { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
     @media (max-width: 720px) {
       .landing-wrap { padding: 32px 16px 60px; }
       .landing-title { font-size: 24px; }
@@ -191,6 +215,7 @@ function injectLandingStyles() {
 async function renderLandingView() {
   document.title = 'CYFR · Графики работ';
   hideAdminMenu();
+  hideMobileTasksFab();
   injectLandingStyles();
 
   const page = clearPageBelowTopbar();
@@ -243,6 +268,7 @@ async function renderLandingView() {
 function showProjectNotFound(slug) {
   const safe = String(slug).replace(/[<>&]/g, '');
   hideAdminMenu();
+  hideMobileTasksFab();
   injectLandingStyles();
   const page = clearPageBelowTopbar();
   if (page) {
@@ -307,7 +333,10 @@ async function init() {
   bindTopFab();
   bindEditMode();
   bindBarDrag();
+  bindBarStepCtrl();
+  bindModalScrollLock();
   fetchTickets();
+  loadAssignees();
   loadProjectData(state.projectSlug)
     .then(() => migrateLocalToAirtable(state.projectSlug))
     .then(() => {
@@ -387,10 +416,20 @@ const darken = (hex, k) => {
   return '#' + [nr, ng, nb].map((x) => x.toString(16).padStart(2, '0')).join('');
 };
 
+// Effective sub-flag: t.sub явный (true/false) перебивает sec.sub.
+// Если t.sub не выставлен — наследуем от раздела. Это позволяет иметь
+// CYFR-работу внутри суб-раздела и наоборот, суб-работу внутри своего раздела.
+const effectiveSub = (t, sec) => (typeof t?.sub === 'boolean' ? t.sub : !!sec?.sub);
+
 /* ─── PlanRadar tickets ─── */
 async function fetchTickets() {
   try {
-    const r = await fetch('/api/planradar');
+    // Передаём slug чтобы backend отфильтровал тикеты только этого проекта.
+    // Один PlanRadar project обслуживает несколько schedule-проектов; без slug-фильтра
+    // тикеты от orange-group-fit-out появлялись в новых проектах (McDonald's и др.).
+    const slug = state.projectSlug || '';
+    const url = slug ? `/api/planradar?slug=${encodeURIComponent(slug)}` : '/api/planradar';
+    const r = await fetch(url);
     if (!r.ok) return;
     const data = await r.json();
     state.tickets = data.tickets || [];
@@ -416,7 +455,8 @@ async function loadProjectData(slug) {
         taskMeetingNotes: json.data.taskMeetingNotes || {},
         taskResources: json.data.taskResources || {},
         taskMaterials: json.data.taskMaterials || {},
-        taskDependencies: Array.isArray(json.data.taskDependencies) ? json.data.taskDependencies : []
+        taskDependencies: Array.isArray(json.data.taskDependencies) ? json.data.taskDependencies : [],
+        progressLog: Array.isArray(json.data.progressLog) ? json.data.progressLog : []
       };
       rebuildDepsGraph();
     }
@@ -429,41 +469,138 @@ async function loadProjectData(slug) {
 
 /* ─── Resource & Materials catalog (defaults by section) ─── */
 const RESOURCE_TYPES = [
-  { id: 'workers',          label: 'Рабочие' },
+  // Общестрой / разнорабочие
+  { id: 'workers',          label: 'Рабочие (разнорабочие)' },
+  { id: 'demolition',       label: 'Демонтажники' },
+  { id: 'masons',           label: 'Каменщики / бетонщики' },
+  // MEP
   { id: 'plumbers',         label: 'Сантехники' },
   { id: 'electricians',     label: 'Электрики' },
+  { id: 'low_voltage',      label: 'Слаботочники / СКС' },
   { id: 'hvac_installers',  label: 'ОВиК-монтажники' },
-  { id: 'fire_techs',       label: 'Пожарные техники' },
-  { id: 'gypsum_workers',   label: 'ГКЛ-монтажники' },
+  { id: 'fire_techs',       label: 'Пожарные техники / ОПС' },
+  // Стены / потолки / пол
+  { id: 'gypsum_workers',   label: 'Монтажники ГКЛ' },
+  { id: 'plasterers',       label: 'Штукатуры' },
   { id: 'painters',         label: 'Маляры' },
   { id: 'tilers',           label: 'Плиточники' },
-  { id: 'floor_layers',     label: 'Полы' },
-  { id: 'carpenters',       label: 'Плотники' },
+  { id: 'marble_workers',   label: 'Мрамор / гранит' },
+  { id: 'floor_layers',     label: 'Полы (наливные, стяжка)' },
+  { id: 'parquet_layers',   label: 'Паркетчики / ламинат' },
+  { id: 'roofers',          label: 'Кровельщики' },
+  { id: 'insulators',       label: 'Изолировщики / утепление' },
+  // Двери / окна / стекло / фасад
+  { id: 'carpenters',       label: 'Плотники / столяры' },
   { id: 'door_installers',  label: 'Монтажники дверей' },
-  { id: 'glass_installers', label: 'Стекольщики' },
-  { id: 'movers',           label: 'Мебельщики' },
-  { id: 'cleaners',         label: 'Уборщики' },
-  { id: 'subcontractors',   label: 'Субподрядчики' }
+  { id: 'window_installers',label: 'Монтажники окон' },
+  { id: 'glass_installers', label: 'Стекольщики / алюминий' },
+  { id: 'facade',           label: 'Фасадчики' },
+  { id: 'welders',          label: 'Сварщики / металлоконструкции' },
+  // Мебель / уборка
+  { id: 'movers',           label: 'Сборщики мебели' },
+  { id: 'kitchen_fitters',  label: 'Монтажники кухонь' },
+  { id: 'cleaners',         label: 'Уборщики (клининг)' },
+  // ИТР / документы / снабжение
+  { id: 'foremen',          label: 'Прорабы / мастера' },
+  { id: 'engineers',        label: 'Инженеры ПТО / стройконтроль' },
+  { id: 'estimators',       label: 'Сметчики / эстиматоры' },
+  { id: 'bim',              label: 'BIM / технологи' },
+  { id: 'surveyors',        label: 'Геодезисты' },
+  { id: 'permits',          label: 'Координаторы разрешений' },
+  { id: 'paperwork',        label: 'Документы / бумажная работа' },
+  { id: 'supply',           label: 'Снабженцы' },
+  { id: 'logistics',        label: 'Логисты / диспетчеры' },
+  { id: 'hse',              label: 'HSE / охрана труда' },
+  // Тяжёлая техника
+  { id: 'crane_operators',  label: 'Крановщики / погрузчики' },
+  // Прочее
+  { id: 'subcontractors',   label: 'Субподрядчики' },
+  { id: 'other',            label: 'Другое (в комментарии)' }
 ];
 const RESOURCE_LABEL_BY_ID = Object.fromEntries(RESOURCE_TYPES.map(r => [r.id, r.label]));
 
 const DEFAULT_RESOURCES_BY_SECTION = {
-  demolition: [{ type: 'workers', count: 4 }],
+  preparation: [{ type: 'permits', count: 1 }, { type: 'paperwork', count: 1 }],
+  documents:  [{ type: 'paperwork', count: 1 }, { type: 'engineers', count: 1 }],
+  permits:    [{ type: 'permits', count: 1 }],
+  demolition: [{ type: 'demolition', count: 3 }, { type: 'workers', count: 1 }],
   sanitary:   [{ type: 'plumbers', count: 2 }],
+  plumbing:   [{ type: 'plumbers', count: 2 }],
   electric:   [{ type: 'electricians', count: 2 }],
+  electrical: [{ type: 'electricians', count: 2 }],
+  weak_current:[{ type: 'low_voltage', count: 2 }],
   hvac:       [{ type: 'hvac_installers', count: 3 }],
   fire:       [{ type: 'fire_techs', count: 2 }],
+  fire_safety:[{ type: 'fire_techs', count: 1 }, { type: 'engineers', count: 1 }],
   gypsum:     [{ type: 'gypsum_workers', count: 3 }],
+  drywall:    [{ type: 'gypsum_workers', count: 2 }],
+  walls:      [{ type: 'gypsum_workers', count: 2 }, { type: 'plasterers', count: 1 }],
+  ceilings:   [{ type: 'gypsum_workers', count: 2 }],
   painting:   [{ type: 'painters', count: 3 }],
+  paint:      [{ type: 'painters', count: 2 }],
+  finishing:  [{ type: 'painters', count: 2 }, { type: 'plasterers', count: 1 }],
+  plaster:    [{ type: 'plasterers', count: 2 }],
   ceramic:    [{ type: 'tilers', count: 3 }],
-  flooring:   [{ type: 'floor_layers', count: 2 }],
+  bathrooms:  [{ type: 'tilers', count: 2 }, { type: 'plumbers', count: 1 }],
+  flooring:   [{ type: 'tilers', count: 2 }, { type: 'workers', count: 1 }],
+  floors:     [{ type: 'floor_layers', count: 2 }],
+  screed:     [{ type: 'floor_layers', count: 2 }],
   carpentry:  [{ type: 'carpenters', count: 2 }],
   doors:      [{ type: 'door_installers', count: 2 }],
+  windows:    [{ type: 'window_installers', count: 2 }],
   glass:      [{ type: 'glass_installers', count: 2 }],
+  facade:     [{ type: 'facade', count: 2 }],
   furniture:  [{ type: 'movers', count: 3 }],
+  kitchen:    [{ type: 'kitchen_fitters', count: 2 }],
   cleanup:    [{ type: 'cleaners', count: 3 }],
+  cleaning:   [{ type: 'cleaners', count: 2 }],
+  acceptance: [{ type: 'engineers', count: 1 }, { type: 'foremen', count: 1 }],
+  materials:  [{ type: 'supply', count: 1 }, { type: 'logistics', count: 1 }],
+  hse:        [{ type: 'hse', count: 1 }],
+  management: [{ type: 'foremen', count: 1 }, { type: 'engineers', count: 1 }],
   default:    [{ type: 'workers', count: 2 }]
 };
+
+// Хеуристика по названию работы (англ./рус. ключевые слова → специальность).
+function defaultResourcesByTaskName(taskName) {
+  const s = String(taskName || '').toLowerCase();
+  if (!s) return null;
+  const rules = [
+    [/сантехник|трубы|водопровод|канализаци/, [{ type: 'plumbers', count: 2 }]],
+    [/электр|кабел|розетк|выключател|освещен/, [{ type: 'electricians', count: 2 }]],
+    [/слаботочк|скс|видеонаблюден/, [{ type: 'low_voltage', count: 2 }]],
+    [/пожарн|сигнализаци|опс/, [{ type: 'fire_techs', count: 1 }, { type: 'engineers', count: 1 }]],
+    [/вентиляц|кондиционер|овик|чиллер|фанкоил/, [{ type: 'hvac_installers', count: 2 }]],
+    [/демонт|разбор/, [{ type: 'demolition', count: 3 }]],
+    [/плитк|керамогранит/, [{ type: 'tilers', count: 2 }]],
+    [/мрамор|гранит/, [{ type: 'marble_workers', count: 2 }]],
+    [/паркет|ламинат/, [{ type: 'parquet_layers', count: 2 }]],
+    [/наливн.*пол|стяжк/, [{ type: 'floor_layers', count: 2 }]],
+    [/гипсокартон|гкл|перегородк/, [{ type: 'gypsum_workers', count: 2 }]],
+    [/штукатурк|шпатлёвк|шпатлевк/, [{ type: 'plasterers', count: 2 }]],
+    [/маляр|покрас|окраск/, [{ type: 'painters', count: 2 }]],
+    [/потолк/, [{ type: 'gypsum_workers', count: 2 }]],
+    [/двер.*установ|монтаж двер/, [{ type: 'door_installers', count: 2 }]],
+    [/окон.*установ|монтаж окон/, [{ type: 'window_installers', count: 2 }]],
+    [/стекл|витра|алюмини/, [{ type: 'glass_installers', count: 2 }]],
+    [/мебел|сборк|шкаф/, [{ type: 'movers', count: 2 }]],
+    [/кухн/, [{ type: 'kitchen_fitters', count: 2 }]],
+    [/убор|клининг/, [{ type: 'cleaners', count: 2 }]],
+    [/разрешен|согласован/, [{ type: 'permits', count: 1 }]],
+    [/документ|бумаж/, [{ type: 'paperwork', count: 1 }]],
+    [/смет/, [{ type: 'estimators', count: 1 }]],
+    [/закупк|поставк|снабжен/, [{ type: 'supply', count: 1 }]],
+    [/приём|приемка|сдач/, [{ type: 'engineers', count: 1 }]],
+    [/сварк/, [{ type: 'welders', count: 1 }]],
+    [/каркас|стропил|кровл/, [{ type: 'roofers', count: 2 }]],
+    [/изоляц|утеплен/, [{ type: 'insulators', count: 1 }]],
+    [/фасад/, [{ type: 'facade', count: 2 }]],
+  ];
+  for (const [re, res] of rules) {
+    if (re.test(s)) return res;
+  }
+  return null;
+}
 
 const DEFAULT_MATERIALS_BY_SECTION = {
   // Новые ID секций (orange-1801 после пересборки по контракту)
@@ -500,6 +637,10 @@ const DEFAULT_MATERIALS_BY_SECTION = {
 
 function defaultResourcesForTask(task) {
   if (!task) return [];
+  // 1. По названию работы — точнее, чем секция
+  const byName = defaultResourcesByTaskName(task.name);
+  if (byName) return JSON.parse(JSON.stringify(byName));
+  // 2. По типу секции
   const sectionKey = task.section || 'default';
   return JSON.parse(JSON.stringify(DEFAULT_RESOURCES_BY_SECTION[sectionKey] || DEFAULT_RESOURCES_BY_SECTION.default));
 }
@@ -511,9 +652,18 @@ function defaultMaterialsForTask(task) {
 
 function getTaskResources(taskId) {
   const stored = state.dataCache.taskResources[String(taskId)];
-  if (stored && stored.length) return stored;
+  // Array (even empty) = user-managed; defaults only when never touched (undefined)
+  if (Array.isArray(stored)) return stored;
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
   return defaultResourcesForTask(t);
+}
+
+// STRICT: only user-entered resources. Used by heatmap so оно не врёт фейковыми дефолтами.
+// Если в Airtable записи нет — возвращает null (отличается от []), чтобы heatmap мог посчитать
+// "заполнено N из M работ" и предупредить юзера.
+function getTaskResourcesStrict(taskId) {
+  const stored = state.dataCache.taskResources[String(taskId)];
+  return Array.isArray(stored) ? stored : null;
 }
 function setTaskResources(taskId, resources) {
   const list = (resources || []).filter(r => r && r.type && Number(r.count) > 0)
@@ -528,7 +678,8 @@ function setTaskResources(taskId, resources) {
 
 function getTaskMaterials(taskId) {
   const stored = state.dataCache.taskMaterials[String(taskId)];
-  if (stored && stored.length) return stored;
+  // Array (even empty) = user-managed; defaults only when never touched (undefined)
+  if (Array.isArray(stored)) return stored;
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
   return defaultMaterialsForTask(t);
 }
@@ -540,7 +691,9 @@ function setTaskMaterials(taskId, materials) {
     leadTime: Math.max(0, Math.min(120, Number(m?.leadTime) || 0)),
     ordered: !!m?.ordered,
     expectedDate: m?.expectedDate || '',
-    note: (m?.note || '').slice(0, 200)
+    note: (m?.note || '').slice(0, 200),
+    quantity: m?.quantity != null ? (Number(m.quantity) || 0) : null,
+    unit: m?.unit ? String(m.unit).trim().slice(0, 16) : ''
   }));
   state.dataCache.taskMaterials[String(taskId)] = all;
   const filled = all.filter(m => m.name);
@@ -549,6 +702,24 @@ function setTaskMaterials(taskId, materials) {
   // Live update: analytics card + alert banner + bar outline
   if (typeof renderProjectAnalytics === 'function') renderProjectAnalytics();
 }
+
+// Допустимые единицы измерения материалов
+const MATERIAL_UNITS = [
+  { id: '',     label: '— ед. —' },
+  { id: 'шт',   label: 'шт' },
+  { id: 'компл',label: 'компл' },
+  { id: 'м',    label: 'м' },
+  { id: 'м²',   label: 'м²' },
+  { id: 'м³',   label: 'м³' },
+  { id: 'кг',   label: 'кг' },
+  { id: 'т',    label: 'т' },
+  { id: 'л',    label: 'л' },
+  { id: 'уп',   label: 'уп' },
+  { id: 'мешок',label: 'мешок' },
+  { id: 'рул',  label: 'рулон' },
+  { id: 'лист', label: 'лист' },
+  { id: 'пог.м',label: 'пог.м' },
+];
 
 // Алерт по материалам: срабатывает для ЛЮБОЙ незакрытой работы.
 //   • Работа в будущем — риск если lead-time > дней до старта.
@@ -568,15 +739,27 @@ function computeMaterialRisk(task) {
   return { daysToStart, maxLead, orderBy, riskyCount: risky.length, totalCount: mats.length, alreadyStarted: daysToStart < 0 };
 }
 
-async function postDataAction(action, payload) {
-  const r = await fetch('/api/data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload })
-  });
-  const json = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(json.error || ('HTTP ' + r.status));
-  return json.result || {};
+async function postDataAction(action, payload, timeoutMs) {
+  // __FETCH_TIMEOUT_v1__ Без AbortController зависший backend = бесконечный спиннер.
+  // 35s покрывает Vercel maxDuration=30s + sane buffer.
+  const ctrl = new AbortController();
+  const tmo = setTimeout(() => ctrl.abort(), Number(timeoutMs) || 35000);
+  try {
+    const r = await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, payload }),
+      signal: ctrl.signal
+    });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json.error || ('HTTP ' + r.status));
+    return json.result || {};
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error('timeout');
+    throw e;
+  } finally {
+    clearTimeout(tmo);
+  }
 }
 
 // One-time per-browser миграция данных из localStorage в Airtable.
@@ -679,7 +862,7 @@ function applyCollapsedState() {
 }
 
 /* Aggregated ticket badge per task — predictable position on the bar, color by worst status, size by count */
-function buildTaskTicketBadge(taskId, barLeft, barWidth) {
+function buildTaskTicketBadge(taskId, barLeft, barWidth, anchorOpts) {
   if (!state.showTickets) return '';
   const tt = state.tickets.filter((tk) => tk.task_id === String(taskId));
   if (!tt.length) return '';
@@ -702,8 +885,20 @@ function buildTaskTicketBadge(taskId, barLeft, barWidth) {
     if (c) titleParts.push(`${TICKET_STATUS_LABEL[s] || s}: ${c}`);
   }
   const title = `Полевые тикеты (${total}) · ${titleParts.join(', ')}`;
-  // Position: stick to the RIGHT edge of the plan bar, overlay corner
-  const left = Math.round(barLeft + barWidth - 2);
+  // Position: anchor badge so it's actually visible in current chart range.
+  // 1) If today is within plan range → place at today (always in view since today line is centered)
+  // 2) Else → place at LEFT edge of plan bar (project start area, easier to find than far-right)
+  let left = Math.round(barLeft + barWidth - 2); // legacy fallback
+  if (anchorOpts && anchorOpts.cellW && anchorOpts.todayD && anchorOpts.start) {
+    const { todayD, start, cellW, pStart, pEnd } = anchorOpts;
+    const todayInRange = pStart && pEnd && todayD >= parseISO(pStart) && todayD <= parseISO(pEnd);
+    if (todayInRange) {
+      const dayOffset = dayDiff(start, todayD);
+      left = Math.round(dayOffset * cellW + cellW / 2);
+    } else {
+      left = Math.round(barLeft + 8); // left edge with small inset
+    }
+  }
   return `<div class="tk-badge tk-badge--${worst} tk-badge--${tier}" style="left:${left}px" data-task-id="${escapeHtml(String(taskId))}" title="${escapeHtml(title)}">
     <svg viewBox="0 0 10 12" class="tk-badge-flag" aria-hidden="true"><path d="M1 1 L1 11 M1 1 L8 1 L6.5 3.5 L8 6 L1 6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="tk-badge-count">${total}</span>
@@ -773,9 +968,12 @@ function hasAnyDeps() {
 // Возвращает { critical: Set<taskId>, slack: Map, predecessors: Map<taskId, Set<taskId>> }
 function computeCriticalPath(schedule) {
   const tasks = schedule.tasks || [];
-  if (!tasks.length) return { critical: new Set(), slack: new Map(), predecessors: new Map() };
-  const projectStart = parseISO(schedule.project.startDate);
-  const projectEnd = parseISO(schedule.project.endDate);
+  if (!tasks.length) return { critical: new Set(), slack: new Map(), predecessors: new Map(), successors: new Map() };
+  const projectStart = parseISO(schedule.project?.startDate);
+  const projectEnd   = parseISO(schedule.project?.endDate);
+  if (!isFinite(projectStart.getTime()) || !isFinite(projectEnd.getTime())) {
+    return { critical: new Set(), slack: new Map(), predecessors: new Map(), successors: new Map() };
+  }
 
   const taskById = new Map(tasks.map(t => [t.id, t]));
   const useExplicit = hasAnyDeps();
@@ -845,9 +1043,10 @@ function computeCriticalPath(schedule) {
   const efMap = new Map();
   for (const id of order) {
     const t = taskById.get(id);
-    if (!t) continue;
+    if (!t || !t.planStart || !t.planEnd) continue;
     const ps = parseISO(t.planStart).getTime();
     const pe = parseISO(t.planEnd).getTime();
+    if (!isFinite(ps) || !isFinite(pe)) continue;
     const dur = Math.max(1, (pe - ps) / DAY_MS + 1);
     let predMaxEF = projectStart.getTime() - DAY_MS;
     for (const pid of preds.get(id)) {
@@ -927,19 +1126,47 @@ function getCriticalChain(taskId) {
 // прогноз сдачи (EAC). CPI/AC опускаем — actual cost у нас нет.
 // Per-task EVM contribution: cost-weighted PV, EV, SPI for one task. Same формула как в computeEVM.
 function computeTaskMetrics(t, asOfDate) {
+  // Задача без дат не участвует в EVM (не портит общую картину).
+  if (!t.planStart || !t.planEnd) return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
+  // __SPI_FIX_v2__ Permits + аномалии (actualEnd<planStart, actualStart в будущем с прогрессом)
+  // не участвуют в SPI — ломают расчёт до ∞.
+  if (t.isPermit || t.permitType) return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
   const today = asOfDate.getTime();
   const cost = Number(t.costIncVat) || 0;
   const ps = parseISO(t.planStart).getTime();
   const pe = parseISO(t.planEnd).getTime();
+  if (!isFinite(ps) || !isFinite(pe)) return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
+  // Аномалия: actualEnd до planStart («закрыта» до плана) — пропускаем
+  if (t.actualEnd) {
+    const ae = parseISO(t.actualEnd).getTime();
+    if (isFinite(ae) && ae < ps - 86400000) return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
+  }
+  // Аномалия: actualStart в будущем + есть progress — мусор, пропускаем
+  if (t.actualStart) {
+    const aS = parseISO(t.actualStart).getTime();
+    if (isFinite(aS) && aS > today + 86400000 && (typeof t.progress === 'number' ? t.progress : 0) > 0) {
+      return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
+    }
+  }
   const dur = Math.max(1, (pe - ps) / 86400000 + 1);
+  // actualEnd в будущем = битые данные (или поставлено заранее) — трактуем работу как ещё открытую.
+  const actualEndValid = t.actualEnd && parseISO(t.actualEnd).getTime() <= today;
+  // Если работа стартовала раньше плана — pP считаем от факт-старта,
+  // чтобы EV и PV были в одной системе координат и SPI не взрывался.
+  const actualStartTs = t.actualStart ? parseISO(t.actualStart).getTime() : null;
+  const refPlanStart = (actualStartTs !== null && actualStartTs < ps) ? actualStartTs : ps;
+  const refDur = Math.max(1, (pe - refPlanStart) / 86400000 + 1);
   let pP = 0;
   if (today >= pe) pP = 1;
-  else if (today > ps) pP = ((today - ps) / 86400000) / dur;
+  else if (today > refPlanStart) pP = ((today - refPlanStart) / 86400000) / refDur;
+  // Если работа закрыта (валидный actualEnd) — она целиком освоена, плановое = 1
+  // (иначе у работы, закрытой раньше планового старта, PV=0 и SPI = ∞).
+  if (actualEndValid) pP = 1;
   // Гибрид: ручной % из weekly_report + календарный штраф за просрочку.
   // Если работа не закрыта (нет actualEnd), но planEnd прошёл — каждый день
   // без отметки готовности гнобит EV: эффективный_прогресс = manual_% × (pDur / max(pDur, elapsed)).
   let aP = 0;
-  if (t.actualEnd) {
+  if (actualEndValid) {
     aP = 1;
   } else {
     const baseProgress = (typeof t.progress === 'number' && t.progress >= 0)
@@ -954,9 +1181,19 @@ function computeTaskMetrics(t, asOfDate) {
           : 0);
     // Если работа уже должна была закрыться — применяем PMI-decay.
     // Базовая длительность с фактического старта (или планового, если факт-старт не отмечен).
+    // Decay НЕ применяется когда руководитель вручную отметил 100% (baseProgress >= 1):
+    // они говорят «сделано», просто actualEnd ещё не проставлен.
     const refStart = t.actualStart ? parseISO(t.actualStart).getTime() : ps;
-    const elapsedSinceRef = Math.max(0, (today - refStart) / 86400000);
-    const overdueDecay = (today >= pe && elapsedSinceRef > dur)
+    // Вычитаем дни паузы из elapsed — иначе SPI несправедливо падает в простоях.
+    const pauseDaysSinceRef = Array.isArray(t.pauses) ? t.pauses.reduce((sum, p) => {
+      if (!p || !p.from) return sum;
+      const pStart = Math.max(refStart, parseISO(p.from).getTime());
+      const pEnd = Math.min(today, p.to ? parseISO(p.to).getTime() : today);
+      if (isFinite(pStart) && isFinite(pEnd) && pEnd > pStart) sum += (pEnd - pStart) / 86400000;
+      return sum;
+    }, 0) : 0;
+    const elapsedSinceRef = Math.max(0, (today - refStart) / 86400000 - pauseDaysSinceRef);
+    const overdueDecay = (today >= pe && elapsedSinceRef > dur && baseProgress < 1)
       ? dur / elapsedSinceRef
       : 1;
     aP = baseProgress * overdueDecay;
@@ -968,31 +1205,56 @@ function computeTaskMetrics(t, asOfDate) {
 
 function computeEVM(schedule, asOfDate) {
   const tasks = schedule.tasks || [];
-  const projectStart = parseISO(schedule.project.startDate);
-  const projectEnd = parseISO(schedule.project.endDate);
+  const projectStart = parseISO(schedule.project?.startDate);
+  const projectEnd   = parseISO(schedule.project?.endDate);
   const totalCost = tasks.reduce((s, t) => s + (Number(t.costIncVat) || 0), 0);
+  // Если проект на паузе — замораживаем расчёт на момент pausedAt. SPI и прогноз
+  // не двигаются дальше, чтобы не накапливать «фантомное» опоздание во время паузы.
+  if (schedule.project?.isPaused === true && schedule.project?.pausedAt) {
+    const pausedAtDate = new Date(schedule.project.pausedAt);
+    if (isFinite(pausedAtDate.getTime()) && pausedAtDate < asOfDate) {
+      asOfDate = pausedAtDate;
+    }
+  }
+  if (!isFinite(projectStart.getTime()) || !isFinite(projectEnd.getTime())) {
+    return { PV: 0, EV: 0, SPI: null, totalCost, hasCostData: totalCost > 0,
+      completionRatio: 0, plannedRatio: 0, eacDate: null, slipDays: 0,
+      paused: schedule.project?.isPaused === true };
+  }
   const today = asOfDate.getTime();
 
-  let PV = 0, EV = 0;
+  // eligibleCost — сумма стоимостей ТОЛЬКО тех работ, что реально участвуют в EV/PV.
+  // Permits, аномалии и работы без дат отбрасываются в computeTaskMetrics (m.cost=0).
+  // Раньше completionRatio/plannedRatio делились на общий totalCost, в который входили
+  // permits → если permit-работы дорогие, "освоено%" / "план%" вырождались в 1-2%
+  // даже когда реально завершён существенный кусок графика. Теперь знаменатель
+  // согласован с числителем: проценты отражают долю SPI-зоны.
+  let PV = 0, EV = 0, eligibleCost = 0;
   for (const t of tasks) {
     const m = computeTaskMetrics(t, asOfDate);
     if (!m.cost) continue;
     PV += m.PV;
     EV += m.EV;
+    eligibleCost += m.cost;
   }
 
-  const SPI = PV > 0 ? EV / PV : 1;
+  // __SPI_NULL_WHEN_NOT_STARTED_v1__ Если PV=0 (ни одна работа ещё не должна была
+  // начаться по плану) — SPI неопределён, не выдаём фантомные 100%.
+  const SPI = PV > 0 ? EV / PV : null;
   const totalDays = Math.max(1, (projectEnd - projectStart) / 86400000 + 1);
-  const eacDays = SPI > 0 ? totalDays / SPI : totalDays;
+  const eacDays = (SPI && SPI > 0) ? totalDays / SPI : totalDays;
   const eacDate = new Date(projectStart.getTime() + Math.round(eacDays - 1) * 86400000);
-  const slipDays = Math.round((eacDate - projectEnd) / 86400000);
+  const slipDays = SPI != null ? Math.round((eacDate - projectEnd) / 86400000) : 0;
   return {
     PV, EV, SPI,
     totalCost,
-    hasCostData: totalCost > 0,
-    completionRatio: totalCost > 0 ? EV / totalCost : 0,
-    plannedRatio: totalCost > 0 ? PV / totalCost : 0,
-    eacDate, slipDays
+    eligibleCost,
+    hasCostData: eligibleCost > 0,
+    completionRatio: eligibleCost > 0 ? EV / eligibleCost : 0,
+    plannedRatio: eligibleCost > 0 ? PV / eligibleCost : 0,
+    eacDate, slipDays,
+    paused: schedule.project?.isPaused === true,
+    frozenAt: schedule.project?.isPaused === true ? schedule.project?.pausedAt : null,
   };
 }
 
@@ -1012,27 +1274,95 @@ function setDailyWorkersCap(v) {
   } catch (_) {}
 }
 
-// Полное распределение по дням и типам специалистов. Возвращает: { days[], types[], counts[type][dayIdx], peak, peakDate, peakIdx }
+// Полное распределение по дням и типам специалистов. Возвращает:
+//   { days[], types[], counts[type][dayIdx], peak, peakDate, peakIdx,
+//     filledCount, totalActive } // сколько работ имеют реальные ресурсы из общего числа активных
+//
+// Считает ТОЛЬКО реально работавшие/работающие задачи. Чисто plan-задачи (без actualStart)
+// в подсчёт НЕ идут — они "потенциальные", никто там не работает по факту.
+//
+// Условия включения работы на день D:
+//   - НЕ cancelled
+//   - actualStart должен быть установлен (иначе skip — это план, не реальная работа)
+//   - Если actualEnd тоже установлен: интервал [actualStart .. actualEnd-1] (день закрытия исключён)
+//   - Если actualEnd нет: интервал [actualStart .. today] (in progress, не учитываем будущее)
+//   - День D не попадает в pause-интервал
 function computeResourceTimeline(schedule) {
   const tasks = schedule.tasks || [];
-  const projectStart = parseISO(schedule.project.startDate);
-  const projectEnd = parseISO(schedule.project.endDate);
-  const days = Math.max(1, Math.round((projectEnd - projectStart) / DAY_MS) + 1);
+  // Используем те же start/totalDays что и Gantt (state.layout) — иначе оси не совпадают.
+  // Gantt раздвигает диапазон чтобы покрыть actualStart раньше plan + 7д padding слева.
+  let projectStart, days;
+  if (state?.layout?.startISO && state.layout.totalDays > 0) {
+    projectStart = parseISO(state.layout.startISO);
+    days = state.layout.totalDays;
+  } else {
+    projectStart = parseISO(schedule.project.startDate);
+    const projectEnd = parseISO(schedule.project.endDate);
+    days = Math.max(1, Math.round((projectEnd - projectStart) / DAY_MS) + 1);
+  }
+  const todayMs = effectiveToday().getTime();
 
   const counts = {}; // type → array(days)
   const totalPerDay = new Array(days).fill(0);
+  let filledCount = 0;
+  let totalActive = 0;
 
   for (const t of tasks) {
-    const ps = parseISO(t.planStart).getTime();
-    const pe = parseISO(t.planEnd).getTime();
-    const startIdx = Math.max(0, Math.round((ps - projectStart) / DAY_MS));
-    const endIdx = Math.min(days - 1, Math.round((pe - projectStart) / DAY_MS));
-    const resources = getTaskResources(t.id);
-    for (const r of resources) {
-      const cnt = Number(r.count) || 0;
-      if (!cnt) continue;
-      if (!counts[r.type]) counts[r.type] = new Array(days).fill(0);
-      for (let i = startIdx; i <= endIdx; i++) {
+    if (t.cancelled) continue;
+    // Resources: если в Airtable есть запись (даже пустая) — используем её. Если нет — дефолт по типу.
+    // Это даёт каждой задаче на гант-баре соответствующих людей в heatmap, даже если юзер не заполнил вручную.
+    const stored = getTaskResourcesStrict(t.id);
+    let resources;
+    if (Array.isArray(stored)) {
+      if (!stored.length) continue; // юзер явно сказал «никого»
+      resources = stored;
+      filledCount++;
+    } else {
+      resources = defaultResourcesForTask(t); // fallback на дефолт
+      if (!resources || !resources.length) continue;
+    }
+    totalActive++;
+
+    // === Считаем активные дни как UNION плана и факта ===
+    const planFromIdx = t.planStart ? Math.round((parseISO(t.planStart).getTime() - projectStart) / DAY_MS) : -1;
+    const planToIdx   = t.planEnd   ? Math.round((parseISO(t.planEnd).getTime()   - projectStart) / DAY_MS) : -1;
+    const factFromIdx = t.actualStart ? Math.round((parseISO(t.actualStart).getTime() - projectStart) / DAY_MS) : -1;
+    let factToIdx = -1;
+    if (t.actualStart) {
+      if (t.actualEnd) {
+        factToIdx = Math.round((parseISO(t.actualEnd).getTime() - projectStart) / DAY_MS) - 1; // день закрытия не считается
+      } else {
+        factToIdx = Math.round((todayMs - projectStart) / DAY_MS); // in progress до сегодня
+      }
+    }
+    // День "закрытия и после" — задача больше не активна
+    const closedFromIdx = t.actualEnd
+      ? Math.round((parseISO(t.actualEnd).getTime() - projectStart) / DAY_MS)
+      : Infinity;
+
+    const pausedIdx = new Set();
+    if (Array.isArray(t.pauses)) {
+      for (const p of t.pauses) {
+        if (!p || !p.from) continue;
+        const pf = parseISO(p.from).getTime();
+        const pt = p.to ? parseISO(p.to).getTime() : todayMs;
+        if (!pf || pt < pf) continue;
+        const pStart = Math.max(0, Math.round((pf - projectStart) / DAY_MS));
+        const pEnd   = Math.min(days - 1, Math.round((pt - projectStart) / DAY_MS));
+        for (let i = pStart; i <= pEnd; i++) pausedIdx.add(i);
+      }
+    }
+
+    for (let i = 0; i < days; i++) {
+      if (pausedIdx.has(i)) continue;
+      if (i >= closedFromIdx) continue;
+      const inPlan = planFromIdx >= 0 && planFromIdx <= i && i <= planToIdx;
+      const inFact = factFromIdx >= 0 && factFromIdx <= i && i <= factToIdx;
+      if (!inPlan && !inFact) continue;
+      for (const r of resources) {
+        const cnt = Number(r.count) || 0;
+        if (!cnt) continue;
+        if (!counts[r.type]) counts[r.type] = new Array(days).fill(0);
         counts[r.type][i] += cnt;
         totalPerDay[i] += cnt;
       }
@@ -1044,7 +1374,7 @@ function computeResourceTimeline(schedule) {
   const peakDate = peakIdx >= 0 ? new Date(projectStart.getTime() + peakIdx * DAY_MS) : null;
   const dayDates = [];
   for (let i = 0; i < days; i++) dayDates.push(new Date(projectStart.getTime() + i * DAY_MS));
-  return { days: dayDates, types, counts, totalPerDay, peak, peakDate, peakIdx };
+  return { days: dayDates, types, counts, totalPerDay, peak, peakDate, peakIdx, filledCount, totalActive };
 }
 
 function renderResourceHeatmap() {
@@ -1066,10 +1396,16 @@ function renderResourceHeatmap() {
     return sumB - sumA;
   });
 
-  const cellW = state.cellW || 22;
-  // Левая колонка heatmap = ширина Gantt label column (по умолчанию 260px), чтобы дни выравнивались по вертикали
-  const ganttLabelW = parseInt(getComputedStyle(document.getElementById('gantt') || document.body).getPropertyValue('--label-col-w')) || 260;
-  const labelW = isMobile() ? 0 : ganttLabelW;
+  // Используем точно тот же cellW и labelW что и Gantt (через state.layout).
+  // На мобилке Гантт держит sticky-section-label в 110px → день N на гантте лежит
+  // на x = 110 + N*cellW. Если heatmap запустить с labelW=0, его день N окажется
+  // на x = N*cellW, и подсветка пин-колонки будет сдвинута на 110px от Гантта.
+  // Поэтому labelW heatmap всегда совпадает с currentLabelW() (110 на мобилке /
+  // 260 на десктопе) — структура колонок идентична Гантту.
+  const cellW = state?.layout?.cellW || state.cellW || 22;
+  const labelW = state?.layout?.labelColW
+    || parseInt(getComputedStyle(document.getElementById('gantt') || document.body).getPropertyValue('--label-col-w'))
+    || 260;
   const max = Math.max(1, ...Object.values(tl.counts).flat());
 
   const monthsHtml = (() => {
@@ -1103,7 +1439,8 @@ function renderResourceHeatmap() {
       const intensity = Math.min(1, n / peakRef);
       const bg = n > 0 ? `rgba(${palette}, ${baseAlpha + intensity * peakAlpha})` : 'transparent';
       const over = isTotal && overloadedDays[i];
-      const cls = `rh-cell${isTotal ? ' rh-cell--total' : ''}${over ? ' rh-cell--overload' : ''}`;
+      const isMonthStart = tl.days[i].getUTCDate() === 1 || i === 0;
+      const cls = `rh-cell${isTotal ? ' rh-cell--total' : ''}${over ? ' rh-cell--overload' : ''}${isMonthStart ? ' rh-cell--month-start' : ''}`;
       const tip = isTotal && cap > 0
         ? `${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n} (лимит ${cap}${over ? ' — превышение!' : ''})`
         : `${escapeHtml(fmtDate(toISO(tl.days[i])))} · ${escapeHtml(label)}: ${n}`;
@@ -1117,7 +1454,8 @@ function renderResourceHeatmap() {
   };
 
   const headerCellsHtml = tl.days.map((d, i) => {
-    const cls = `rh-day-header${overloadedDays[i] ? ' rh-day-header--overload' : ''}`;
+    const isMonthStart = d.getUTCDate() === 1 || i === 0;
+    const cls = `rh-day-header${overloadedDays[i] ? ' rh-day-header--overload' : ''}${isMonthStart ? ' rh-day-header--month-start' : ''}`;
     return `<div class="${cls}" data-col="${i}">${d.getUTCDate()}</div>`;
   }).join('');
 
@@ -1188,22 +1526,71 @@ function renderResourceHeatmap() {
 
 // Resource peak: считаем суммарное число людей на каждый день в plan-диапазоне.
 // Возвращаем максимум и его дату.
+// Использует те же правила что и computeResourceTimeline:
+// только actualStart-задачи (с факт-стартом) + strict resources + день закрытия исключён + паузы.
+// Возвращает peak за весь проект и дату пика.
 function computeResourcePeak(schedule) {
   const tasks = schedule.tasks || [];
   if (!tasks.length) return { peak: 0, peakDate: null };
-  const projectStart = parseISO(schedule.project.startDate);
-  const projectEnd = parseISO(schedule.project.endDate);
-  const days = Math.round((projectEnd - projectStart) / DAY_MS) + 1;
+  // Используем тот же диапазон что Gantt (state.layout) — иначе peakDate показывается на «другой» день
+  let projectStart, days;
+  if (state?.layout?.startISO && state.layout.totalDays > 0) {
+    projectStart = parseISO(state.layout.startISO);
+    days = state.layout.totalDays;
+  } else {
+    projectStart = parseISO(schedule.project.startDate);
+    const projectEnd = parseISO(schedule.project.endDate);
+    days = Math.round((projectEnd - projectStart) / DAY_MS) + 1;
+  }
+  const todayMs = effectiveToday().getTime();
   const counts = new Array(days).fill(0);
 
   for (const t of tasks) {
-    const ps = parseISO(t.planStart).getTime();
-    const pe = parseISO(t.planEnd).getTime();
-    const startIdx = Math.max(0, Math.round((ps - projectStart) / DAY_MS));
-    const endIdx = Math.min(days - 1, Math.round((pe - projectStart) / DAY_MS));
-    const total = getTaskResources(t.id).reduce((s, r) => s + (Number(r.count) || 0), 0);
+    if (t.cancelled) continue;
+    const stored = getTaskResourcesStrict(t.id);
+    let resources;
+    if (Array.isArray(stored)) {
+      if (!stored.length) continue;
+      resources = stored;
+    } else {
+      resources = defaultResourcesForTask(t);
+      if (!resources || !resources.length) continue;
+    }
+    const total = resources.reduce((s, r) => s + (Number(r.count) || 0), 0);
     if (!total) continue;
-    for (let i = startIdx; i <= endIdx; i++) counts[i] += total;
+
+    const planFromIdx = t.planStart ? Math.round((parseISO(t.planStart).getTime() - projectStart) / DAY_MS) : -1;
+    const planToIdx   = t.planEnd   ? Math.round((parseISO(t.planEnd).getTime()   - projectStart) / DAY_MS) : -1;
+    const factFromIdx = t.actualStart ? Math.round((parseISO(t.actualStart).getTime() - projectStart) / DAY_MS) : -1;
+    let factToIdx = -1;
+    if (t.actualStart) {
+      if (t.actualEnd) factToIdx = Math.round((parseISO(t.actualEnd).getTime() - projectStart) / DAY_MS) - 1;
+      else factToIdx = Math.round((todayMs - projectStart) / DAY_MS);
+    }
+    const closedFromIdx = t.actualEnd
+      ? Math.round((parseISO(t.actualEnd).getTime() - projectStart) / DAY_MS)
+      : Infinity;
+
+    const pausedIdx = new Set();
+    if (Array.isArray(t.pauses)) {
+      for (const p of t.pauses) {
+        if (!p || !p.from) continue;
+        const pf = parseISO(p.from).getTime();
+        const pt = p.to ? parseISO(p.to).getTime() : todayMs;
+        if (!pf || pt < pf) continue;
+        const ps2 = Math.max(0, Math.round((pf - projectStart) / DAY_MS));
+        const pe2 = Math.min(days - 1, Math.round((pt - projectStart) / DAY_MS));
+        for (let i = ps2; i <= pe2; i++) pausedIdx.add(i);
+      }
+    }
+    for (let i = 0; i < days; i++) {
+      if (pausedIdx.has(i)) continue;
+      if (i >= closedFromIdx) continue;
+      const inPlan = planFromIdx >= 0 && planFromIdx <= i && i <= planToIdx;
+      const inFact = factFromIdx >= 0 && factFromIdx <= i && i <= factToIdx;
+      if (!inPlan && !inFact) continue;
+      counts[i] += total;
+    }
   }
   let peak = 0, peakIdx = -1;
   for (let i = 0; i < days; i++) {
@@ -1282,17 +1669,21 @@ function renderProjectAnalytics() {
   state.cpmPredecessors = cpm.predecessors;
   state.cpmSlack = cpm.slack;
 
-  const spiPct = (evm.SPI * 100).toFixed(0);
+  // __SPI_NULL_WHEN_NOT_STARTED_v1__ SPI=null = проект ещё не начался (PV=0)
+  const spiPct = evm.SPI != null ? (evm.SPI * 100).toFixed(0) : '—';
   const earnedPct = Math.round(evm.completionRatio * 100);
   const planPct = Math.round(evm.plannedRatio * 100);
   const slip = evm.slipDays;
-  const slipLbl = slip > 1
+  const slipLbl = evm.SPI == null
+    ? `<span class="analytics-slip analytics-slip--ok">проект ещё не начался</span>`
+    : slip > 1
     ? `<span class="analytics-slip analytics-slip--late">+${slip} дн. к плану</span>`
     : slip < -1
     ? `<span class="analytics-slip analytics-slip--early">${slip} дн. к плану</span>`
     : `<span class="analytics-slip analytics-slip--ok">в графике</span>`;
-  const spiCls = evm.hasCostData ? spiClass(evm.SPI) : 'spi-na';
+  const spiCls = !evm.hasCostData || evm.SPI == null ? 'spi-na' : spiClass(evm.SPI);
   const spiLbl = !evm.hasCostData ? 'нет данных по стоимости'
+              : evm.SPI == null ? 'проект ещё не начался'
               : evm.SPI >= 0.97 ? 'идём по плану'
               : evm.SPI >= 0.88 ? 'небольшое отставание'
               : 'серьёзное отставание';
@@ -1326,8 +1717,8 @@ function renderProjectAnalytics() {
         <span class="analytics-card-ico" aria-hidden="true">📊</span>
         <span class="analytics-card-body">
           <span class="analytics-card-label">SPI · ${spiLbl}</span>
-          <span class="analytics-card-value">${evm.hasCostData ? spiPct : '—'}${evm.hasCostData ? '<span class="analytics-card-unit">%</span>' : ''}</span>
-          <span class="analytics-card-meta">${evm.hasCostData ? `освоено ${earnedPct}% · план ${planPct}%` : 'у работ не задана стоимость'}</span>
+          <span class="analytics-card-value">${evm.hasCostData && evm.SPI != null ? spiPct : '—'}${evm.hasCostData && evm.SPI != null ? '<span class="analytics-card-unit">%</span>' : ''}</span>
+          <span class="analytics-card-meta">${!evm.hasCostData ? 'у работ не задана стоимость' : evm.SPI == null ? 'ни одна работа ещё не должна была начаться' : `освоено ${earnedPct}% · план ${planPct}%`}</span>
         </span>
       </button>
       <button type="button" class="analytics-card analytics-card--eac" data-analytics="eac" title="Прогноз даты завершения по текущему темпу">
@@ -1362,11 +1753,33 @@ function renderProjectAnalytics() {
           <span class="analytics-card-meta">${resPeak.peakDate ? 'на ' + escapeHtml(fmtDate(toISO(resPeak.peakDate))) : 'нет данных'}</span>
         </span>
       </button>
+      ${(() => {
+        const last = getProgressLogLatest();
+        const total = (state.dataCache?.progressLog || []).length;
+        const reporter = last?.reporterName ? escapeHtml(last.reporterName) : '—';
+        const ago = last ? escapeHtml(fmtAgo(last.at)) : 'отчётов ещё нет';
+        const isStale = !last || (Date.now() - new Date(last.at).getTime()) > 36 * 3600 * 1000;
+        const cls = !last ? 'analytics-card--mute' : (isStale ? 'analytics-card--alert' : '');
+        return `<button type="button" class="analytics-card analytics-card--report ${cls}" data-analytics="progress-log" title="Ежедневные отчёты — календарь утренних диспатчей и вечерних голосовых ответов руководителей по этому проекту">
+          <span class="analytics-card-ico" aria-hidden="true">📅</span>
+          <span class="analytics-card-body">
+            <span class="analytics-card-label">Ежедневные отчёты</span>
+            <span class="analytics-card-value">${ago}</span>
+            <span class="analytics-card-meta">${last ? `от ${reporter} · всего ${total}` : 'жду первый голосовой'}</span>
+          </span>
+        </button>`;
+      })()}
     </div>`;
 
-  // Все плашки → drawer с детализацией
+  // Все плашки → drawer с детализацией. Исключение: «Ежедневные отчёты»
+  // открывают полноценный календарь (утренние диспатчи + вечерние пинги
+  // с голосовыми ответами руководителей по этому проекту), а не плоский лог.
   cont.querySelectorAll('[data-analytics]').forEach((btn) => {
-    btn.addEventListener('click', () => openAnalyticsDrawer(btn.getAttribute('data-analytics')));
+    btn.addEventListener('click', () => {
+      const k = btn.getAttribute('data-analytics');
+      if (k === 'progress-log') openReportsCalendarModal();
+      else openAnalyticsDrawer(k);
+    });
   });
 }
 
@@ -1384,7 +1797,11 @@ function renderHero() {
 
   // Populate header meta dynamically (was hardcoded to Orange in index.html)
   const titleEl = $('#hero-title');
-  if (titleEl) titleEl.textContent = p.name || 'Проект';
+  if (titleEl) {
+    titleEl.textContent = p.name || 'Проект';
+    titleEl.setAttribute('data-edit-project-name', '');
+    titleEl.title = 'В режиме «Правка» — клик, чтобы переименовать проект';
+  }
   const chipEl = $('#hero-chip');
   if (chipEl) chipEl.textContent = p.code ? `Контракт № ${p.code}` : 'Проект';
   const subEl = $('#hero-sub');
@@ -1399,16 +1816,66 @@ function renderHero() {
     end = parseISO(p.endDate);
   const durDays = dayDiff(start, end) + 1;
   const asOf = effectiveToday();
-  let pct = 0;
-  if (asOf < start) pct = 0;
-  else if (asOf > end) pct = 100;
-  else pct = Math.round(((asOf - start) / (end - start)) * 100);
+  // Два прогресса:
+  // ─ pct (факт) — реальный прогресс по работам: ручной % из голосовых отчётов
+  //   руководителя или fallback на elapsed/planDur. Средневзвешенный по длительности.
+  // ─ planPct (план) — где мы должны быть по календарю плана к asOf без учёта
+  //   реального исполнения. Юзер сравнивает: «по плану 75% — мы 68% — отстаём 7%».
+  let pct = 0, planPct = 0, hasValidDateData = false;
+  const tasks = state.schedule.tasks || [];
+  if (tasks.length > 0) {
+    let totalWeight = 0, doneWeight = 0, planWeight = 0;
+    for (const t of tasks) {
+      const ts = parseISO(t.planStart || t.start);
+      const te = parseISO(t.planEnd || t.end);
+      // Битые/отсутствующие даты пропускаем — иначе NaN-веса каскадно отравляют
+      // средневзвешенное и Hero показывает «NaN%».
+      if (!isFinite(ts.getTime()) || !isFinite(te.getTime()) || te < ts) continue;
+      const w = Math.max(1, dayDiff(ts, te) + 1);
+      totalWeight += w;
+      doneWeight += w * taskProgress(t);
+      // Calendar plan progress: 0 if not started yet, 1 if planned end past, fraction otherwise
+      let cp = 0;
+      if (asOf >= te) cp = 1;
+      else if (asOf > ts) cp = (asOf - ts) / Math.max(1, te - ts);
+      planWeight += w * cp;
+    }
+    if (totalWeight > 0) {
+      hasValidDateData = true;
+      pct = Math.round((doneWeight / totalWeight) * 100);
+      planPct = Math.round((planWeight / totalWeight) * 100);
+    }
+  }
+  const delta = pct - planPct;
+  let progressMeta;
+  if (!hasValidDateData) {
+    // Нет ни одной работы с валидными датами → сравнивать факт с планом
+    // нечего. Показываем дату как раньше — без ложного «в графике».
+    progressMeta = 'на ' + fmtDate(toISO(asOf));
+  } else if (Math.abs(delta) <= 1) {
+    progressMeta = `по плану ${planPct}% · в графике`;
+  } else if (delta > 0) {
+    progressMeta = `по плану ${planPct}% · опережаем ${delta}%`;
+  } else {
+    progressMeta = `по плану ${planPct}% · отстаём ${Math.abs(delta)}%`;
+  }
 
   $('#stat-total').textContent = fmtAED(p.totalIncVat);
   $('#stat-duration').textContent = durDays + ' ' + daysWord(durDays);
   $('#stat-dates').textContent = fmtDate(p.startDate) + ' → ' + fmtDate(p.endDate);
   $('#stat-progress').textContent = pct;
-  $('#stat-today').textContent = 'на ' + fmtDate(toISO(asOf));
+  // stat-today перепрофилирован в индикатор «факт vs план» — дата редко интересна
+  // юзеру в этой плашке (она и так есть в Analytics-блоке «На сегодня»).
+  const statTodayEl = $('#stat-today');
+  statTodayEl.textContent = progressMeta;
+  statTodayEl.classList.remove('stat-meta--ahead', 'stat-meta--behind', 'stat-meta--ok');
+  if (hasValidDateData) {
+    statTodayEl.classList.add(
+      Math.abs(delta) <= 1 ? 'stat-meta--ok' :
+      delta > 0 ? 'stat-meta--ahead' :
+      'stat-meta--behind'
+    );
+  }
   $('#stat-tasks').textContent = state.schedule.tasks.length;
   const sectionCount = new Set(state.schedule.tasks.map((t) => t.section)).size;
   $('#stat-tasks-meta').textContent = `видов работ · ${sectionCount} секций`;
@@ -1436,6 +1903,363 @@ function renderHero() {
   }
 
   renderProjectAnalytics();
+  renderProjectStateZone();
+}
+
+/* ═══ Project lifecycle UI: Start / Pause / Resume ═══ */
+function fmtDateShort(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
+  catch { return String(iso).slice(0, 10); }
+}
+
+function renderProjectStateZone() {
+  const zone = document.getElementById('project-state-zone');
+  if (!zone) return;
+  const p = state.schedule?.project || {};
+  const isPlanning = p.isPlanning !== false;
+  const isPaused = p.isPaused === true;
+  const histCount = Array.isArray(state.schedule?.history) ? state.schedule.history.length : 0;
+  const histBtn = `<button type="button" class="btn-project-history" id="btn-project-history" title="Журнал событий проекта">📜 История${histCount ? ` <span class="bph-count">${histCount}</span>` : ''}</button>`;
+
+  if (isPaused) {
+    zone.innerHTML = `
+      <div class="project-paused-banner" role="status">
+        <div class="ppb-icon">⏸</div>
+        <div class="ppb-main">
+          <div class="ppb-title">Проект на паузе</div>
+          <div class="ppb-meta">с ${escapeHtml(fmtDateShort(p.pausedAt))}${p.pauseReason ? '' : ''}</div>
+          ${p.pauseReason ? `<span class="ppb-reason">${escapeHtml(p.pauseReason)}</span>` : ''}
+        </div>
+        <button type="button" class="btn-project-resume" id="btn-project-resume">▶️ Возобновить</button>
+      </div>
+      ${histBtn}`;
+    document.getElementById('btn-project-resume')?.addEventListener('click', onProjectResumeClick);
+    document.body.classList.add('project-paused');
+  } else if (isPlanning) {
+    zone.innerHTML = `
+      <button type="button" class="btn-project-start" id="btn-project-start" title="Зафиксировать старт проекта — после этого изменения сроков потребуют причину">
+        <span class="ps-icon">🚀</span>Старт проекта
+      </button>
+      <span style="color:var(--muted);font-size:12px;font-style:italic">Режим настройки — правки без причин</span>
+      ${histBtn}`;
+    document.getElementById('btn-project-start')?.addEventListener('click', onProjectStartClick);
+    document.body.classList.remove('project-paused');
+  } else {
+    zone.innerHTML = `
+      <span class="project-active-badge"><span class="pa-dot"></span>Активен с ${escapeHtml(fmtDateShort(p.startedAt))}</span>
+      <button type="button" class="btn-project-pause" id="btn-project-pause">⏸ Поставить на паузу</button>
+      ${histBtn}`;
+    document.getElementById('btn-project-pause')?.addEventListener('click', onProjectPauseClick);
+    document.body.classList.remove('project-paused');
+  }
+  document.getElementById('btn-project-history')?.addEventListener('click', openProjectHistoryModal);
+}
+
+const PROJECT_EVENT_LABEL = {
+  project_started: { icon: '🚀', title: 'Проект стартанул', cls: 'pe-start' },
+  project_paused: { icon: '⏸', title: 'Проект поставлен на паузу', cls: 'pe-pause' },
+  project_resumed: { icon: '▶️', title: 'Проект возобновлён из паузы', cls: 'pe-resume' },
+  project_back_to_planning: { icon: '↩️', title: 'Возврат в режим настройки', cls: 'pe-back' },
+  report_not_provided: { icon: '❌', title: 'Вечерний отчёт не предоставлен', cls: 'pe-noreport' },
+};
+
+function openProjectHistoryModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'reason-modal-overlay';
+  overlay.innerHTML = `
+    <div class="reason-modal-card" style="max-width:640px" role="dialog" aria-modal="true">
+      <div class="reason-modal-title">📜 Журнал проекта</div>
+      <div class="reason-modal-sub">Все события на уровне проекта — старт, паузы, возобновления. Любая запись с причиной видна заказчику.</div>
+      <div id="proj-hist-list" style="max-height:60vh;overflow-y:auto;padding-right:4px">
+        <div style="color:#9ca3af;font-style:italic;padding:8px">Загрузка…</div>
+      </div>
+      <div class="reason-modal-actions">
+        <button type="button" class="reason-modal-cancel">Закрыть</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('.reason-modal-cancel').addEventListener('click', close);
+
+  // Свежий fetch чтобы видеть события только что произошедшие.
+  fetch(`/api/data?slug=${encodeURIComponent(state.projectSlug)}&schedule=1&t=${Date.now()}`)
+    .then(r => r.json())
+    .then(d => {
+      const sched = d?.schedule || d || {};
+      const list = overlay.querySelector('#proj-hist-list');
+      const events = Array.isArray(sched.history) ? sched.history : [];
+      if (!events.length) {
+        list.innerHTML = '<div style="color:#9ca3af;font-style:italic;padding:8px">Событий пока нет</div>';
+        return;
+      }
+      const now = Date.now();
+      // Pair pause/resume чтобы рассчитать длительность паузы.
+      const sorted = [...events].sort((a, b) => new Date(a.at) - new Date(b.at));
+      const rendered = sorted.slice().reverse().map((e) => {
+        const meta = PROJECT_EVENT_LABEL[e.type] || { icon: '•', title: e.type || 'Событие', cls: 'pe-other' };
+        const at = escapeHtml(fmtAtFull(e.at));
+        const by = escapeHtml(e.by || '—');
+        let extra = '';
+        // Для resume — найти связанную pause и показать длительность
+        if (e.type === 'project_resumed' && e.pausedAt) {
+          const startedPause = new Date(e.pausedAt);
+          const endedPause = new Date(e.at);
+          const days = Math.max(0, Math.round((endedPause - startedPause) / 86400000));
+          const reasonStr = e.pauseReason ? ` · причина: «${escapeHtml(e.pauseReason)}»` : '';
+          extra = `<div class="pe-extra">Пауза длилась ${days} ${daysWord(days)} (с ${escapeHtml(fmtAtFull(e.pausedAt))})${reasonStr}</div>`;
+        }
+        const reasonHtml = e.reason ? `<div class="pe-reason">📝 ${escapeHtml(e.reason)}</div>` : '';
+        return `<div class="proj-hist-row ${meta.cls}">
+          <div class="ph-head">
+            <span class="ph-icon">${meta.icon}</span>
+            <span class="ph-title">${escapeHtml(meta.title)}</span>
+            <span class="ph-meta">${by} · ${at}</span>
+          </div>
+          ${extra}
+          ${reasonHtml}
+        </div>`;
+      }).join('');
+      list.innerHTML = rendered;
+    })
+    .catch((e) => {
+      const list = overlay.querySelector('#proj-hist-list');
+      list.innerHTML = `<div style="color:#b91c1c;padding:8px">Ошибка загрузки: ${escapeHtml(e.message || String(e))}</div>`;
+    });
+}
+
+function spawnConfetti(originEl) {
+  const rect = originEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const colors = ['#f97316', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6'];
+  for (let i = 0; i < 36; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'ps-confetti';
+    const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.4;
+    const dist = 140 + Math.random() * 220;
+    piece.style.setProperty('--x', Math.cos(angle) * dist + 'px');
+    piece.style.setProperty('--y', Math.sin(angle) * dist + 60 + 'px');
+    piece.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+    piece.style.left = cx + 'px';
+    piece.style.top = cy + 'px';
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = (Math.random() * 0.15) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 1700);
+  }
+}
+
+// __PRELAUNCH_MODAL_v1__ Pre-launch модалка: проверяет что руководитель + бригадир привязаны к проекту.
+// Без них кнопка «Запустить» disabled. Если хоть одна категория пустая — кнопка ведёт в «Команду».
+async function onProjectStartClick() {
+  const slug = state.projectSlug;
+  let team;
+  try {
+    // __PER_PROJECT_TEAM_v1__ передаём slug чтобы получить activeInProject
+    const r = await postDataAction('team:list', { slug });
+    team = r.users || [];
+  } catch (e) {
+    alert('Не удалось загрузить команду: ' + (e.message || e));
+    return;
+  }
+  const slugLc = String(slug || '').toLowerCase();
+  // attached теперь учитывает per-project семантику (foreman/worker без slug в AllowedProjects = NOT attached)
+  const attached = (u) => {
+    if (typeof u.activeInProject === 'boolean') return u.activeInProject;
+    const a = Array.isArray(u.allowedProjects) ? u.allowedProjects : [];
+    if (!a.length) return true;
+    return a.map(s => String(s).toLowerCase()).includes(slugLc);
+  };
+  const active = (u) => u.active !== false;
+  const leadersAll = team.filter(u => active(u) && attached(u) && ['admin','owner','creator','pm'].includes(u.role));
+  const foremenAll = team.filter(u => active(u) && attached(u) && u.role === 'foreman');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.style.zIndex = 2000;
+  const renderRow = (u) => `<label class="prelaunch-row">
+    <input type="checkbox" name="prelaunch-${u.role === 'foreman' ? 'foreman' : 'leader'}" value="${escapeHtml(u.id)}" data-name="${escapeHtml(u.name)}" checked />
+    <span class="prelaunch-row-name">${escapeHtml(u.name)}</span>
+    <span class="prelaunch-row-role">${escapeHtml(u.role || '—')}</span>
+    ${u.telegramUserId ? '<span class="prelaunch-row-tg">TG ✓</span>' : '<span class="prelaunch-row-tg prelaunch-row-tg--missing">TG ✗</span>'}
+  </label>`;
+  const leadersHtml = leadersAll.length
+    ? leadersAll.map(renderRow).join('')
+    : `<div class="prelaunch-empty">⚠️ Нет ни одного руководителя, привязанного к проекту. Открой «Команда» → «Менеджмент» и добавь.</div>`;
+  const foremenHtml = foremenAll.length
+    ? foremenAll.map(renderRow).join('')
+    : `<div class="prelaunch-empty">⚠️ Нет ни одного бригадира на проекте. Бригадир обязателен — он будет получать переадресованные задачи.</div>`;
+  const canLaunch = leadersAll.length > 0 && foremenAll.length > 0;
+  overlay.innerHTML = `
+    <div class="edit-form-card prelaunch-card">
+      <div class="edit-form-head">
+        <div>🚀 Запуск проекта</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="prelaunch-warn">
+        После запуска любое изменение сроков потребует причину (она попадёт в логи).
+        Перед стартом убедись, что команда привязана к проекту.
+      </div>
+
+      <div class="prelaunch-section">
+        <div class="prelaunch-section-title">🧑‍💼 Руководители <span class="prelaunch-section-meta">минимум 1</span></div>
+        ${leadersHtml}
+      </div>
+
+      <div class="prelaunch-section">
+        <div class="prelaunch-section-title">👷 Бригадиры <span class="prelaunch-section-meta">минимум 1 — будет получать тикеты и переадресованные задачи</span></div>
+        ${foremenHtml}
+      </div>
+
+      <div class="prelaunch-actions">
+        <button type="button" class="btn" id="prelaunch-cancel">Отмена</button>
+        <button type="button" class="btn" id="prelaunch-team">👥 Открыть Команду</button>
+        <button type="button" class="btn btn-primary" id="prelaunch-go" ${canLaunch ? '' : 'disabled'}>${canLaunch ? '🚀 Запустить проект' : 'Не хватает команды'}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('#prelaunch-cancel').addEventListener('click', close);
+  overlay.querySelector('#prelaunch-team').addEventListener('click', () => { close(); openTeamModal(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('#prelaunch-go')?.addEventListener('click', async () => {
+    const goBtn = overlay.querySelector('#prelaunch-go');
+    goBtn.disabled = true;
+    goBtn.textContent = 'Запускаю…';
+    try {
+      await postDataAction('project:start', { slug, by: 'web' });
+      if (!state.schedule.project) state.schedule.project = {};
+      state.schedule.project.isPlanning = false;
+      state.schedule.project.startedAt = new Date().toISOString();
+      const animBtn = document.getElementById('btn-project-start');
+      if (animBtn) { animBtn.classList.add('is-launching'); spawnConfetti(animBtn); }
+      close();
+      await new Promise(r => setTimeout(r, 800));
+      renderProjectStateZone();
+      showToast('🚀 Проект стартанул!');
+    } catch (e) {
+      const det = e.message || String(e);
+      goBtn.disabled = false;
+      goBtn.textContent = '🚀 Запустить проект';
+      showToast('Не удалось: ' + det, 'error');
+    }
+  });
+}
+
+async function onProjectPauseClick() {
+  const reason = await askReason({
+    title: '⏸ Пауза проекта',
+    sub: 'Почему ставим проект на паузу? Причина обязательна — попадёт в логи и видна заказчику.',
+    presets: ['Ожидаем согласование', 'Задержка финансирования', 'Просьба клиента', 'Форс-мажор', 'Задержка материалов'],
+  });
+  if (!reason) return;
+  try {
+    await postDataAction('project:pause', { slug: state.projectSlug, reason, by: 'web' });
+    if (!state.schedule.project) state.schedule.project = {};
+    state.schedule.project.isPaused = true;
+    state.schedule.project.pausedAt = new Date().toISOString();
+    state.schedule.project.pauseReason = reason;
+    renderProjectStateZone();
+    showToast('⏸ Проект на паузе');
+  } catch (e) {
+    showToast('Не удалось: ' + (e.message || e), 'error');
+  }
+}
+
+async function onProjectResumeClick() {
+  if (!confirm('▶️ Возобновить проект?')) return;
+  try {
+    await postDataAction('project:resume', { slug: state.projectSlug, by: 'web' });
+    if (state.schedule.project) {
+      state.schedule.project.isPaused = false;
+      delete state.schedule.project.pausedAt;
+      delete state.schedule.project.pauseReason;
+    }
+    renderProjectStateZone();
+    showToast('▶️ Проект возобновлён');
+  } catch (e) {
+    showToast('Не удалось: ' + (e.message || e), 'error');
+  }
+}
+
+/* Обёртка над task:update — если затронуты ПЛАНОВЫЕ даты И проект уже стартанул
+   И не undo, спрашиваем причину через askReason() и вкладываем её в payload.
+   options.skipReason — для автоматических откатов (toast undo, cascade rollback).
+   actualStart/actualEnd — это фиксация факта (старт/завершение работы по факту),
+   а не изменение плана. План остаётся тем же → причина не нужна. Причина гейтит
+   только пересмотр обязательств перед заказчиком, т.е. правку planStart/planEnd. */
+const TASK_PLAN_DATE_KEYS = ['planStart', 'planEnd'];
+async function taskUpdateMaybeReason(args, options = {}) {
+  const patch = args.patch || {};
+  const touchesDates = Object.keys(patch).some(k => TASK_PLAN_DATE_KEYS.includes(k));
+  const proj = state.schedule?.project || {};
+  const isPlanning = proj.isPlanning !== false;
+  const isPaused = proj.isPaused === true;
+  if (isPaused) {
+    showToast('⏸ Проект на паузе — изменения запрещены', 'error');
+    throw new Error('project paused');
+  }
+  if (touchesDates && !isPlanning && !options.skipReason) {
+    const reason = await askReason({
+      title: '🗓 Причина изменения сроков',
+      sub: options.subjectName ? `Работа: «${options.subjectName}»` : 'Без причины правка не сохранится — это видно заказчику в логах.',
+      presets: ['Просьба клиента', 'Задержка материалов', 'Задержка подрядчика', 'Скоуп изменён', 'Перенос по доступу на объект', 'Форс-мажор'],
+    });
+    if (!reason) {
+      const e = new Error('reason_cancelled');
+      e.cancelled = true;
+      throw e;
+    }
+    args = { ...args, reason, by: args.by || 'web' };
+  }
+  return postDataAction('task:update', args);
+}
+
+/* Универсальная модалка ввода причины с пресетами. Promise<string|null>. */
+function askReason({ title = 'Укажи причину', sub = '', presets = [] }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'reason-modal-overlay';
+    overlay.innerHTML = `
+      <div class="reason-modal-card" role="dialog" aria-modal="true">
+        <div class="reason-modal-title">${escapeHtml(title)}</div>
+        ${sub ? `<div class="reason-modal-sub">${escapeHtml(sub)}</div>` : ''}
+        ${presets.length ? `<div class="reason-modal-presets">${presets.map(p => `<button type="button" class="reason-preset">${escapeHtml(p)}</button>`).join('')}</div>` : ''}
+        <textarea class="reason-modal-input" id="reason-modal-input" placeholder="Опиши причину…" maxlength="500" autofocus></textarea>
+        <div class="reason-modal-actions">
+          <button type="button" class="reason-modal-cancel">Отмена</button>
+          <button type="button" class="reason-modal-submit" disabled>Сохранить</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#reason-modal-input');
+    const submit = overlay.querySelector('.reason-modal-submit');
+    const cancel = overlay.querySelector('.reason-modal-cancel');
+    const close = (val) => { overlay.remove(); resolve(val); };
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(null); });
+    cancel.addEventListener('click', () => close(null));
+    input.addEventListener('input', () => { submit.disabled = !input.value.trim(); });
+    overlay.querySelectorAll('.reason-preset').forEach(b => {
+      b.addEventListener('click', () => {
+        input.value = b.textContent;
+        submit.disabled = false;
+        input.focus();
+      });
+    });
+    submit.addEventListener('click', () => {
+      const v = input.value.trim();
+      if (v) close(v);
+    });
+    input.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); submit.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); close(null); }
+    });
+    setTimeout(() => input.focus(), 50);
+  });
 }
 
 /* Fetch last meaningful commit for this schedule from GitHub API.
@@ -1473,25 +2297,53 @@ async function fetchLastCommit(slug) {
   }
 }
 
-/* ─── task progress (0..1) ─── */
+/* ─── task progress (0..1) ───
+   Источник истины — t.progress (ручной % из вечернего голосового). Иначе:
+   - закрыта (actualEnd) → 100%
+   - идёт (есть actualStart) → пропорция elapsed / planDur. Если actualStart
+     раньше planStart, отсчитываем от actualStart, чтобы не получить
+     заниженные 1% когда работа уже несколько дней идёт фактически
+   - не начата → 0%. */
 function taskProgress(t) {
   if (typeof t.progress === 'number') return Math.max(0, Math.min(1, t.progress));
   if (t.actualEnd) return 1;
   if (!t.actualStart) return 0;
-  // running: estimate by elapsed time vs planned duration
   const asOf = effectiveToday();
   const pStart = parseISO(t.planStart || t.start);
   const pEnd = parseISO(t.planEnd || t.end);
-  if (asOf <= pStart) return 0.01;
+  const aStart = parseISO(t.actualStart);
+  // Если плановые даты битые — нельзя посчитать пропорцию. Возвращаем символический
+  // 1% («работа идёт») вместо NaN — иначе дальше всё каскадно ломается.
+  if (!isFinite(pStart.getTime()) || !isFinite(pEnd.getTime()) || pEnd <= pStart) {
+    return 0.01;
+  }
+  const refStart = (isFinite(aStart.getTime()) && aStart < pStart) ? aStart : pStart;
+  const dur = Math.max(1, pEnd - refStart);
+  if (asOf <= refStart) return 0.01;
   if (asOf >= pEnd) return 0.95;
-  return Math.max(0.01, Math.min(0.99, (asOf - pStart) / (pEnd - pStart)));
+  return Math.max(0.01, Math.min(0.99, (asOf - refStart) / dur));
 }
 
-/* ─── stages ribbon ─── */
+/* ─── stages ribbon ───
+   Cost-weighted прогресс этапа: ∑(EV для работ этапа) / ∑(eligibleCost этапа).
+   Fallback на count-based если у этапа нет ни одной работы со стоимостью —
+   иначе у этапов без сметы прогресс был бы вечно 0%. */
 function stageProgress(stageId) {
   const stageTasks = state.schedule.tasks.filter((t) => t.stage === stageId);
   if (!stageTasks.length) return { pct: 0, done: 0, total: 0 };
+  const asOf = effectiveToday();
+  let totalCost = 0, earned = 0;
+  for (const t of stageTasks) {
+    const m = computeTaskMetrics(t, asOf);
+    if (!m.cost) continue;
+    totalCost += m.cost;
+    earned += m.EV;
+  }
   const done = stageTasks.filter((t) => !!t.actualEnd).length;
+  if (totalCost > 0) {
+    return { pct: Math.round((earned / totalCost) * 100), done, total: stageTasks.length };
+  }
+  // Нет стоимостей — фолбэк на простой счётчик закрытых
   return { pct: Math.round((done / stageTasks.length) * 100), done, total: stageTasks.length };
 }
 
@@ -1546,8 +2398,7 @@ function applyFilterToTasks(tasks) {
     if (state.filterSection && t.section !== state.filterSection) return false;
     if (state.filterSubOnly) {
       const sec = state.sectionById[t.section];
-      const isTaskSub = t.sub === true || (sec && sec.sub);
-      if (!isTaskSub) return false;
+      if (!effectiveSub(t, sec)) return false;
     }
     return true;
   });
@@ -1648,6 +2499,7 @@ function attachToolbarHandlers() {
   if (editBtn) {
     editBtn.addEventListener('click', () => {
       state.editMode = !state.editMode;
+      if (!state.editMode) deselectGanttBar();
       editBtn.setAttribute('data-active', String(state.editMode));
       document.body.classList.toggle('is-edit-mode', state.editMode);
       // При входе в Правку — гасим оверлеи Тикетов и Загрузки, чтобы фокус был только на редактировании.
@@ -1665,6 +2517,7 @@ function attachToolbarHandlers() {
         }
       }
       renderGantt();
+      renderTasksSheet();
     });
     document.body.classList.toggle('is-edit-mode', state.editMode);
   }
@@ -1684,9 +2537,25 @@ function fitCellW(totalDays) {
 function renderGantt() {
   const gantt = $('#gantt');
   const p = state.schedule.project;
-  const start = parseISO(p.startDate);
-  const end = parseISO(p.endDate);
-  const todayD = effectiveToday();
+  const pStart = parseISO(p.startDate);
+  const pEnd = parseISO(p.endDate);
+  // FIX 2026-04-28: viewport покрывает все task-даты + сегодня, с паддингом 7д слева и 14д справа.
+  // Иначе при today вне [pStart..pEnd] today-stripe клампится, и при scroll вправо начинается белое пятно.
+  const _todayMs = parseISO(todayISO()).getTime();
+  let _minTs = Math.min(pStart.getTime(), pEnd.getTime(), _todayMs);
+  let _maxTs = Math.max(pStart.getTime(), pEnd.getTime(), _todayMs);
+  for (const _t of state.schedule.tasks) {
+    for (const _f of [_t.planStart, _t.planEnd, _t.actualStart, _t.actualEnd, _t.start, _t.end]) {
+      if (_f) {
+        const _ts = parseISO(_f).getTime();
+        if (_ts < _minTs) _minTs = _ts;
+        if (_ts > _maxTs) _maxTs = _ts;
+      }
+    }
+  }
+  const start = new Date(_minTs - 7 * DAY_MS);
+  const end = new Date(_maxTs + 14 * DAY_MS);
+  const todayD = parseISO(todayISO()); // реальный сегодняшний день, без clamp к проекту
   const todayStripeISO = toISO(todayD);
   const totalDays = dayDiff(start, end) + 1;
   // Clamp up to fit-to-width so Gantt always fills the horizontal space
@@ -1698,7 +2567,7 @@ function renderGantt() {
   state.layout.cellW = cellW;
   state.layout.labelColW = labelColW;
   state.layout.totalDays = totalDays;
-  state.layout.startISO = p.startDate;
+  state.layout.startISO = toISO(start);
 
   gantt.style.setProperty('--cell-w', cellW + 'px');
   gantt.style.setProperty('--label-col-w', labelColW + 'px');
@@ -1797,8 +2666,29 @@ function renderGantt() {
   }
 
   let body = '';
+
+  // Stages-bar рендерится отдельно (в #stages-bar-host над Ганттом), не внутри grid'а.
+  try { renderStagesBar(); } catch (_) {}
+
+  // Empty-state CTA: проект пустой (0 разделов) — показываем заметную плашку с кнопкой,
+  // независимо от edit-mode (юзер ещё не разбирался с управлением, дадим явный путь).
+  if (!state.schedule.sections || state.schedule.sections.length === 0) {
+    body += `
+      <div class="empty-project-cta">
+        <div class="epc-icon" aria-hidden="true">🏗️</div>
+        <div class="epc-title">Проект пока пустой</div>
+        <div class="epc-text">Начни с первого раздела (например: «Демонтаж», «Чистовые», «Электрика»). Потом в него добавишь работы.</div>
+        <button type="button" class="epc-btn" data-add-section data-empty-cta>＋ Создать первый раздел</button>
+        <div class="epc-hint">…или скажи голосом боту: <i>«добавь раздел Демонтаж»</i>, <i>«добавь работу Снос стены в Демонтаж»</i></div>
+      </div>`;
+  }
+
   for (const sec of state.schedule.sections) {
     const secTasks = tasksBySection[sec.id] || [];
+    // При активном фильтре секции, не подпадающие под него, скрываем целиком —
+    // иначе они выглядят как "пустые" из-за фильтра и врут "Работ ещё нет".
+    if (state.filterSection && sec.id !== state.filterSection) continue;
+    if (state.filterSubOnly && secTasks.length === 0) continue;
     // Пустые секции тоже показываем (пользователь только что создал, работ ещё нет —
     // важно видеть что секция существует, чтобы добавить в неё задачу).
 
@@ -1817,6 +2707,15 @@ function renderGantt() {
       </span>
     </div>`;
     body += `<div class="section-grid" data-section-id="${secId}" style="width:${gridW}px"></div>`;
+
+    // Empty-section hint: раздел есть, работ нет — показываем заметную inline-кнопку всегда.
+    if (secTasks.length === 0 && !collapsed) {
+      body += `<button type="button" class="empty-section-row" data-add-task="${secId}" title="Добавить первую работу в раздел «${escapeHtml(sec.name)}»">
+        <span class="empty-section-plus">＋</span>
+        <span class="empty-section-text">Работ ещё нет — <b>добавь первую</b></span>
+      </button>`;
+      body += `<div class="empty-section-grid" style="width:${gridW}px"></div>`;
+    }
 
     for (const t of secTasks) {
       const catColor = sec.color;
@@ -1844,14 +2743,60 @@ function renderGantt() {
         const aLeft = aOffset * cellW + 2;
         const aWidth = Math.max(cellW - 4, aDur * cellW - 4);
         const running = !t.actualEnd;
-        factHtml = `<div class="bar-fact${light ? ' light' : ''}${running ? ' running' : ''}" style="left:${aLeft}px; --bar-left:${aLeft}px; width:${aWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="Факт: ${escapeHtml(fmtDate(aStart))} — ${t.actualEnd ? escapeHtml(fmtDate(t.actualEnd)) : 'в работе'}">
+        const hasPause = Array.isArray(t.pauses) && t.pauses.length > 0;
+        const hasOpenPause = hasPause && t.pauses.some(p => p && !p.to);
+        factHtml = `<div class="bar-fact${light ? ' light' : ''}${running ? ' running' : ''}${hasOpenPause ? ' paused' : ''}" style="left:${aLeft}px; --bar-left:${aLeft}px; width:${aWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="Факт: ${escapeHtml(fmtDate(aStart))} — ${t.actualEnd ? escapeHtml(fmtDate(t.actualEnd)) : (hasOpenPause ? 'на паузе' : 'в работе')}">
           ${escapeHtml(t.name)}
         </div>`;
       }
 
-      const isTaskSub = t.sub === true || sec.sub;
-      const subTitle = t.subcontractorName ? `Субподрядчик: ${t.subcontractorName}` : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик');
-      const subBadge = isTaskSub ? `<span class="sub-badge" title="${escapeHtml(subTitle)}">СУБ${t.subcontractorName ? '·' + escapeHtml(t.subcontractorName.split(' ')[0]) : ''}</span>` : '';
+      // Pause overlay bars — render on plan bar, fact bar, or both based on pause.dateType
+      let pauseHtml = '';
+      if (Array.isArray(t.pauses) && t.pauses.length) {
+        const todayIsoStr = toISO(todayD);
+        for (const p of t.pauses) {
+          if (!p || !p.from) continue;
+          const pf = p.from;
+          const pt = p.to || todayIsoStr;
+          if (pt < pf) continue;
+          const pfDate = parseISO(pf);
+          const ptDate = parseISO(pt);
+          // Clip to chart window
+          const winEnd = parseISO(end);
+          if (ptDate < start || pfDate > winEnd) continue;
+          const cf = pfDate < start ? start : pfDate;
+          const ct = ptDate > winEnd ? winEnd : ptDate;
+          const pOff = dayDiff(start, cf);
+          const pDurDays = dayDiff(cf, ct) + 1;
+          const pL = pOff * cellW + 2;
+          const pW = Math.max(cellW - 4, pDurDays * cellW - 4);
+          const open = !p.to;
+          const reason = (p.reason || 'без указания').replace(/"/g, '&quot;');
+          const tipDates = p.to ? `${fmtDate(pf)} — ${fmtDate(p.to)}` : `с ${fmtDate(pf)} (открыта)`;
+          // dateType: 'plan' / 'actual' / 'both'. Legacy pauses без dateType → fallback на 'plan' (plan-first система).
+          const pDt = p.dateType || 'plan';
+          // data-bar-kind = к какой части (plan/actual) относится этот bar — нужно для legacy 'both'
+          // чтобы drag/edit знал какую сторону splitt'ить и редактировать.
+          const renderOne = (mod, dtLabelTip) => `<div class="bar-pause bar-pause--${mod}${open ? ' open' : ''}" style="left:${pL}px; width:${pW}px;" data-tid="${t.id}" data-pause-id="${p.id || ''}" data-pause-from="${pf}" data-pause-to="${p.to || ''}" data-pause-dt="${pDt}" data-bar-kind="${mod}" title="⏸ Пауза ${dtLabelTip} ${tipDates} · ${escapeHtml(reason)}">
+            <span class="bar-pause-icon" aria-hidden="true">⏸</span>
+            <button type="button" class="bar-pause-del" data-pause-bar-del="${t.id}" data-pause-bar-id="${p.id || ''}" data-bar-kind="${mod}" title="Удалить паузу" aria-label="Удалить паузу">×</button>
+          </div>`;
+          if (pDt === 'plan') pauseHtml += renderOne('plan', '(план)');
+          else if (pDt === 'both') { pauseHtml += renderOne('plan', '(план)'); pauseHtml += renderOne('actual', '(факт)'); }
+          else pauseHtml += renderOne('actual', '(факт)');
+        }
+      }
+
+      const isTaskSub = effectiveSub(t, sec);
+      // Если задача явно помечена как ЦИФР внутри суб-раздела — это исключение, подсветим в тултипе.
+      const isExplicitCyfrInSub = t.sub === false && sec.sub;
+      const isExplicitSubInCyfr = t.sub === true && !sec.sub;
+      const subTitle = t.subcontractorName
+        ? `Субподрядчик: ${t.subcontractorName}`
+        : (isExplicitSubInCyfr ? 'Субподрядчик (только эта работа)' : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик'));
+      const subBadge = isTaskSub
+        ? `<span class="sub-badge" title="${escapeHtml(subTitle)}">СУБ${t.subcontractorName ? '·' + escapeHtml(t.subcontractorName.split(' ')[0]) : ''}</span>`
+        : (isExplicitCyfrInSub ? `<span class="cyfr-badge" title="Эту работу делает ЦИФР (раздел на субе)">ЦИФР</span>` : '');
       const prog = taskProgress(t);
       const progPct = Math.round(prog * 100);
       let progBadge = '';
@@ -1868,18 +2813,31 @@ function renderGantt() {
         ? `<span class="task-mat-badge" title="Заказать до ${escapeHtml(fmtDate(toISO(matRisk.orderBy)))} · ${matRisk.riskyCount} материалов в риске">📦 ${matRisk.daysToStart > 0 ? '−' + (matRisk.maxLead - matRisk.daysToStart) + 'д' : 'срочно'}</span>`
         : '';
       const matRiskCls = matRisk ? ' task-mat-risk' : '';
+      // __PERMITS_AUTO_v1__ Permit countdown badge: 🟢 >7 дн / 🟡 ≤7 дн / 🔴 истёк.
+      let permitBadge = '';
+      if (t.isPermit || t.permitType) {
+        const expIso = t.planEnd;
+        const daysLeft = expIso ? Math.round((parseISO(expIso).getTime() - Date.now()) / 86400000) : null;
+        if (typeof daysLeft === 'number') {
+          if (daysLeft < 0)        permitBadge = `<span class="task-permit-badge task-permit-badge--expired" title="Истёк ${Math.abs(daysLeft)} дн. назад — продли срочно!">🔴 −${Math.abs(daysLeft)}д</span>`;
+          else if (daysLeft <= 7)  permitBadge = `<span class="task-permit-badge task-permit-badge--soon" title="Истекает через ${daysLeft} дн. — продлевай заранее">🟡 ${daysLeft}д</span>`;
+          else                     permitBadge = `<span class="task-permit-badge task-permit-badge--ok" title="Срок действия до ${fmtDate(toISO(parseISO(expIso)))}">🟢 ${daysLeft}д</span>`;
+        }
+      }
       // Двухстрочный layout: сверху имя на полную ширину + →,
       // снизу компактная полоса маркеров (id · КП · 📦 · % · СУБ · edit actions).
-      const hasMeta = !!(critBadge || matBadge || progBadge || subBadge);
-      body += `<div class="task-label${hidden}${critCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
+      const hasMeta = !!(critBadge || matBadge || progBadge || subBadge || permitBadge);
+      const permitRowCls = (t.isPermit || t.permitType) ? ' task-label--permit' : '';
+      body += `<div class="task-label${hidden}${critCls}${permitRowCls}" data-tid="${t.id}" data-section-id="${secId}" tabindex="0">
         <span class="tbullet" style="background:${catColor}"></span>
         <div class="task-label-body">
           <div class="task-label-top">
-            <span class="tname" data-tid="${t.id}" data-edit-name title="${escapeHtml(t.name)} — кликни в режиме Правка чтобы переименовать">${escapeHtml(t.name)}</span>
+            <span class="tname" data-tid="${t.id}" data-edit-name title="${escapeHtml(t.name)} — кликни в режиме Правка чтобы переименовать">${(t.isPermit || t.permitType) ? '🪪 ' : ''}${escapeHtml(t.name)}</span>
             <button class="task-open-btn" data-tid="${t.id}" tabindex="-1" title="Подробнее" aria-label="Открыть детали: ${escapeHtml(t.name)}">→</button>
           </div>
           <div class="task-label-meta${hasMeta ? '' : ' is-empty'}">
             <span class="tid">№${escapeHtml(t.id)}</span>
+            ${permitBadge}
             ${critBadge}
             ${matBadge}
             ${progBadge}
@@ -1887,25 +2845,29 @@ function renderGantt() {
             <span class="edit-only-actions" aria-hidden="true">
               <button type="button" class="row-edit-btn" data-edit-task="${t.id}" title="Переименовать">✎</button>
               <button type="button" class="row-dates-btn" data-dates-task="${t.id}" title="Изменить даты плана и факта">📅</button>
+              ${(Array.isArray(t.pauses) && t.pauses.some(p => p && !p.to))
+                ? `<button type="button" class="row-resume-btn" data-resume-task="${t.id}" title="Возобновить работу с паузы">▶️</button>`
+                : `<button type="button" class="row-pause-btn" data-pause-task="${t.id}" title="Поставить на паузу">⏸</button>`}
               <button type="button" class="row-del-btn" data-del-task="${t.id}" title="Удалить работу">🗑</button>
             </span>
           </div>
         </div>
       </div>`;
       const progFill = prog > 0 ? `<div class="bar-plan-progress" style="width:${progPct}%; background:${bTop}" aria-hidden="true"></div>` : '';
-      const ticketBadge = buildTaskTicketBadge(t.id, pLeft, pWidth);
+      const ticketBadge = buildTaskTicketBadge(t.id, pLeft, pWidth, { todayD, start, cellW, pStart, pEnd });
       body += `<div class="task-grid${hidden}${critCls}${matRiskCls}" data-tid="${t.id}" data-section-id="${secId}" style="width:${gridW}px; background-image: ${stripeBg ? stripeBg + ', ' : ''}linear-gradient(to right, var(--line-2) 1px, transparent 1px); background-size: auto, ${cellW}px 100%;">
         <div class="bar-plan${light ? ' light' : ''}" style="left:${pLeft}px; --bar-left:${pLeft}px; width:${pWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="План: ${escapeHtml(fmtDate(pStart))} — ${escapeHtml(fmtDate(pEnd))} · ${progPct}%">
           ${progFill}
           <span class="bar-plan-text">${escapeHtml(t.name)}</span>
         </div>
         ${factHtml}
+        ${pauseHtml}
         ${ticketBadge}
       </div>`;
     }
     // «+ Работа» в конце раздела (видна только в edit-mode через CSS)
     body += `<button type="button" class="add-row add-task-row${collapsed ? ' row-hidden' : ''}" data-add-task="${secId}" title="Добавить работу в раздел «${escapeHtml(sec.name)}»">
-      <span class="add-row-plus" aria-hidden="true">+</span> Добавить работу
+      <span class="add-row-plus" aria-hidden="true">+</span> Добавить работу<span class="add-row-section"> в «${escapeHtml(sec.name)}»</span>
     </button>`;
     body += `<div class="add-row-grid${collapsed ? ' row-hidden' : ''}" style="width:${gridW}px"></div>`;
   }
@@ -1948,6 +2910,13 @@ function renderGantt() {
       }
     });
   });
+  // Re-apply touch bar selection after re-render
+  if (state.selectedBarTid) {
+    const selEl = gantt.querySelector(`.bar-plan[data-tid="${state.selectedBarTid}"], .bar-fact[data-tid="${state.selectedBarTid}"]`);
+    if (selEl) { _selectedBarEl = selEl; selEl.classList.add('bar-selected'); }
+    else { _selectedBarEl = null; state.selectedBarTid = null; }
+  }
+
   // open-btn inside each task-label
   gantt.querySelectorAll('.task-open-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -2013,6 +2982,110 @@ function renderGantt() {
       }
     });
   }
+
+  // Re-render heatmap so its axes match the Gantt's freshly-computed start/cellW.
+  if (state.showHeatmap && typeof renderResourceHeatmap === 'function') {
+    renderResourceHeatmap();
+  }
+
+  // Mobile floating dates header — fixed at viewport top when scrolled past gantt.
+  setupFloatingMobileDates();
+}
+
+/* ─── Mobile floating dates header ───
+ * Когда юзер скроллит страницу вниз и .gantt уезжает наверх, шапка дат
+ * (sticky внутри .gantt из-за overflow-y:clip) уезжает вместе с ней. На мобиле
+ * это означает — внизу графика юзер не видит ни числа, ни месяца.
+ *
+ * Решение: клонируем .dates-header в position:fixed контейнер outside .gantt-wrap.
+ * Показываем когда gantt.top < 0. Sync horizontal scroll через translateX.
+ * Click на день → toggle pinCol (та же логика что и в основной шапке).
+ */
+function setupFloatingMobileDates() {
+  // Cleanup previous
+  document.getElementById('floating-dates-mobile')?.remove();
+  if (window._floatingDatesCleanup) {
+    window._floatingDatesCleanup();
+    window._floatingDatesCleanup = null;
+  }
+  if (window.innerWidth > 768) return;
+
+  const gantt = $('#gantt');
+  if (!gantt) return;
+  const datesHeader = gantt.querySelector('.dates-header');
+  if (!datesHeader) return;
+  const monthsRowOrig = datesHeader.querySelector('.months-row');
+  const daysRowOrig = datesHeader.querySelector('.days-row');
+  if (!daysRowOrig) return;
+
+  const labelColW = state.layout?.labelColW || 110;
+
+  const floating = document.createElement('div');
+  floating.id = 'floating-dates-mobile';
+  floating.setAttribute('aria-hidden', 'false');
+
+  const viewport = document.createElement('div');
+  viewport.className = 'fdm-viewport';
+  floating.appendChild(viewport);
+
+  const inner = document.createElement('div');
+  inner.className = 'fdm-inner';
+  viewport.appendChild(inner);
+
+  // Clone months + days for context. Months row compact (smaller height via CSS).
+  if (monthsRowOrig) {
+    const monthsRow = monthsRowOrig.cloneNode(true);
+    monthsRow.classList.add('fdm-months-row');
+    inner.appendChild(monthsRow);
+  }
+  const daysRow = daysRowOrig.cloneNode(true);
+  daysRow.classList.add('fdm-days-row');
+  inner.appendChild(daysRow);
+
+  document.body.appendChild(floating);
+
+  function update() {
+    const ganttRect = gantt.getBoundingClientRect();
+    const visible = ganttRect.top < 0 && ganttRect.bottom > 60;
+    if (!visible) {
+      floating.style.display = 'none';
+      return;
+    }
+    floating.style.display = 'block';
+    floating.style.left = (ganttRect.left + labelColW) + 'px';
+    floating.style.width = Math.max(0, ganttRect.width - labelColW) + 'px';
+    inner.style.transform = `translateX(${-gantt.scrollLeft}px)`;
+    // Reflect pin/today state
+    daysRow.querySelectorAll('.day-cell.pinned').forEach(el => el.classList.remove('pinned'));
+    if (state.pinCol != null) {
+      const pinned = daysRow.querySelector(`.day-cell[data-col="${state.pinCol}"]`);
+      if (pinned) pinned.classList.add('pinned');
+    }
+  }
+
+  const onScroll = () => update();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  gantt.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  window._floatingDatesCleanup = () => {
+    window.removeEventListener('scroll', onScroll);
+    gantt.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onScroll);
+  };
+
+  // Click on a day in floating header → toggle pinCol (same as main click handler)
+  daysRow.addEventListener('click', (e) => {
+    const cell = e.target.closest('.day-cell');
+    if (!cell) return;
+    const col = parseInt(cell.getAttribute('data-col'), 10);
+    if (!Number.isFinite(col)) return;
+    state.pinCol = state.pinCol === col ? null : col;
+    refreshPinnedClasses();
+    updateOverlays();
+    update();
+  });
+
+  update();
 }
 
 /* ─── Zoom gestures: trackpad pinch (wheel+ctrl) + touch pinch ─── */
@@ -2144,42 +3217,6 @@ function attachGanttGestures() {
   gantt.addEventListener('touchend', endPinch);
   gantt.addEventListener('touchcancel', endPinch);
 
-  // Mobile: reveal hero on downward swipe when gantt is at top.
-  // Register the non-passive touchmove listener ONLY while routing is armed —
-  // a static passive:false touchmove on a scroll container causes iOS scroll jank
-  // for every swipe, even when no routing is needed.
-  const pageEl = document.querySelector('.page');
-  let sOneY = 0;
-  let sOnePageScroll = 0;
-  let activeRouteHandler = null;
-  const disarmRouteHandler = () => {
-    if (activeRouteHandler) {
-      gantt.removeEventListener('touchmove', activeRouteHandler, { passive: false });
-      activeRouteHandler = null;
-    }
-  };
-  gantt.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1 || !isMobile() || !pageEl) return;
-    // Arm routing only when hero is hidden (page scrolled) AND gantt is at top
-    if (!(pageEl.scrollTop > 0 && gantt.scrollTop <= 0)) { disarmRouteHandler(); return; }
-    sOneY = e.touches[0].clientY;
-    sOnePageScroll = pageEl.scrollTop;
-    disarmRouteHandler();
-    activeRouteHandler = (ev) => {
-      if (ev.touches.length !== 1) return;
-      const dy = ev.touches[0].clientY - sOneY;
-      if (dy > 0) {
-        ev.preventDefault();
-        pageEl.scrollTop = Math.max(0, sOnePageScroll - dy);
-      } else if (dy < -4) {
-        // User switched to upward swipe → disarm, let gantt scroll naturally
-        disarmRouteHandler();
-      }
-    };
-    gantt.addEventListener('touchmove', activeRouteHandler, { passive: false });
-  }, { passive: true });
-  gantt.addEventListener('touchend', disarmRouteHandler);
-  gantt.addEventListener('touchcancel', disarmRouteHandler);
 }
 
 /* ─── highlight: row/col hover + pin + intersection ─── */
@@ -2279,13 +3316,24 @@ function updateOverlays() {
     }
   };
 
-  // Columns: full content height, single column wide
-  const colRect = (col) => ({
-    left: labelColW + col * cellW,
-    width: cellW,
-    top: 0,
-    height: contentH,
-  });
+  // Columns: full content height, single column wide.
+  // Reading actual day-cell rect — на мобиле .dates-header имеет grid-column: 1 / -1,
+  // поэтому day cells могут стартовать с x=0 (а не x=labelColW), и math
+  // `labelColW + col*cellW` даёт оверлей сдвинутый вправо на labelColW.
+  const colRect = (col) => {
+    const dayEl = gantt.querySelector(`.day-cell[data-col="${col}"]`);
+    if (dayEl) {
+      const r = dayEl.getBoundingClientRect();
+      const g = gantt.getBoundingClientRect();
+      return {
+        left: r.left - g.left + gantt.scrollLeft,
+        width: r.width,
+        top: 0,
+        height: contentH,
+      };
+    }
+    return { left: labelColW + col * cellW, width: cellW, top: 0, height: contentH };
+  };
 
   // Rows: spans the right pane only (label column handled via class)
   const rowRect = (tid) => {
@@ -2361,6 +3409,9 @@ const kv = (k, v, opts = {}) =>
 function openDrawer(tid) {
   const t = state.schedule.tasks.find((x) => x.id === tid);
   if (!t) return;
+  // Освежаем список ответственных в фоне — если админ только что добавил нового foreman'a,
+  // он появится в чипах при следующем рендере секции тикетов.
+  refreshAssigneesAndMaybeRerender(tid);
   const sec = state.sectionById[t.section] || { name: t.section || '—', color: '#94a3b8' };
   const st = state.stageById[t.stage] || { name: 'Этап не указан', color: '#94a3b8' };
   const pStart = t.planStart || t.start;
@@ -2378,6 +3429,23 @@ function openDrawer(tid) {
 
   const prog = taskProgress(t);
   const progPct = Math.round(prog * 100);
+  // Источник прогресса: manual = руководитель проговорил % в вечернем голосовом
+  // (t.progress установлен как число), иначе считаем по календарю.
+  const isManualProg = typeof t.progress === 'number';
+  // Calendar plan progress (где должны быть по плану на сегодня) — только для
+  // активных работ. Для done/not-started бессмысленно (уже 100% / ещё 0%).
+  // Guard: если planStart=planEnd (нулевая длительность, mile-стоун или битые
+  // данные) — деление 0/0 = NaN. Возвращаем null чтобы UI просто не рисовал.
+  let calendarPlanPct = null;
+  if ((status === 'running' || status === 'overdue') && isFinite(pStartD) && isFinite(pEndD) && pEndD > pStartD) {
+    if (asOf >= pEndD) calendarPlanPct = 100;
+    else if (asOf <= pStartD) calendarPlanPct = 0;
+    else calendarPlanPct = Math.round(((asOf - pStartD) / (pEndD - pStartD)) * 100);
+  }
+  // Маркер «по плану» рисуем только в осмысленном диапазоне 2..98%. На краях
+  // он либо лезет за границу прогресс-бара, либо сливается с заливкой/фоном —
+  // визуальный шум без полезной информации.
+  const showPlanMarker = calendarPlanPct != null && calendarPlanPct >= 2 && calendarPlanPct <= 98;
 
   // Metrics
   const daysOverdue = isOverdue ? dayDiff(pEndD, asOf) : 0;
@@ -2395,10 +3463,14 @@ function openDrawer(tid) {
     ? `${fmtDate(t.actualStart)} → ${t.actualEnd ? fmtDate(t.actualEnd) : 'в работе'}`
     : '—';
 
-  const isTaskSub = t.sub === true || sec.sub;
+  const isTaskSub = effectiveSub(t, sec);
+  const isExplicitCyfrInSub = t.sub === false && sec.sub;
+  const isExplicitSubInCyfr = t.sub === true && !sec.sub;
   const contractorLabel = isTaskSub
-    ? (t.subcontractorName ? `Субподрядчик · ${t.subcontractorName}` : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик'))
-    : 'CYFR FITOUT';
+    ? (t.subcontractorName
+        ? `Субподрядчик · ${t.subcontractorName}`
+        : (isExplicitSubInCyfr ? 'Субподрядчик (только эта работа)' : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик')))
+    : (isExplicitCyfrInSub ? 'CYFR FITOUT (раздел на субе, эту работу делаем сами)' : 'CYFR FITOUT');
 
   // Progress color by status
   const progColor = status === 'done' ? '#15803d'
@@ -2439,8 +3511,19 @@ function openDrawer(tid) {
       <div class="drawer-progress-head">
         <span class="drawer-progress-pct">${progPct}%</span>
         <span class="drawer-progress-lbl">${status === 'done' ? 'выполнено' : status === 'not-started' ? 'прогресс' : 'выполнено'}</span>
+        ${isManualProg ? '<span class="drawer-progress-source" title="Этот % проговорил руководитель в вечернем голосовом отчёте — не календарная оценка">🎤 из голосового</span>' : ''}
       </div>
-      <div class="drawer-progress"><div class="drawer-progress-fill" style="width:${progPct}%; background:${progColor}"></div></div>
+      <div class="drawer-progress">
+        <div class="drawer-progress-fill" style="width:${progPct}%; background:${progColor}"></div>
+        ${showPlanMarker ? `<div class="drawer-progress-plan-marker" style="left:${calendarPlanPct}%" title="По календарю плана работа должна быть на ${calendarPlanPct}%"></div>` : ''}
+      </div>
+      ${calendarPlanPct != null ? `<div class="drawer-progress-meta">по плану ${calendarPlanPct}% · ${
+        progPct - calendarPlanPct >= -1 && progPct - calendarPlanPct <= 1
+          ? '<span class="drawer-progress-meta--ok">в графике</span>'
+          : progPct > calendarPlanPct
+          ? `<span class="drawer-progress-meta--ahead">опережаем ${progPct - calendarPlanPct}%</span>`
+          : `<span class="drawer-progress-meta--behind">отстаём ${calendarPlanPct - progPct}%</span>`
+      }</div>` : ''}
     </div>
 
     ${metricsHtml ? `<div class="drawer-metrics">${metricsHtml}</div>` : ''}
@@ -2452,7 +3535,7 @@ function openDrawer(tid) {
       ${kv('Факт', escapeHtml(factRange), { span: true })}
       ${kv('Длительность (план)', plannedDur + ' ' + daysWord(plannedDur))}
       ${kv('Длительность (факт)', actualDur != null ? (actualDur + ' ' + daysWord(actualDur)) : (daysInWork > 0 ? (daysInWork + ' ' + daysWord(daysInWork) + ' · в работе') : '—'))}
-    </div>${buildDrawerDelaysHtml(t)}${buildDrawerResourcesHtml(t.id)}${buildDrawerMaterialsHtml(t.id)}${buildDrawerTaskMeetingNotesHtml(t.id)}${buildDrawerTicketsHtml(t.id)}${buildDrawerDependenciesHtml(t)}${buildDrawerHistoryHtml(t)}`;
+    </div>${buildDrawerPausesHtml(t)}${buildDrawerDelaysHtml(t)}${buildDrawerResourcesHtml(t.id)}${buildDrawerMaterialsHtml(t.id)}${buildDrawerProgressLogHtml(t.id)}${buildDrawerTaskMeetingNotesHtml(t.id)}${buildDrawerTicketsHtml(t.id)}${buildDrawerDependenciesHtml(t)}${buildDrawerHistoryHtml(t)}`;
 
   attachTicketHandlers();
   attachResourceMaterialHandlers(t.id);
@@ -2460,7 +3543,7 @@ function openDrawer(tid) {
   // Если у работы нет явных зависимостей — предложим auto-зависимости из section-chain
   // (предыдущая работа в той же секции по этапу + planStart). Они появятся в списке как ✓ ИИ.
   ensureAutoDepsForTask(t.id);
-  $('#drawer').setAttribute('aria-hidden', 'false');
+  setDrawerOpen(true);
 }
 
 async function ensureAutoDepsForTask(taskId) {
@@ -2598,7 +3681,7 @@ function buildTicketCards(taskId) {
          <img src="${escapeHtml(p.thumb || p.url)}" class="ticket-photo" alt="" loading="lazy" />
        </button>`
     ).join('');
-    const descClean = tk.description.replace(/\[task:\w+\]/gi, '').trim();
+    const descClean = (tk.description || '').replace(/\[task:\w+\]/gi, '').replace(/\[slug:[\w-]+\]/gi, '').replace(/\s+$/g, '').trim();
     const statusOpts = TICKET_STATUSES.map((s) =>
       `<option value="${s}"${tk.status === s ? ' selected' : ''}>${escapeHtml(TICKET_STATUS_LABEL[s] || s)}</option>`
     ).join('');
@@ -2667,7 +3750,13 @@ const HISTORY_TYPE_LABEL = {
   add_section: 'раздел добавлен',
   rename_section: 'раздел переименован',
   remove_section: 'раздел удалён',
-  add_milestone: 'майлстоун'
+  add_milestone: 'майлстоун',
+  update_task: 'правка',
+  pause_task: 'пауза',
+  resume_task: 'возобновлена',
+  pause_edit: 'пауза изменена',
+  pause_delete: 'пауза удалена',
+  weekly_report: 'отчёт прораба'
 };
 function fmtHistoryAt(iso) {
   try {
@@ -2679,18 +3768,286 @@ function fmtHistoryAt(iso) {
     return `${dd} ${mm}, ${hh}:${mi}`;
   } catch (e) { return String(iso); }
 }
+function getProgressLogForTask(taskId) {
+  const all = (state.dataCache && state.dataCache.progressLog) || [];
+  const tid = String(taskId);
+  return all.filter(e => String(e.taskId) === tid);
+}
+
+function getProgressLogLatest() {
+  const all = (state.dataCache && state.dataCache.progressLog) || [];
+  if (!all.length) return null;
+  // already sorted desc by 'at' from server, but defensive sort
+  return all.slice().sort((a, b) => String(b.at).localeCompare(String(a.at)))[0];
+}
+
+function fmtAgo(iso) {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return '';
+  const sec = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (sec < 60) return 'только что';
+  if (sec < 3600) return `${Math.floor(sec / 60)} мин. назад`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)} ч. назад`;
+  const days = Math.floor(sec / 86400);
+  if (days < 30) return `${days} д. назад`;
+  const months = Math.floor(days / 30);
+  return `${months} мес. назад`;
+}
+
+function fmtAtFull(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return '—';
+  return d.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function buildDrawerProgressLogHtml(taskId) {
+  const entries = getProgressLogForTask(taskId);
+  if (!entries.length) return '';
+  // Group by batchId so one voice = one card
+  const groups = new Map();
+  for (const e of entries) {
+    const key = e.batchId || `single:${e.id}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(e);
+  }
+  const rows = Array.from(groups.values())
+    .sort((a, b) => String(b[0].at).localeCompare(String(a[0].at)))
+    .map(group => {
+      const head = group[0];
+      const me = group.find(e => String(e.taskId) === String(taskId)) || head;
+      const actLbl = me.action === 'mark_complete' ? '✅ закрыта'
+        : me.action === 'mark_started' ? '🟡 стартовала'
+        : me.action === 'set_progress' ? `📊 ${Math.round((me.newProgress || 0) * 100)}%`
+        : me.action;
+      const prevLbl = (typeof me.prevProgress === 'number' && me.action === 'set_progress')
+        ? ` <span class="progress-log-prev">было ${Math.round(me.prevProgress * 100)}%</span>`
+        : '';
+      const reporter = me.reporterName ? escapeHtml(me.reporterName) : '—';
+      const reason = me.reason ? `<div class="progress-log-reason">«${escapeHtml(me.reason)}»</div>` : '';
+      const raw = me.rawText ? `<details class="progress-log-raw"><summary>Полная расшифровка</summary><div>${escapeHtml(me.rawText)}</div></details>` : '';
+      return `<div class="progress-log-row">
+        <div class="progress-log-head">
+          <span class="progress-log-act">${actLbl}</span>${prevLbl}
+          <span class="progress-log-by">${reporter}</span>
+          <span class="progress-log-at" title="${escapeHtml(fmtAtFull(me.at))}">${escapeHtml(fmtAgo(me.at))}</span>
+        </div>
+        ${reason}
+        ${raw}
+      </div>`;
+    }).join('');
+  return `
+    <div class="drawer-section-title">📜 Голосовые отчёты · ${entries.length}</div>
+    <div class="progress-log-block">${rows}</div>`;
+}
+
+// Категория записи истории — определяет визуал (цвет, размер, формат).
+function classifyHistoryEntry(h) {
+  const t = h?.type || '';
+  if (['set_dates', 'shift_dates', 'set_duration', 'bulk_shift_section'].includes(t)) return 'dates';
+  if (['pause_task', 'resume_task', 'pause_edit', 'pause_delete', 'add_delay'].includes(t)) return 'pause';
+  if (['mark_complete', 'mark_started', 'mark_cancelled'].includes(t)) return 'status';
+  if (['set_progress', 'weekly_report'].includes(t)) return 'progress';
+  return 'minor';
+}
+
+function fmtPeriod(start, end) {
+  if (!start && !end) return '<span class="dh-period">—</span>';
+  if (start && end) {
+    const days = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+    return `<span class="dh-period">${escapeHtml(fmtDateShort(start))} → ${escapeHtml(fmtDateShort(end))}</span> <span style="color:#9ca3af;font-size:11px">(${days} ${daysWord(days)})</span>`;
+  }
+  return `<span class="dh-period">${escapeHtml(fmtDateShort(start || end))}</span>`;
+}
+
+// Возвращает {label, parts} — какой тип дат изменён и что именно (только начало / только конец / оба).
+function _classifyDateChange(before, after) {
+  const planStartChanged = (before.planStart || null) !== (after.planStart || null);
+  const planEndChanged   = (before.planEnd   || null) !== (after.planEnd   || null);
+  const actStartChanged  = (before.actualStart || null) !== (after.actualStart || null);
+  const actEndChanged    = (before.actualEnd   || null) !== (after.actualEnd   || null);
+  const planChanged = planStartChanged || planEndChanged;
+  const factChanged = actStartChanged || actEndChanged;
+  let label = '';
+  if (planChanged && factChanged) label = 'План и факт';
+  else if (planChanged) label = 'План';
+  else if (factChanged) label = 'Факт';
+  let what = '';
+  if (planChanged) {
+    if (planStartChanged && planEndChanged) what = 'начало и конец';
+    else if (planStartChanged) what = 'только начало';
+    else if (planEndChanged) what = 'только конец';
+  } else if (factChanged) {
+    if (actStartChanged && actEndChanged) what = 'начало и конец';
+    else if (actStartChanged) what = 'только начало';
+    else if (actEndChanged) what = 'только конец';
+  }
+  return { label, what, planChanged, factChanged, planStartChanged, planEndChanged, actStartChanged, actEndChanged };
+}
+
+function buildHistoryDatesCard(h) {
+  const before = h.before || {};
+  const after = h.after || {};
+  const cls = _classifyDateChange(before, after);
+  const subTitle = cls.label
+    ? `<div class="dh-subtitle">Изменены: <b>${escapeHtml(cls.label)}</b>${cls.what ? ` <span class="muted">(${escapeHtml(cls.what)})</span>` : ''}</div>`
+    : '';
+  let blocks = '';
+  // Plan changes
+  if (cls.planChanged) {
+    const oldDur = (before.planStart && before.planEnd) ? (Math.round((new Date(before.planEnd) - new Date(before.planStart)) / 86400000) + 1) : null;
+    const newDur = (after.planStart && after.planEnd) ? (Math.round((new Date(after.planEnd) - new Date(after.planStart)) / 86400000) + 1) : null;
+    let delta = '';
+    if (oldDur != null && newDur != null) {
+      const diff = newDur - oldDur;
+      if (diff !== 0) {
+        const dcls = diff > 0 ? '' : ' dh-delta-neg';
+        delta = `<span class="dh-delta${dcls}">${diff > 0 ? '+' : ''}${diff} ${daysWord(Math.abs(diff))}</span>`;
+      }
+    }
+    blocks += `
+      <div class="dh-dates-block">
+        ${cls.factChanged ? '<div class="dh-section-lbl">План:</div>' : ''}
+        <div class="dh-row-was"><span class="dh-label">Было:</span>${fmtPeriod(before.planStart, before.planEnd)}</div>
+        <div class="dh-row-now"><span class="dh-label">Стало:</span>${fmtPeriod(after.planStart, after.planEnd)}${delta}</div>
+      </div>`;
+  }
+  if (cls.factChanged) {
+    const oldDur = (before.actualStart && before.actualEnd) ? (Math.round((new Date(before.actualEnd) - new Date(before.actualStart)) / 86400000) + 1) : null;
+    const newDur = (after.actualStart && after.actualEnd) ? (Math.round((new Date(after.actualEnd) - new Date(after.actualStart)) / 86400000) + 1) : null;
+    let delta = '';
+    if (oldDur != null && newDur != null) {
+      const diff = newDur - oldDur;
+      if (diff !== 0) {
+        const dcls = diff > 0 ? '' : ' dh-delta-neg';
+        delta = `<span class="dh-delta${dcls}">${diff > 0 ? '+' : ''}${diff} ${daysWord(Math.abs(diff))}</span>`;
+      }
+    }
+    blocks += `
+      <div class="dh-dates-block" style="${cls.planChanged ? 'margin-top:6px' : ''}">
+        ${cls.planChanged ? '<div class="dh-section-lbl">Факт:</div>' : ''}
+        <div class="dh-row-was"><span class="dh-label">Было:</span>${fmtPeriod(before.actualStart, before.actualEnd)}</div>
+        <div class="dh-row-now"><span class="dh-label">Стало:</span>${fmtPeriod(after.actualStart, after.actualEnd)}${delta}</div>
+      </div>`;
+  }
+  return subTitle + blocks;
+}
+
+// Локализация типа паузы: 'plan'/'actual'/'both' → читаемый label.
+function _pauseTypeLabel(dt) {
+  if (dt === 'actual') return 'Факт';
+  if (dt === 'both') return 'План и факт';
+  return 'План';
+}
+
 function buildDrawerHistoryHtml(t) {
   const hist = Array.isArray(t.history) ? t.history : [];
   if (!hist.length) return '';
   const rows = hist.slice().reverse().map((h) => {
+    const cls = classifyHistoryEntry(h);
     const typeLbl = HISTORY_TYPE_LABEL[h.type] || h.type || '';
-    return `<div class="drawer-hist-row">
-      <div class="drawer-hist-meta">
-        <span class="drawer-hist-at">${escapeHtml(fmtHistoryAt(h.at))}</span>
-        <span class="drawer-hist-by">${escapeHtml(h.by || '—')}</span>
-        <span class="drawer-hist-type">${escapeHtml(typeLbl)}</span>
-      </div>
-      <div class="drawer-hist-sum">${escapeHtml(h.summary || '')}</div>
+    const at = escapeHtml(fmtHistoryAt(h.at));
+    const by = escapeHtml(h.by || '—');
+    const planning = h.planning === true ? ' · <span style="color:#9ca3af">был режим настройки</span>' : '';
+
+    if (cls === 'dates') {
+      const hasStructured = h.before && h.after && (h.before.planStart || h.before.planEnd || h.after.planStart || h.after.planEnd);
+      const datesHtml = hasStructured
+        ? buildHistoryDatesCard(h)
+        : (h.summary ? `<div style="font-size:12.5px;color:#4b5563;margin-top:2px">${escapeHtml(h.summary)}</div>` : '');
+      const reasonHtml = h.reason
+        ? `<span class="dh-reason">${escapeHtml(h.reason)}</span>`
+        : (h.planning ? '' : '<span class="dh-no-reason">причина не указана</span>');
+      return `<div class="drawer-hist-row dh-dates">
+        <div class="dh-head">
+          <span class="dh-icon">🗓</span>
+          <span class="dh-title">Сроки изменены</span>
+          <span class="dh-meta"><span class="dh-by">${by}</span> · ${at}${planning}</span>
+        </div>
+        ${datesHtml}
+        ${reasonHtml}
+      </div>`;
+    }
+
+    if (cls === 'pause') {
+      const icon = h.type === 'pause_task' ? '⏸' : h.type === 'resume_task' ? '▶️' : h.type === 'pause_edit' ? '✎' : h.type === 'pause_delete' ? '🗑' : '🟡';
+      const titleByType = {
+        pause_task:   'Поставлена на паузу',
+        resume_task:  'Пауза снята · работа возобновлена',
+        pause_edit:   'Пауза изменена',
+        pause_delete: 'Пауза удалена'
+      };
+      const niceTitle = titleByType[h.type] || typeLbl || 'Пауза';
+      // Тип паузы (план/факт/оба)
+      const dt = h.dateType || h.before?.dateType || h.after?.dateType || h.removed?.dateType || null;
+      const dtBadge = dt ? `<div class="dh-subtitle">Тип: <b>${escapeHtml(_pauseTypeLabel(dt))}</b></div>` : '';
+      // Период / длительность
+      let periodBlock = '';
+      if (h.type === 'pause_task' && h.from) {
+        const periodStr = h.to
+          ? `${escapeHtml(fmtDateShort(h.from))} → ${escapeHtml(fmtDateShort(h.to))}`
+          : `с ${escapeHtml(fmtDateShort(h.from))} <span class="muted">(без даты возобновления)</span>`;
+        periodBlock = `<div class="dh-dates-block"><div class="dh-row-now"><span class="dh-label">Период:</span><span class="dh-period">${periodStr}</span></div></div>`;
+      } else if (h.type === 'resume_task' && h.from && h.to) {
+        const days = Math.max(0, Math.round((new Date(h.to) - new Date(h.from)) / 86400000));
+        periodBlock = `<div class="dh-dates-block"><div class="dh-row-now"><span class="dh-label">Длилась:</span><span class="dh-period">${days} ${daysWord(days)}</span> <span class="muted">(${escapeHtml(fmtDateShort(h.from))} → ${escapeHtml(fmtDateShort(h.to))})</span></div></div>`;
+      } else if (h.type === 'pause_edit' && h.before && h.after) {
+        const wasStr = h.before.from ? (h.before.to ? `${fmtDateShort(h.before.from)} → ${fmtDateShort(h.before.to)}` : `с ${fmtDateShort(h.before.from)} (открыта)`) : '—';
+        const nowStr = h.after.from ? (h.after.to ? `${fmtDateShort(h.after.from)} → ${fmtDateShort(h.after.to)}` : `с ${fmtDateShort(h.after.from)} (открыта)`) : '—';
+        periodBlock = `<div class="dh-dates-block">
+          <div class="dh-row-was"><span class="dh-label">Было:</span><span class="dh-period">${escapeHtml(wasStr)}</span></div>
+          <div class="dh-row-now"><span class="dh-label">Стало:</span><span class="dh-period">${escapeHtml(nowStr)}</span></div>
+        </div>`;
+      } else if (h.type === 'pause_delete' && h.removed) {
+        const r = h.removed;
+        const periodStr = r.from ? (r.to ? `${fmtDateShort(r.from)} → ${fmtDateShort(r.to)}` : `с ${fmtDateShort(r.from)} (открыта)`) : '—';
+        periodBlock = `<div class="dh-dates-block"><div class="dh-row-was"><span class="dh-label">Удалена:</span><span class="dh-period">${escapeHtml(periodStr)}</span></div></div>`;
+      } else if (h.summary) {
+        // Legacy запись без structured data
+        periodBlock = `<div style="font-size:12.5px;color:#4b5563;margin-top:4px">${escapeHtml(h.summary)}</div>`;
+      }
+      const reasonHtml = h.reason ? `<span class="dh-reason">${escapeHtml(h.reason)}</span>` : '';
+      return `<div class="drawer-hist-row dh-pause">
+        <div class="dh-head">
+          <span class="dh-icon">${icon}</span>
+          <span class="dh-title">${escapeHtml(niceTitle)}</span>
+          <span class="dh-meta"><span class="dh-by">${by}</span> · ${at}</span>
+        </div>
+        ${dtBadge}
+        ${periodBlock}
+        ${reasonHtml}
+      </div>`;
+    }
+
+    if (cls === 'status') {
+      const icon = h.type === 'mark_complete' ? '✅' : h.type === 'mark_started' ? '🟢' : '⛔';
+      return `<div class="drawer-hist-row dh-status">
+        <div class="dh-head">
+          <span class="dh-icon">${icon}</span>
+          <span class="dh-title">${escapeHtml(typeLbl)}</span>
+          <span class="dh-meta"><span class="dh-by">${by}</span> · ${at}</span>
+        </div>
+        ${h.summary ? `<div style="font-size:12.5px;color:#4b5563">${escapeHtml(h.summary)}</div>` : ''}
+      </div>`;
+    }
+
+    if (cls === 'progress') {
+      return `<div class="drawer-hist-row dh-progress">
+        <div class="dh-head">
+          <span class="dh-icon">📊</span>
+          <span class="dh-title">Прогресс</span>
+          <span class="dh-meta"><span class="dh-by">${by}</span> · ${at}</span>
+        </div>
+        ${h.summary ? `<div style="font-size:12.5px;color:#4b5563">${escapeHtml(h.summary)}</div>` : ''}
+      </div>`;
+    }
+
+    // minor
+    return `<div class="drawer-hist-row dh-minor">
+      <span style="font-weight:500">${escapeHtml(typeLbl)}</span>
+      ${h.summary ? `· ${escapeHtml(h.summary)}` : ''}
+      <span style="float:right">${by} · ${at}</span>
     </div>`;
   }).join('');
   return `
@@ -2698,6 +4055,45 @@ function buildDrawerHistoryHtml(t) {
       <summary class="drawer-history-toggle"><span class="drawer-history-ico">🕐</span>История изменений <span class="drawer-history-count">${hist.length}</span></summary>
       <div class="drawer-history-list">${rows}</div>
     </details>`;
+}
+
+function buildDrawerPausesHtml(t) {
+  const pauses = Array.isArray(t.pauses) ? t.pauses : [];
+  if (!pauses.length) return '';
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const totalDays = pauses.reduce((s, p) => {
+    if (!p || !p.from) return s;
+    const to = p.to || todayIso;
+    const d = Math.max(0, Math.round((new Date(to) - new Date(p.from)) / 86400000));
+    return s + d;
+  }, 0);
+  const openCount = pauses.filter(p => p && !p.to).length;
+  const headSuffix = openCount ? ` · <span class="muted">${openCount} активна</span>` : '';
+  const rows = pauses.slice().reverse().map(p => {
+    if (!p) return '';
+    const open = !p.to;
+    const to = p.to || todayIso;
+    const days = Math.max(0, Math.round((new Date(to) - new Date(p.from)) / 86400000));
+    const reason = (p.reason || '').trim() || '— без указания причины';
+    const dateRange = open
+      ? `с ${fmtDate(p.from)} <span class="muted">(идёт)</span>`
+      : `${fmtDate(p.from)} — ${fmtDate(p.to)}`;
+    const delBtn = state.editMode
+      ? `<button type="button" class="drawer-pause-del" data-pause-del-task="${escapeHtml(t.id)}" data-pause-del-id="${escapeHtml(p.id || '')}" title="Удалить эту запись паузы">✕</button>`
+      : '';
+    return `<div class="drawer-pause-row${open ? ' open' : ''}">
+      <div class="drawer-pause-head">
+        <span class="drawer-pause-icon">⏸</span>
+        <span class="drawer-pause-dates">${dateRange}</span>
+        <span class="drawer-pause-days">${days} дн.</span>
+        ${delBtn}
+      </div>
+      <div class="drawer-pause-reason">${escapeHtml(reason)}</div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="drawer-section-title">⏸ История пауз · всего ${totalDays} дн.${headSuffix}</div>
+    <div class="drawer-pauses">${rows}</div>`;
 }
 
 function buildDrawerDelaysHtml(t) {
@@ -2775,6 +4171,8 @@ function buildDrawerMaterialsHtml(taskId) {
     const presetBtns = presets.map(d =>
       `<button type="button" class="mat-card-preset${lead === d ? ' is-active' : ''}" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" data-preset="${d}">${d}</button>`
     ).join('');
+    const qtyVal = (m.quantity != null && m.quantity !== '') ? m.quantity : '';
+    const unitOpts = MATERIAL_UNITS.map(u => `<option value="${escapeHtml(u.id)}"${(m.unit || '') === u.id ? ' selected' : ''}>${escapeHtml(u.label)}</option>`).join('');
     return `
       <div class="mat-card mat-card--${urgency}${m.ordered ? ' is-ordered' : ''}" data-row-idx="${idx}">
         <div class="mat-card-head">
@@ -2783,6 +4181,11 @@ function buildDrawerMaterialsHtml(taskId) {
           <button type="button" class="mat-card-del material-row-del" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" aria-label="Удалить">×</button>
         </div>
         ${rationale}
+        <div class="mat-card-qty">
+          <span class="mat-card-qty-label">Объём:</span>
+          <input type="number" min="0" step="0.01" class="mat-card-qty-input material-qty-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}" value="${qtyVal}" placeholder="0" />
+          <select class="mat-card-unit-select material-unit-select" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}">${unitOpts}</select>
+        </div>
         <div class="mat-card-controls">
           <label class="mat-card-status">
             <input type="checkbox" class="material-ordered-input" data-task-id="${escapeHtml(tid)}" data-row-idx="${idx}"${m.ordered ? ' checked' : ''} />
@@ -2814,9 +4217,12 @@ function buildDrawerMaterialsHtml(taskId) {
 }
 
 function attachResourceMaterialHandlers(taskId) {
-  const tid = String(taskId);
+  attachResourceHandlers(taskId);
+  attachMaterialHandlers(taskId);
+}
 
-  // Resource handlers
+function attachResourceHandlers(taskId) {
+  const tid = String(taskId);
   document.querySelectorAll(`.resource-type-select[data-task-id="${tid}"]`).forEach((sel) => {
     sel.addEventListener('change', () => mutateResource(tid, Number(sel.dataset.rowIdx), { type: sel.value }));
   });
@@ -2836,10 +4242,21 @@ function attachResourceMaterialHandlers(taskId) {
     setTaskResources(tid, arr);
     reRenderResources(tid);
   });
+}
 
-  // Material handlers
+function attachMaterialHandlers(taskId) {
+  const tid = String(taskId);
   document.querySelectorAll(`.material-name-input[data-task-id="${tid}"]`).forEach((inp) => {
     inp.addEventListener('change', () => mutateMaterial(tid, Number(inp.dataset.rowIdx), { name: inp.value }));
+  });
+  document.querySelectorAll(`.material-qty-input[data-task-id="${tid}"]`).forEach((inp) => {
+    inp.addEventListener('change', () => {
+      const v = inp.value === '' ? null : Number(inp.value);
+      mutateMaterial(tid, Number(inp.dataset.rowIdx), { quantity: v });
+    });
+  });
+  document.querySelectorAll(`.material-unit-select[data-task-id="${tid}"]`).forEach((sel) => {
+    sel.addEventListener('change', () => mutateMaterial(tid, Number(sel.dataset.rowIdx), { unit: sel.value }));
   });
   document.querySelectorAll(`.material-leadtime-input[data-task-id="${tid}"]`).forEach((inp) => {
     inp.addEventListener('change', () => {
@@ -2862,7 +4279,7 @@ function attachResourceMaterialHandlers(taskId) {
     });
   });
   document.querySelector(`.material-add-btn[data-task-id="${tid}"]`)?.addEventListener('click', () => {
-    const arr = [...getTaskMaterials(tid), { name: '', leadTime: 7, ordered: false, expectedDate: '', note: '' }];
+    const arr = [...getTaskMaterials(tid), { name: '', leadTime: 7, ordered: false, expectedDate: '', note: '', quantity: null, unit: '' }];
     setTaskMaterials(tid, arr);
     reRenderMaterials(tid);
   });
@@ -2934,13 +4351,16 @@ function reRenderResources(taskId) {
   const wrapper = cont.parentElement;
   if (!wrapper) return;
   cont.outerHTML = buildDrawerResourcesHtml(taskId).replace(/^\s*<div class="drawer-section-title">[^<]+<\/div>\s*/, '');
-  attachResourceMaterialHandlers(taskId);
+  // Перевешиваем handler'ы только на ресурсы — иначе на material-add-btn (он
+  // не пересоздаётся) каждый рендер навешивается ещё один listener, и клик
+  // «+ Добавить материал» начинает добавлять по 2+ материала за раз.
+  attachResourceHandlers(taskId);
 }
 function reRenderMaterials(taskId) {
   const cont = document.querySelector(`.materials-block[data-task-id="${taskId}"]`);
   if (!cont) return;
   cont.outerHTML = buildDrawerMaterialsHtml(taskId).replace(/^\s*<div class="drawer-section-title">[^<]+<\/div>\s*/, '');
-  attachResourceMaterialHandlers(taskId);
+  attachMaterialHandlers(taskId);
 }
 
 function buildDrawerTaskMeetingNotesHtml(taskId) {
@@ -3109,7 +4529,7 @@ async function createTicket(taskId) {
     const r = await fetch('/api/planradar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject, description: descEl?.value.trim() || '', taskId: String(taskId), dueDate, photos })
+      body: JSON.stringify({ subject, description: descEl?.value.trim() || '', taskId: String(taskId), dueDate, photos, projectSlug: state.projectSlug })
     });
     const data = await r.json();
     if (!r.ok) throw new Error(extractApiError(data, r.status));
@@ -3243,40 +4663,78 @@ function refreshTicketsSection(taskId) {
 
 /* ─── photo → JPEG base64 (iOS HEIC-safe, auto-resize) ─── */
 async function photoToBase64Jpeg(file, maxDim = 2400, quality = 0.85) {
-  // If HEIC/HEIF and browser can't decode it → throw so caller can show nice error
   const isHeic = /heic|heif/i.test(file.type || '') || /\.(heic|heif)$/i.test(file.name || '');
-  const dataUrl = await new Promise((res, rej) => {
-    const fr = new FileReader();
-    fr.onload  = (e) => res(e.target.result);
-    fr.onerror = () => rej(new Error('Не удалось прочитать файл'));
-    fr.readAsDataURL(file);
-  });
-  // Try to load into <img> for canvas re-encoding
-  const img = await new Promise((res, rej) => {
-    const el = new Image();
-    el.onload  = () => res(el);
-    el.onerror = () => rej(new Error(isHeic
-      ? 'HEIC-фото не поддерживается. В настройках iPhone: Камера → Форматы → «Наиболее совместимый» (JPEG)'
-      : 'Не удалось открыть изображение'));
-    el.src = dataUrl;
-  });
-  // Resize if needed
-  const { width, height } = img;
-  const scale = Math.min(1, maxDim / Math.max(width, height));
-  const w = Math.round(width * scale);
-  const h = Math.round(height * scale);
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fff'; // fallback background for transparent PNGs
-  ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(img, 0, 0, w, h);
-  const jpegDataUri = canvas.toDataURL('image/jpeg', quality);
-  return {
-    data: jpegDataUri.split(',')[1],
-    mimeType: 'image/jpeg',
-    name: (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg'
-  };
+  const heicMsg = 'HEIC-фото не поддерживается. В настройках iPhone: Камера → Форматы → «Наиболее совместимый» (JPEG)';
+
+  // Hard cap: iOS Safari can silently hang decoding huge images. Fail loudly instead of freezing UI.
+  const withTimeout = (promise, ms, msg) => Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms)),
+  ]);
+
+  // 1) Native path: createImageBitmap directly from File — no data-url, no FileReader, off-main-thread on iOS 15+.
+  let bitmap = null;
+  if (typeof createImageBitmap === 'function') {
+    try {
+      bitmap = await withTimeout(
+        createImageBitmap(file),
+        30000,
+        isHeic ? heicMsg : 'Декодирование фото заняло слишком долго'
+      );
+    } catch (e) {
+      // Fall through to <img> path; rethrow only if it's our timeout.
+      if (/слишком долго/.test(e.message) || /HEIC/.test(e.message)) throw e;
+      bitmap = null;
+    }
+  }
+
+  // 2) Fallback: blob URL → <img>. Uses object URL (cheap) instead of data URL (heavy).
+  let img = null;
+  let objectUrl = null;
+  if (!bitmap) {
+    objectUrl = URL.createObjectURL(file);
+    try {
+      img = await withTimeout(new Promise((res, rej) => {
+        const el = new Image();
+        el.onload  = () => res(el);
+        el.onerror = () => rej(new Error(isHeic ? heicMsg : 'Не удалось открыть изображение'));
+        el.src = objectUrl;
+      }), 30000, isHeic ? heicMsg : 'Декодирование фото заняло слишком долго');
+    } catch (e) {
+      URL.revokeObjectURL(objectUrl);
+      throw e;
+    }
+  }
+
+  try {
+    const width  = bitmap ? bitmap.width  : img.naturalWidth  || img.width;
+    const height = bitmap ? bitmap.height : img.naturalHeight || img.height;
+    if (!width || !height) throw new Error('Изображение пустое или повреждено');
+
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    const w = Math.max(1, Math.round(width  * scale));
+    const h = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bitmap || img, 0, 0, w, h);
+
+    const jpegDataUri = canvas.toDataURL('image/jpeg', quality);
+    if (!jpegDataUri || jpegDataUri.length < 100) {
+      throw new Error('Не удалось закодировать в JPEG (фото слишком большое для этого устройства)');
+    }
+    return {
+      data: jpegDataUri.split(',')[1],
+      mimeType: 'image/jpeg',
+      name: (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg'
+    };
+  } finally {
+    if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  }
 }
 
 /* ─── share tickets as PDF ─── */
@@ -3690,8 +5148,8 @@ function prefetchTicketPhotos(tickets) {
 
 function buildTicketPageHtml(tk, task, project) {
   const STATUS_ICO = { open:'🟠', in_review:'🔵', in_progress:'🟣', deferred:'⚪️', resolved:'🟢', rejected:'⚫️' };
-  const descClean = (tk.description || '').replace(/\[task:\w+\]/gi, '').trim();
-  const titleClean = (tk.title || '').replace(/\[task:\w+\]/gi, '').trim() || tk.title || '';
+  const descClean = (tk.description || '').replace(/\[task:\w+\]/gi, '').replace(/\[slug:[\w-]+\]/gi, '').replace(/\s+$/g, '').trim();
+  const titleClean = (tk.title || '').replace(/\[task:\w+\]/gi, '').replace(/\[slug:[\w-]+\]/gi, '').trim() || tk.title || '';
   const today = new Date().toISOString().slice(0, 10);
   const isOverdue = tk.due_date && tk.due_date < today && tk.status !== 'resolved';
   const photosHtml = (tk.photoDataUrls || []).map((du) =>
@@ -3889,8 +5347,75 @@ function downloadBlob(blob, filename) {
 /* ─── ticket edit modal ─── */
 const editModalPhotoStore = {}; // ticketId → File[] staged for upload
 
-/* ─── Ticket assignee picker (multi-select, 1–4 одновременно) ─── */
-const ASSIGNEES = ['Александр', 'Андрей', 'Антон П.', 'Антон М.'];
+/* ─── Ticket assignee picker (multi-select) ─── */
+// Динамический список из Airtable Users. Делится на две группы:
+//   • management — admin/foreman/owner/creator/pm (получают пинги, видны и доступны для назначения).
+//   • workers    — role='worker' (НЕ получают уведомления; нужны только для фиксации ответственного).
+// До первой загрузки используется fallback. После loadAssignees() — реальный список.
+const _MGMT_ASSIGNEE_ROLES = new Set(['creator', 'owner', 'admin', 'foreman', 'pm']);
+const _WORKER_ASSIGNEE_ROLES = new Set(['worker']);
+// __PER_PROJECT_TEAM_v1__ роли которые управляются per-проект (а не глобально):
+const _PER_PROJECT_ROLES_FRONTEND = new Set(['foreman', 'worker']);
+let ASSIGNEES_BY_GROUP = { management: ['Александр', 'Андрей', 'Антон П.', 'Антон М.'], workers: [] };
+let ASSIGNEES = [...ASSIGNEES_BY_GROUP.management, ...ASSIGNEES_BY_GROUP.workers];
+
+async function loadAssignees() {
+  try {
+    const slug = state.projectSlug || '';
+    // __PER_PROJECT_TEAM_v1__ team:list со slug возвращает activeInProject (per-slug флаг).
+    const r = await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'team:list', payload: { slug } })
+    });
+    const d = await r.json();
+    const all = (d?.result?.users || d?.users || []).filter(Boolean);
+    // Используем activeInProject (есть в новом API). Если undefined (старый ответ) — fallback на active+allowedProjects.
+    const isAvailableForProject = (u) => {
+      if (typeof u.activeInProject === 'boolean') return u.activeInProject;
+      // legacy fallback
+      const allowed = Array.isArray(u.allowedProjects) ? u.allowedProjects : [];
+      const baseActive = u.active !== false;
+      if (!baseActive) return false;
+      // foreman/worker без allowedProjects = «не привязан ни к одному проекту»
+      if (_PER_PROJECT_ROLES_FRONTEND.has(u.role) && !allowed.length) return false;
+      if (!allowed.length) return true;
+      return allowed.map(s => String(s).toLowerCase()).includes(String(slug).toLowerCase());
+    };
+    const pickNames = (predicate) => all
+      .filter(u => predicate(u) && isAvailableForProject(u))
+      .map(u => String(u.name || '').trim())
+      .filter(Boolean);
+    const mgmt = pickNames(u => _MGMT_ASSIGNEE_ROLES.has(u.role));
+    // Рабочие — теперь ТОЖЕ фильтруются per-project, а не глобально.
+    const workers = pickNames(u => _WORKER_ASSIGNEE_ROLES.has(u.role));
+    const flat = [...mgmt, ...workers];
+    if (flat.length) {
+      const prev = ASSIGNEES.join('|');
+      ASSIGNEES_BY_GROUP = { management: mgmt, workers };
+      ASSIGNEES = flat;
+      return prev !== flat.join('|');
+    }
+  } catch (e) {
+    console.warn('loadAssignees failed', e);
+  }
+  return false;
+}
+
+// Перечитывает список ответственных в фоне, и если он изменился — перерисовывает
+// секцию тикетов в открытом drawer'е (чтобы свежедобавленный foreman сразу появился в чипах).
+async function refreshAssigneesAndMaybeRerender(taskId) {
+  const changed = await loadAssignees();
+  if (!changed) return;
+  const drawer = document.getElementById('drawer');
+  if (!drawer || drawer.getAttribute('aria-hidden') === 'true') return;
+  const ticketsContainer = drawer.querySelector('[data-drawer-tickets]') || drawer.querySelector('.drawer-tickets');
+  if (ticketsContainer) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = buildDrawerTicketsHtml(taskId);
+    ticketsContainer.replaceWith(tmp.firstElementChild || tmp);
+  }
+}
 
 // In-memory holder for assignees выбранных в форме создания тикета (temp до save)
 const tempAssigneesByCreateKey = new Map();
@@ -3913,25 +5438,57 @@ function setTicketAssignees(ticketId, names) {
   // optimistic cache update
   if (list.length) state.dataCache.assignees[ticketId] = list;
   else delete state.dataCache.assignees[ticketId];
+  // __FOREMAN_BILINGUAL_v1__ Передаём subject/desc/due/taskName в API чтобы оно могло отправить
+  // двуязычное (RU + UZ) уведомление бригадиру с полным контекстом, а не сухое «тебе назначили».
+  const t = state.tickets?.find(x => x.id === ticketId);
+  const taskName = t ? (state.schedule?.tasks?.find(tk => String(tk.id) === String(t.task_id))?.name || '') : '';
   postDataAction('assignees:set', {
-    ticketId, slug: state.projectSlug, names: list
+    ticketId, slug: state.projectSlug, names: list,
+    ticketSubject: t?.title || t?.subject || '',
+    ticketDueDate: String(t?.due_date || t?.dueDate || '').slice(0, 10),
+    ticketDescription: t?.description || '',
+    taskName
+  }).then(r => {
+    // __NO_TG_WARNING_v1__ Если кому-то не дошло из-за отсутствия TG ID — предупредим
+    if (r?.skippedNoTG?.length) {
+      try { showToast('⚠️ TG ID не задан у: ' + r.skippedNoTG.join(', ') + ' — уведомление не отправлено', 'warn'); } catch(_) {}
+    }
   }).catch((e) => console.warn('assignees:set failed', e));
 }
 
 function buildAssigneePickerHtml(ticketId) {
   const selected = new Set(getTicketAssignees(ticketId));
-  const pills = ASSIGNEES.map((name) => {
+  const renderPill = (name) => {
     const isSel = selected.has(name);
     return `<button type="button" class="assignee-pill${isSel ? ' assignee-pill--selected' : ''}" data-name="${escapeHtml(name)}" data-ticket-id="${escapeHtml(ticketId)}" aria-pressed="${isSel ? 'true' : 'false'}">
       <span class="assignee-pill-dot" aria-hidden="true"></span>
       <span class="assignee-pill-name">${escapeHtml(name)}</span>
     </button>`;
-  }).join('');
+  };
+  const mgmt = ASSIGNEES_BY_GROUP.management || [];
+  const workers = ASSIGNEES_BY_GROUP.workers || [];
+  const mgmtSection = mgmt.length
+    ? `<div class="assignee-section">
+         <div class="assignee-section-title">🧑‍💼 Менеджмент <span class="assignee-section-meta">получают уведомления</span></div>
+         <div class="assignee-zone">${mgmt.map(renderPill).join('')}</div>
+       </div>`
+    : '';
+  const workersSection = workers.length
+    ? `<div class="assignee-section">
+         <div class="assignee-section-title">👷 Рабочие <span class="assignee-section-meta">только для фиксации, без пингов</span></div>
+         <div class="assignee-zone">${workers.map(renderPill).join('')}</div>
+       </div>`
+    : `<div class="assignee-section assignee-section--empty">
+         <div class="assignee-section-title">👷 Рабочие</div>
+         <div class="assignee-empty-hint">Список пуст. Открой <b>«Команда» → вкладка «Рабочие»</b> и добавь людей.</div>
+       </div>`;
+  const total = mgmt.length + workers.length;
   const hintText = selected.size
-    ? `Выбрано: ${selected.size} из ${ASSIGNEES.length}`
-    : 'Нажми на имя — можно выбрать несколько';
-  return `<div class="assignee-block assignee-block--multi" data-ticket-id="${escapeHtml(ticketId)}">
-    <div class="assignee-zone assignee-zone--all" aria-label="Ответственные">${pills}</div>
+    ? `Выбрано: ${selected.size} из ${total}`
+    : 'Можно выбрать несколько — рабочим уведомления не приходят, бригадирам приходят.';
+  return `<div class="assignee-block assignee-block--multi assignee-block--grouped" data-ticket-id="${escapeHtml(ticketId)}">
+    ${mgmtSection}
+    ${workersSection}
     <div class="assignee-hint">${escapeHtml(hintText)}</div>
   </div>`;
 }
@@ -3963,9 +5520,10 @@ function toggleAssigneePill(pill) {
   setTicketAssignees(ticketId, Array.from(current));
   const hint = block.querySelector('.assignee-hint');
   if (hint) {
+    const total = (ASSIGNEES_BY_GROUP.management || []).length + (ASSIGNEES_BY_GROUP.workers || []).length;
     hint.textContent = current.size
-      ? `Выбрано: ${current.size} из ${ASSIGNEES.length}`
-      : 'Нажми на имя — можно выбрать несколько';
+      ? `Выбрано: ${current.size} из ${total}`
+      : 'Можно выбрать несколько — рабочим уведомления не приходят, бригадирам приходят.';
   }
   // Если в ящике активна сортировка «По ответственному» — перерендерить карточки
   refreshTicketsIfSortedByAssignee(ticketId);
@@ -4095,8 +5653,9 @@ function openTicketEditModal(ticketId) {
   const tk = state.tickets.find((t) => t.id === ticketId);
   if (!tk) return;
   closeTicketEditModal();
-  const descClean    = (tk.description || '').replace(/\[task:\w+\]/gi, '').trim();
-  const subjectClean = (tk.title || '').replace(/\[task:\w+\]/gi, '').trim();
+  // __SLUG_TAG_HIDE_v1__ Чистим внутренние теги [slug:...] и [task:...] чтобы юзер не видел и случайно не стёр.
+  const descClean    = (tk.description || '').replace(/\[task:\w+\]/gi, '').replace(/\[slug:[\w-]+\]/gi, '').replace(/\s+$/g, '').trim();
+  const subjectClean = (tk.title || '').replace(/\[task:\w+\]/gi, '').replace(/\[slug:[\w-]+\]/gi, '').trim();
   const statusOpts = TICKET_STATUSES.map((s) =>
     `<option value="${s}"${tk.status === s ? ' selected' : ''}>${escapeHtml(TICKET_STATUS_LABEL[s] || s)}</option>`
   ).join('');
@@ -4239,7 +5798,14 @@ function openTicketEditModal(ticketId) {
   modal.querySelector('#edit-photo-input').addEventListener('change', (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    editModalPhotoStore[ticketId] = [...(editModalPhotoStore[ticketId] || []), ...files];
+    const tk = state.tickets.find((t) => t.id === ticketId);
+    const existing = (tk?.photos || []).length;
+    const staged = (editModalPhotoStore[ticketId] || []).length;
+    const room = 5 - existing - staged;
+    if (room <= 0) { alert('У тикета уже 5 фото — это максимум.'); e.target.value = ''; return; }
+    const accepted = files.slice(0, room);
+    if (files.length > room) alert(`Можно добавить ещё только ${room} фото (максимум 5 на тикет).`);
+    editModalPhotoStore[ticketId] = [...(editModalPhotoStore[ticketId] || []), ...accepted];
     renderNewPhotoPreviews(ticketId);
     e.target.value = '';
   });
@@ -4349,8 +5915,9 @@ async function saveTicketEdit(ticketId) {
     const status = document.getElementById('edit-status')?.value;
     if (!subject) throw new Error('Название обязательно');
 
-    // 1) Update ticket fields
-    const payload = { ticketId, subject, description, dueDate, status, taskId: tk.task_id };
+    // 1) Update ticket fields. __SLUG_TAG_HIDE_v1__ передаём projectSlug чтобы API
+    // мог восстановить теги [task:..] [slug:..], которые мы спрятали из UI.
+    const payload = { ticketId, subject, description, dueDate, status, taskId: tk.task_id, projectSlug: state.projectSlug };
     const r = await fetch('/api/planradar', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -4392,9 +5959,12 @@ async function saveTicketEdit(ticketId) {
       if (errEl) errEl.textContent = 'Фото с ошибкой: ' + failed.join('; ');
     }
 
-    // 3) Update local state
+    // 3) Update local state — добавляем теги обратно как делает API при сохранении.
     tk.title = subject;
-    tk.description = tk.task_id ? `${description} [task:${tk.task_id}]`.trim() : description;
+    const _tagParts = [];
+    if (tk.task_id) _tagParts.push(`[task:${tk.task_id}]`);
+    if (state.projectSlug) _tagParts.push(`[slug:${state.projectSlug}]`);
+    tk.description = _tagParts.length ? `${description} ${_tagParts.join(' ')}`.trim() : description;
     tk.due_date = dueDate;
     tk.status = status;
     tk.photos = [...(tk.photos || []), ...newPhotos];
@@ -4540,6 +6110,7 @@ function attachTicketHandlers() {
       const file = e.target.files[0];
       if (!file) return;
       if (!ticketPhotoStore[tid]) ticketPhotoStore[tid] = [];
+      if (ticketPhotoStore[tid].length >= 5) { alert('Можно прикрепить максимум 5 фото к тикету.'); input.value = ''; return; }
       const idx = ticketPhotoStore[tid].push(file) - 1;
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -4711,7 +6282,7 @@ function openStatsDrawer(type) {
   $('#drawer-title').textContent = title;
   $('#drawer-body').innerHTML = html;
   if (type === 'tasks') bindScopeRowHandlers();
-  $('#drawer').setAttribute('aria-hidden', 'false');
+  setDrawerOpen(true);
 }
 
 function bindScopeRowHandlers() {
@@ -4742,8 +6313,12 @@ function openAnalyticsDrawer(type) {
 
   if (type === 'spi') {
     const evm = computeEVM(s, asOf);
-    const spiPct = (evm.SPI * 100).toFixed(0);
-    const verdict = evm.SPI >= 0.97 ? 'идём по плану' : evm.SPI >= 0.88 ? 'небольшое отставание' : 'серьёзное отставание';
+    // __SPI_NULL_WHEN_NOT_STARTED_v1__
+    const spiPct = evm.SPI != null ? (evm.SPI * 100).toFixed(0) : '—';
+    const verdict = evm.SPI == null ? 'проект ещё не начался'
+                  : evm.SPI >= 0.97 ? 'идём по плану'
+                  : evm.SPI >= 0.88 ? 'небольшое отставание'
+                  : 'серьёзное отставание';
 
     const taskStateBadge = (t, m) => {
       const today = asOf.getTime();
@@ -4767,11 +6342,14 @@ function openAnalyticsDrawer(type) {
         PV += m.PV; EV += m.EV; totalCost += m.cost;
       }
       const noCost = totalCost === 0;
-      const stageSpi = PV > 0 ? EV / PV : 1;
-      const cls = noCost ? 'spi-na' : spiClass(stageSpi);
+      // __SPI_NULL_WHEN_NOT_STARTED_v1__ PV=0 = этап ещё не начался по плану
+      const stageSpi = PV > 0 ? EV / PV : null;
+      const cls = (noCost || stageSpi == null) ? 'spi-na' : spiClass(stageSpi);
       const fillPct = totalCost > 0 ? Math.round((EV / totalCost) * 100) : 0;
       const valHtml = noCost
         ? `<span class="drawer-row-val ${cls}" title="Стоимость работ этапа не задана — SPI рассчитать нельзя">SPI —</span>`
+        : stageSpi == null
+        ? `<span class="drawer-row-val ${cls}" title="Ни одна работа этапа ещё не должна была начаться">SPI —</span>`
         : `<span class="drawer-row-val ${cls}">SPI ${(stageSpi * 100).toFixed(0)}%</span>`;
       const metaHtml = noCost
         ? `<div class="drawer-row-meta drawer-row-meta--muted">работы вне сметы CYFR — стоимость не задана</div>`
@@ -5040,10 +6618,10 @@ function openAnalyticsDrawer(type) {
   $('#drawer-tag').textContent = tag;
   $('#drawer-title').textContent = title;
   $('#drawer-body').innerHTML = html;
-  $('#drawer').setAttribute('aria-hidden', 'false');
+  setDrawerOpen(true);
 
   // Wire up drawer-internal handlers
-  document.querySelectorAll('#drawer-body .drawer-row-link[data-task-id], #drawer-body .mat-task-card[data-task-id]').forEach((el) => {
+  document.querySelectorAll('#drawer-body .drawer-row-link[data-task-id], #drawer-body .mat-task-card[data-task-id], #drawer-body .progress-log-update[data-task-id]').forEach((el) => {
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const tid = el.getAttribute('data-task-id');
@@ -5102,8 +6680,51 @@ function countWorkDays(start, end) {
   return count;
 }
 
+// iOS scroll-lock: при открытой плашке (drawer/tasks-sheet) `overscroll-behavior:
+// contain` на самой панели не страхует от сценария «панель короче экрана» —
+// iOS прокидывает скролл в body, и юзер видит, как мотается график за окном.
+// Замораживаем body позиционно, восстанавливаем scroll при закрытии.
+let _bodyLockScrollY = 0;
+let _bodyLockCount = 0;
+function setBodyScrollLock(locked) {
+  if (locked) {
+    if (_bodyLockCount === 0) {
+      _bodyLockScrollY = window.scrollY || window.pageYOffset || 0;
+      const body = document.body;
+      body.style.position = 'fixed';
+      body.style.top = `-${_bodyLockScrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+    }
+    _bodyLockCount++;
+  } else {
+    if (_bodyLockCount > 0) _bodyLockCount--;
+    if (_bodyLockCount === 0) {
+      const body = document.body;
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.width = '';
+      window.scrollTo(0, _bodyLockScrollY);
+    }
+  }
+}
+function setDrawerOpen(open) {
+  const el = $('#drawer');
+  if (!el) return;
+  const wasOpen = el.getAttribute('aria-hidden') === 'false';
+  if (open && !wasOpen) {
+    el.setAttribute('aria-hidden', 'false');
+    setBodyScrollLock(true);
+  } else if (!open && wasOpen) {
+    el.setAttribute('aria-hidden', 'true');
+    setBodyScrollLock(false);
+  }
+}
 function closeDrawer() {
-  $('#drawer').setAttribute('aria-hidden', 'true');
+  setDrawerOpen(false);
 }
 function attachDrawerHandlers() {
   document.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', closeDrawer));
@@ -5128,12 +6749,24 @@ function renderTasksSheet() {
   const filtered = applyFilterToTasks(state.schedule.tasks);
   const bySec = {};
   for (const t of filtered) (bySec[t.section] ||= []).push(t);
+  const editMode = !!state.editMode;
 
   let html = '';
+  if (editMode) {
+    html += `<div class="tsh-banner">✎ Режим правки — переименуй, удали или добавь работы и разделы прямо отсюда.</div>`;
+    html += `<button type="button" class="tsh-add tsh-add-section" data-tsh-add-section>＋ Добавить раздел</button>`;
+  }
   for (const sec of state.schedule.sections) {
     const ts = bySec[sec.id] || [];
-    if (!ts.length) continue;
-    html += `<div class="tasks-sheet-section"><span class="dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)}</div>`;
+    if (!ts.length && !editMode) continue;
+    html += `<div class="tasks-sheet-section">
+      <span class="dot" style="background:${sec.color}"></span>
+      <span class="tsh-section-name">${escapeHtml(sec.name)}</span>
+      ${editMode ? `
+        <button type="button" class="tsh-row-btn" data-tsh-edit-section="${escapeHtml(sec.id)}" title="Переименовать раздел">✎</button>
+        <button type="button" class="tsh-row-btn tsh-row-del" data-tsh-del-section="${escapeHtml(sec.id)}" title="Удалить раздел (только пустой)">🗑</button>
+      ` : ''}
+    </div>`;
     for (const t of ts) {
       let status = '', statusLabel = '';
       const pEndD = parseISO(t.planEnd || t.end);
@@ -5146,14 +6779,54 @@ function renderTasksSheet() {
       const overdueN = !t.actualEnd && asOf > pEndD ? dayDiff(pEndD, asOf) : 0;
       const overdueBadge = overdueN > 0 ? `<span class="tdelay">+${overdueN}д</span>` : '';
       const statusHtml = statusLabel ? `<span class="tstatus ${status}">${escapeHtml(statusLabel)}</span>` : '';
-      html += `<button type="button" class="tasks-sheet-item${t.actualEnd ? ' done' : ''}" data-tid="${escapeHtml(t.id)}">
-        <span class="tdot" style="background:${sec.color}"></span>
-        <span class="tid">${escapeHtml(t.id)}</span>
-        <span class="tname">${escapeHtml(t.name)}</span>
-        ${pctBadge}
-        ${overdueBadge}
-        ${statusHtml}
-      </button>`;
+
+      // Паритет с десктопным task-label: КП, материалы, СУБ/ЦИФР, имя субподрядчика, план-даты.
+      const isCritical = state.cpmCritical && state.cpmCritical.has(t.id);
+      const critBadge = (isCritical && prog < 1) ? '<span class="tsh-crit" title="Критический путь">⚠ КП</span>' : '';
+      const matRisk = computeMaterialRisk(t);
+      const matBadge = matRisk
+        ? `<span class="tsh-mat" title="Заказать до ${escapeHtml(fmtDate(toISO(matRisk.orderBy)))} · ${matRisk.riskyCount} материалов в риске">📦 ${matRisk.daysToStart > 0 ? '−' + (matRisk.maxLead - matRisk.daysToStart) + 'д' : 'срочно'}</span>`
+        : '';
+      const isTaskSub = effectiveSub(t, sec);
+      const isExplicitCyfrInSub = t.sub === false && sec.sub;
+      const isExplicitSubInCyfr = t.sub === true && !sec.sub;
+      const subTitle = t.subcontractorName
+        ? `Субподрядчик: ${t.subcontractorName}`
+        : (isExplicitSubInCyfr ? 'Субподрядчик (только эта работа)' : (sec.sub ? 'Субподрядчик (раздел)' : 'Субподрядчик'));
+      const subBadge = isTaskSub
+        ? `<span class="tsh-sub" title="${escapeHtml(subTitle)}">СУБ${t.subcontractorName ? '·' + escapeHtml(t.subcontractorName.split(' ')[0]) : ''}</span>`
+        : (isExplicitCyfrInSub ? `<span class="tsh-cyfr" title="ЦИФР делает сам (раздел на субе)">ЦИФР</span>` : '');
+
+      // План-даты компактно: «28 апр → 8 май»
+      const planRange = (t.planStart && t.planEnd)
+        ? `<span class="tsh-dates" title="План">📅 ${fmtDate(t.planStart).replace(/ \d{4} г\.$/, '')} → ${fmtDate(t.planEnd).replace(/ \d{4} г\.$/, '')}</span>`
+        : '';
+
+      const _hasOpenPause = Array.isArray(t.pauses) && t.pauses.some(p => p && !p.to);
+      const editActions = editMode ? `
+        <button type="button" class="tsh-row-btn" data-tsh-edit-task="${escapeHtml(t.id)}" title="Переименовать">✎</button>
+        <button type="button" class="tsh-row-btn" data-tsh-dates-task="${escapeHtml(t.id)}" title="Изменить даты / подрядчика">📅</button>
+        ${_hasOpenPause
+          ? `<button type="button" class="tsh-row-btn" data-tsh-resume-task="${escapeHtml(t.id)}" title="Возобновить работу">▶️</button>`
+          : `<button type="button" class="tsh-row-btn" data-tsh-pause-task="${escapeHtml(t.id)}" title="Поставить на паузу">⏸</button>`}
+        <button type="button" class="tsh-row-btn tsh-row-del" data-tsh-del-task="${escapeHtml(t.id)}" title="Удалить работу">🗑</button>
+      ` : '';
+      html += `<div class="tasks-sheet-row">
+        <button type="button" class="tasks-sheet-item${t.actualEnd ? ' done' : ''}${isCritical ? ' is-critical' : ''}" data-tid="${escapeHtml(t.id)}">
+          <span class="tsh-line1">
+            <span class="tdot" style="background:${sec.color}"></span>
+            <span class="tid">№${escapeHtml(t.id)}</span>
+            <span class="tname">${escapeHtml(t.name)}</span>
+          </span>
+          ${[planRange, pctBadge, overdueBadge, critBadge, matBadge, subBadge, statusHtml].filter(Boolean).length
+            ? `<span class="tsh-line2">${[planRange, pctBadge, overdueBadge, critBadge, matBadge, subBadge, statusHtml].filter(Boolean).join('')}</span>`
+            : ''}
+        </button>
+        ${editActions}
+      </div>`;
+    }
+    if (editMode) {
+      html += `<button type="button" class="tsh-add" data-tsh-add-task="${escapeHtml(sec.id)}">＋ Добавить работу в раздел</button>`;
     }
   }
   body.innerHTML = html;
@@ -5166,14 +6839,113 @@ function renderTasksSheet() {
       openDrawer(tid);
     });
   });
+
+  if (editMode) attachTasksSheetEditHandlers(body);
+}
+
+function attachTasksSheetEditHandlers(body) {
+  body.querySelectorAll('[data-tsh-edit-task]').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const tid = b.getAttribute('data-tsh-edit-task');
+    const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(tid));
+    if (!t) return;
+    const newName = (prompt('Новое название работы:', t.name) || '').trim();
+    if (!newName || newName === t.name) return;
+    try {
+      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch: { name: newName } });
+      if (r.schedule) state.schedule = r.schedule;
+      else { t.name = newName; }
+      renderTasksSheet(); renderGantt();
+      showToast('✓ Переименовано');
+    } catch (err) { showToast('Ошибка: ' + (err.message || err), 'error'); }
+  }));
+
+  // 📅 — открыть полный редактор дат + подрядчика. Закрываем sheet, иначе модалка под ним.
+  body.querySelectorAll('[data-tsh-dates-task]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tid = b.getAttribute('data-tsh-dates-task');
+    if (!tid) return;
+    closeTasksSheet();
+    if (typeof openTaskDatesEditor === 'function') openTaskDatesEditor(tid);
+  }));
+
+  body.querySelectorAll('[data-tsh-pause-task]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tid = b.getAttribute('data-tsh-pause-task');
+    if (!tid) return;
+    closeTasksSheet();
+    if (typeof openTaskPauseForm === 'function') openTaskPauseForm(tid);
+  }));
+
+  body.querySelectorAll('[data-tsh-resume-task]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tid = b.getAttribute('data-tsh-resume-task');
+    if (!tid) return;
+    closeTasksSheet();
+    if (typeof openTaskResumeForm === 'function') openTaskResumeForm(tid);
+  }));
+
+  body.querySelectorAll('[data-tsh-del-task]').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const tid = b.getAttribute('data-tsh-del-task');
+    const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(tid));
+    if (!t) return;
+    if (!confirm(`Удалить работу «${t.name}»?`)) return;
+    try {
+      const r = await postDataAction('task:delete', { slug: state.projectSlug, taskId: tid });
+      if (r.schedule) state.schedule = r.schedule;
+      renderTasksSheet(); renderGantt();
+      showToast('✓ Удалено');
+    } catch (err) { showToast('Ошибка: ' + (err.message || err), 'error'); }
+  }));
+
+  body.querySelectorAll('[data-tsh-edit-section]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const sid = b.getAttribute('data-tsh-edit-section');
+    if (typeof openEditSectionForm === 'function') openEditSectionForm(sid);
+  }));
+
+  body.querySelectorAll('[data-tsh-del-section]').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const sid = b.getAttribute('data-tsh-del-section');
+    const sec = (state.schedule?.sections || []).find(s => s.id === sid);
+    if (!sec) return;
+    if (!confirm(`Удалить раздел «${sec.name}»? Работы должны быть удалены или перенесены сначала.`)) return;
+    try {
+      const r = await postDataAction('section:delete', { slug: state.projectSlug, sectionId: sid });
+      if (r.schedule) state.schedule = r.schedule;
+      renderTasksSheet(); renderGantt();
+      showToast('✓ Раздел удалён');
+    } catch (err) { showToast('Ошибка: ' + (err.message || err), 'error'); }
+  }));
+
+  body.querySelectorAll('[data-tsh-add-task]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const sid = b.getAttribute('data-tsh-add-task');
+    closeTasksSheet();
+    if (typeof openAddTaskForm === 'function') openAddTaskForm(sid, b);
+  }));
+
+  body.querySelectorAll('[data-tsh-add-section]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeTasksSheet();
+    if (typeof openAddSectionForm === 'function') openAddSectionForm(b);
+  }));
 }
 
 function openTasksSheet() {
-  $('#tasks-sheet').setAttribute('aria-hidden', 'false');
+  const el = $('#tasks-sheet');
+  if (!el) return;
+  if (el.getAttribute('aria-hidden') === 'false') return;
+  el.setAttribute('aria-hidden', 'false');
+  setBodyScrollLock(true);
 }
 function closeTasksSheet() {
   const el = $('#tasks-sheet');
-  if (el) el.setAttribute('aria-hidden', 'true');
+  if (!el) return;
+  if (el.getAttribute('aria-hidden') !== 'false') return;
+  el.setAttribute('aria-hidden', 'true');
+  setBodyScrollLock(false);
 }
 function attachTasksSheetHandlers() {
   const fab = $('#tasks-fab');
@@ -5181,6 +6953,22 @@ function attachTasksSheetHandlers() {
   document.querySelectorAll('[data-tasks-close]').forEach((el) =>
     el.addEventListener('click', closeTasksSheet)
   );
+  const doneBtn = $('#tasks-sheet-done');
+  if (doneBtn) {
+    doneBtn.addEventListener('click', () => {
+      // Выйти из режима Правки и закрыть drawer.
+      if (state.editMode) {
+        deselectGanttBar();
+        state.editMode = false;
+        document.body.classList.remove('is-edit-mode');
+        const editBtn = document.getElementById('btn-edit');
+        if (editBtn) editBtn.setAttribute('data-active', 'false');
+        renderGantt();
+      }
+      closeTasksSheet();
+      showToast('✓ Готово');
+    });
+  }
 }
 
 function setupThemeToggle() {
@@ -5227,9 +7015,845 @@ function setupAdminMenu() {
       const action = item.dataset.adminAction;
       close();
       if (action === 'meeting') openMeetingModal();
+      else if (action === 'team') openTeamModal();
+      else if (action === 'worker-blackbox') openWorkerBlackboxModal();
       else if (action === 'delete-project') confirmDeleteProject();
+      else if (action === 'reset-project') confirmResetProject();
     });
   });
+}
+
+async function openWorkersPicker(onSaved) {
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.style.zIndex = 1500;
+  overlay.innerHTML = `
+    <div class="edit-form-card workers-picker-card">
+      <div class="edit-form-head">
+        <div>🇺🇿 Рабочие — выбери кто на объекте</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="team-modal-hint">
+        ✅ Галочка слева — рабочий на объекте (попадёт в систему как worker).<br>
+        🧑‍💼 Галочка «бригадир» — этот человек будет foreman'ом (потом сможешь назначить ему проекты).
+      </div>
+      <div class="workers-picker-controls">
+        <button type="button" class="workers-picker-toggle" data-toggle="all">Выделить всех</button>
+        <button type="button" class="workers-picker-toggle" data-toggle="none">Снять все</button>
+        <input type="text" class="workers-picker-search" id="wp-search" placeholder="🔍 Поиск по имени" />
+      </div>
+      <div class="workers-picker-list" id="wp-list"><div class="team-loading">Загружаю список…</div></div>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel" id="wp-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit" id="wp-save">Сохранить</button>
+      </div>
+      <div class="edit-form-err" id="wp-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('#wp-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  let names = [];
+  let existing = {};
+  let pickerState = []; // [{name, selected, foreman}]
+  try {
+    // __PER_PROJECT_TEAM_v1__ Picker per-slug — selected=true только если worker уже в этом проекте.
+    const r = await postDataAction('team:workers-picker', { slug: state.projectSlug });
+    names = r.names || [];
+    existing = r.existing || {};
+  } catch (e) {
+    overlay.querySelector('#wp-list').innerHTML = `<div class="team-loading" style="color:#b91c1c">Ошибка: ${escapeHtml(e.message || String(e))}</div>`;
+    return;
+  }
+  pickerState = names.map(name => {
+    const ex = existing[name];
+    if (!ex) return { name, selected: false, foreman: false };
+    // Selected = в БД И привязан к этому проекту (или admin/owner — те всегда «включены»)
+    const isInProject = ex.inProject !== false;
+    if (ex.role === 'worker')  return { name, selected: isInProject, foreman: false };
+    if (ex.role === 'foreman') return { name, selected: isInProject, foreman: true };
+    return { name, selected: false, foreman: false }; // creator/admin не трогаем
+  });
+
+  function render(filter = '') {
+    const f = filter.trim().toLowerCase();
+    const list = overlay.querySelector('#wp-list');
+    const visible = pickerState.filter(s => !f || s.name.toLowerCase().includes(f));
+    if (!visible.length) { list.innerHTML = '<div class="team-loading">Никого не найдено по запросу.</div>'; return; }
+    list.innerHTML = visible.map((s, idx) => {
+      const realIdx = pickerState.findIndex(x => x.name === s.name);
+      const e = existing[s.name];
+      const inOtherProjectsCount = e ? Math.max(0, (e.allowedCount || 0) - (e.inProject ? 1 : 0)) : 0;
+      const badge = e?.role === 'foreman'
+        ? `<span class="wp-badge wp-badge--foreman">🧑‍💼 бригадир${inOtherProjectsCount ? ` · в ${inOtherProjectsCount} др. проект.` : ''}</span>`
+        : e?.role === 'worker'
+          ? `<span class="wp-badge">👷 в системе${inOtherProjectsCount ? ` · в ${inOtherProjectsCount} др. проект.` : ''}</span>`
+          : '';
+      return `<div class="wp-row" data-idx="${realIdx}">
+        <label class="wp-cb-main">
+          <input type="checkbox" class="wp-sel" data-idx="${realIdx}" ${s.selected ? 'checked' : ''} />
+          <span class="wp-name">${escapeHtml(s.name)}</span>
+        </label>
+        <label class="wp-cb-foreman${s.selected ? '' : ' wp-cb-foreman--disabled'}">
+          <input type="checkbox" class="wp-foreman" data-idx="${realIdx}" ${s.foreman ? 'checked' : ''} ${s.selected ? '' : 'disabled'} />
+          <span>бригадир</span>
+        </label>
+        ${badge}
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.wp-sel').forEach(cb => cb.addEventListener('change', () => {
+      const i = Number(cb.dataset.idx);
+      pickerState[i].selected = cb.checked;
+      if (!cb.checked) pickerState[i].foreman = false;
+      render(overlay.querySelector('#wp-search').value);
+    }));
+    list.querySelectorAll('.wp-foreman').forEach(cb => cb.addEventListener('change', () => {
+      const i = Number(cb.dataset.idx);
+      pickerState[i].foreman = cb.checked;
+    }));
+  }
+
+  render();
+  overlay.querySelector('#wp-search').addEventListener('input', e => render(e.target.value));
+  overlay.querySelectorAll('.workers-picker-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const all = btn.dataset.toggle === 'all';
+      pickerState.forEach(s => { s.selected = all; if (!all) s.foreman = false; });
+      render(overlay.querySelector('#wp-search').value);
+    });
+  });
+  overlay.querySelector('#wp-save').addEventListener('click', async () => {
+    const btn = overlay.querySelector('#wp-save');
+    btn.disabled = true; btn.textContent = 'Сохраняю…';
+    try {
+      // __PER_PROJECT_TEAM_v1__ Передаём slug — sync применит изменения только к этому проекту.
+      const r = await postDataAction('team:workers-sync', { items: pickerState, slug: state.projectSlug });
+      const parts = [];
+      if (r.created) parts.push('+' + r.created + ' создано');
+      if (r.updated) parts.push(r.updated + ' обновлено');
+      if (r.removed) parts.push('-' + r.removed + ' удалено');
+      showToast('✓ ' + (parts.length ? parts.join(', ') : 'без изменений'));
+      close();
+      if (typeof onSaved === 'function') onSaved();
+      if (typeof loadAssignees === 'function') loadAssignees();
+    } catch (e) {
+      overlay.querySelector('#wp-err').textContent = 'Не удалось: ' + (e.message || e);
+      btn.disabled = false; btn.textContent = 'Сохранить';
+    }
+  });
+}
+
+async function openTeamModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay team-modal-overlay';
+  overlay.innerHTML = `
+    <div class="edit-form-card team-modal-card">
+      <div class="edit-form-head">
+        <div>👥 Команда</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="team-tabs" role="tablist">
+        <button type="button" class="team-tab team-tab--active" data-tab="management" role="tab">🧑‍💼 Менеджмент</button>
+        <button type="button" class="team-tab" data-tab="workers" role="tab">👷 Рабочие</button>
+      </div>
+      <div class="team-modal-hint" id="team-tab-hint" hidden></div>
+      <ul class="team-list" id="team-list"><li class="team-loading">Загрузка…</li></ul>
+      <div class="team-modal-bottom">
+        <button type="button" class="team-add-btn" id="team-add-btn">＋ Добавить</button>
+        <button type="button" class="team-seed-btn" id="team-seed-btn" style="display:none">🇺🇿 Выбрать из списка имён</button>
+      </div>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel team-close-btn">Закрыть</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.team-close-btn').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  const MGMT_ROLES = new Set(['creator','owner','admin','foreman','pm']);
+  const WORKER_ROLES = new Set(['worker']);
+  let users = [];
+  let activeTab = 'management';
+
+  async function reload() {
+    try {
+      // __PER_PROJECT_TEAM_v1__ Передаём slug → бэкенд считает activeInProject (для foreman/worker).
+      const r = await postDataAction('team:list', { slug: state.projectSlug });
+      users = r.users || [];
+      renderList();
+    } catch (e) {
+      const ul = overlay.querySelector('#team-list');
+      ul.innerHTML = `<li class="team-loading" style="color:#b91c1c">Ошибка: ${escapeHtml(e.message || String(e))}</li>`;
+    }
+  }
+  function renderList() {
+    const ul = overlay.querySelector('#team-list');
+    const seedBtn = overlay.querySelector('#team-seed-btn');
+    const hint = overlay.querySelector('#team-tab-hint');
+    const filtered = users.filter(u => activeTab === 'management' ? MGMT_ROLES.has(u.role) : WORKER_ROLES.has(u.role));
+    if (activeTab === 'workers') {
+      hint.innerHTML = 'Список рабочих на объекте. Открой <b>«Выбрать из списка имён»</b> чтобы отметить кого добавить (галочка) и кто бригадир. Можно ещё бригадира выбрать кнопкой 👷→🧑‍💼.';
+      hint.hidden = false;
+      seedBtn.style.display = 'inline-flex';
+    } else {
+      hint.innerHTML = '';
+      hint.hidden = true;
+      seedBtn.style.display = 'none';
+    }
+    if (!filtered.length) {
+      ul.innerHTML = activeTab === 'workers'
+        ? '<li class="team-loading">Пока никого. Нажми «Заполнить узбекскими именами» или добавь рабочего вручную.</li>'
+        : '<li class="team-loading">Пока никого. Добавь первого участника.</li>';
+      return;
+    }
+    ul.innerHTML = filtered.map(u => {
+      const projects = (u.allowedProjects && u.allowedProjects.length) ? u.allowedProjects.join(', ') : '— не назначен ни на один проект —';
+      const tg = u.telegramUserId ? `TG: ${escapeHtml(u.telegramUserId)}` : '<span style="color:#b91c1c">TG не задан</span>';
+      const displayRole = u.role === 'owner' ? 'creator' : (u.role || '—');
+      const isWorker = u.role === 'worker';
+      // __PER_PROJECT_TEAM_v1__ Для foreman/worker используем activeInProject (per-slug).
+      // Для admin/owner/creator используем глобальный active (они работают со всеми проектами).
+      const isPerProject = u.isPerProject === true;
+      const isActiveHere = u.activeInProject !== false;
+      const promoteBtn = isWorker
+        ? `<button type="button" class="team-promote" data-team-promote="${escapeHtml(u.id)}" title="Сделать бригадиром (foreman)">👷→🧑‍💼</button>`
+        : '';
+      const meta = isWorker
+        ? `${tg}`
+        : `${tg} · Проекты: ${escapeHtml(projects)}`;
+      const toggleTitle = isPerProject
+        ? (isActiveHere ? 'Убрать из этого проекта' : 'Добавить в этот проект')
+        : (isActiveHere ? 'Выключить глобально (не получает пинги ни по одному проекту)' : 'Включить глобально');
+      const toggleIcon = isActiveHere ? '🟢' : '⚫';
+      const inactiveCls = isActiveHere ? '' : ' team-item--inactive';
+      const badge = !isActiveHere
+        ? (isPerProject ? '<span class="team-inactive-badge">не в этом проекте</span>' : '<span class="team-inactive-badge">выключен глобально</span>')
+        : (isPerProject ? '<span class="team-active-badge">в этом проекте</span>' : '');
+      return `<li class="team-item${inactiveCls}" data-id="${escapeHtml(u.id)}">
+        <div class="team-item-info">
+          <div class="team-item-name">${escapeHtml(u.name)} <span class="team-item-role">${escapeHtml(displayRole)}</span> ${badge}</div>
+          <div class="team-item-meta">${meta}</div>
+        </div>
+        <div class="team-item-actions">
+          <button type="button" class="team-toggle" data-team-toggle="${escapeHtml(u.id)}" data-team-active="${isActiveHere ? '1' : '0'}" data-per-project="${isPerProject ? '1' : '0'}" title="${toggleTitle}">${toggleIcon}</button>
+          ${promoteBtn}
+          <button type="button" class="team-edit" data-team-edit="${escapeHtml(u.id)}" title="Редактировать">✎</button>
+          <button type="button" class="team-del" data-team-del="${escapeHtml(u.id)}" title="Удалить">×</button>
+        </div>
+      </li>`;
+    }).join('');
+  }
+  overlay.querySelectorAll('.team-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab;
+      overlay.querySelectorAll('.team-tab').forEach(b => b.classList.toggle('team-tab--active', b === btn));
+      renderList();
+    });
+  });
+  overlay.querySelector('#team-add-btn').addEventListener('click', () => openTeamUpsertForm(null, activeTab === 'workers' ? 'worker' : null));
+  overlay.querySelector('#team-seed-btn').addEventListener('click', () => openWorkersPicker(reload));
+  // __TOGGLE_INFLIGHT_v1__ Защита от out-of-order race: пока один POST per user в воздухе,
+  // повторные клики игнорируем. Иначе двойной/тройной быстрый клик мог поставить UI в чужое
+  // финальное состояние (last-write-wins по сети, не по таймстемпу клика).
+  const inflightToggle = new Set();
+  overlay.addEventListener('click', e => {
+    const ed = e.target.closest('[data-team-edit]');
+    if (ed) {
+      const id = ed.getAttribute('data-team-edit');
+      const u = users.find(x => x.id === id);
+      if (u) openTeamUpsertForm(u);
+      return;
+    }
+    const toggle = e.target.closest('[data-team-toggle]');
+    if (toggle) {
+      const id = toggle.getAttribute('data-team-toggle');
+      if (inflightToggle.has(id)) return;
+      const wasActive = toggle.getAttribute('data-team-active') === '1';
+      const isPerProject = toggle.getAttribute('data-per-project') === '1';
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      const newActive = !wasActive;
+      inflightToggle.add(id);
+      // __PER_PROJECT_TEAM_v1__ Optimistic update учитывает per-project семантику.
+      if (isPerProject) {
+        u.activeInProject = newActive;
+        // Также в локальном кеше allowedProjects обновим, чтобы не путаться при следующих рендерах.
+        const slugLc = String(state.projectSlug || '').toLowerCase();
+        if (newActive) u.allowedProjects = Array.from(new Set([...(u.allowedProjects || []), slugLc]));
+        else u.allowedProjects = (u.allowedProjects || []).filter(s => String(s).toLowerCase() !== slugLc);
+      } else {
+        u.active = newActive;
+        u.activeInProject = newActive;
+      }
+      renderList();
+      const projLabel = state.schedule?.project?.name || state.projectSlug || 'проекте';
+      const msg = isPerProject
+        ? (newActive ? `🟢 ${u.name} в проекте «${projLabel}»` : `⚫ ${u.name} убран из проекта «${projLabel}»`)
+        : (newActive ? `🟢 ${u.name} включён глобально` : `⚫ ${u.name} выключен глобально`);
+      showToast(msg);
+      const action = isPerProject ? 'team:set-project-membership' : 'team:set-active';
+      const payload = isPerProject
+        ? { id, slug: state.projectSlug, included: newActive }
+        : { id, active: newActive };
+      postDataAction(action, payload)
+        .catch(e => {
+          if (isPerProject) {
+            u.activeInProject = wasActive;
+            const slugLc = String(state.projectSlug || '').toLowerCase();
+            if (wasActive) u.allowedProjects = Array.from(new Set([...(u.allowedProjects || []), slugLc]));
+            else u.allowedProjects = (u.allowedProjects || []).filter(s => String(s).toLowerCase() !== slugLc);
+          } else {
+            u.active = wasActive;
+            u.activeInProject = wasActive;
+          }
+          renderList();
+          showToast('Не удалось: ' + (e.message || e), 'error');
+        })
+        .finally(() => { inflightToggle.delete(id); });
+      return;
+    }
+    const promote = e.target.closest('[data-team-promote]');
+    if (promote) {
+      const id = promote.getAttribute('data-team-promote');
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      if (!confirm(`Сделать «${u.name}» бригадиром?\n\nОн переедет в Менеджмент. После этого нужно будет назначить ему проекты, чтобы он начал получать пинги от бота.`)) return;
+      postDataAction('team:set-role', { id, role: 'foreman' }).then(() => {
+        showToast(`✓ ${u.name} теперь бригадир. Назначь ему проекты в «Менеджмент».`);
+        activeTab = 'management';
+        overlay.querySelectorAll('.team-tab').forEach(b => b.classList.toggle('team-tab--active', b.dataset.tab === 'management'));
+        reload();
+      }).catch(e => showToast('Не удалось: ' + (e.message || e), 'error'));
+      return;
+    }
+    const del = e.target.closest('[data-team-del]');
+    if (del) {
+      const id = del.getAttribute('data-team-del');
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      if (!confirm(`Удалить «${u.name}» из команды?\n\nЭто не удалит его сообщения / тикеты — только запись в Airtable.`)) return;
+      postDataAction('team:delete', { id }).then(() => { showToast(`✓ Удалён: ${u.name}`); reload(); })
+        .catch(e => showToast('Не удалось: ' + (e.message || e), 'error'));
+    }
+  });
+
+  async function openTeamUpsertForm(existing, forcedRole) {
+    const isEdit = !!existing;
+    const isCreator = existing?.role === 'creator' || existing?.role === 'owner';
+    const isWorkerForm = (forcedRole === 'worker') || (existing?.role === 'worker');
+    // Загружаем список всех активных проектов для multi-select dropdown.
+    let allProjects = [];
+    try {
+      const r = await fetch(`/api/data?action=projects:list-all&t=${Date.now()}`);
+      const d = await r.json();
+      allProjects = Array.isArray(d?.projects) ? d.projects : [];
+    } catch { allProjects = []; }
+    const existingSlugs = new Set((existing?.allowedProjects || []).map(s => String(s).toLowerCase()));
+    const allAccess = !existing || existingSlugs.size === 0;
+
+    // Селектор роли:
+    // - creator/owner → readonly (защита).
+    // - worker form → readonly worker (юзер на табе «Рабочие»).
+    // - иначе foreman/admin/worker — выбор.
+    let roleSelectHtml;
+    if (isCreator) {
+      roleSelectHtml = `<input type="text" id="team-f-role" value="creator" readonly style="background:#f3f4f6;color:#6b7280" />`;
+    } else if (isWorkerForm) {
+      roleSelectHtml = `<input type="text" id="team-f-role" value="worker" readonly style="background:#f3f4f6;color:#6b7280" />`;
+    } else {
+      roleSelectHtml = `<select id="team-f-role">
+           <option value="foreman"${existing?.role === 'foreman' ? ' selected' : ''}>Бригадир (foreman)</option>
+           <option value="admin"${existing?.role === 'admin' ? ' selected' : ''}>Администратор (admin)</option>
+           <option value="worker"${existing?.role === 'worker' ? ' selected' : ''}>Рабочий (worker)</option>
+         </select>`;
+    }
+
+    const projectsListHtml = allProjects.length
+      ? allProjects.map(p => {
+          const checked = existingSlugs.has(String(p.slug).toLowerCase()) ? ' checked' : '';
+          return `<label class="team-proj-row" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:4px;cursor:pointer">
+            <input type="checkbox" class="team-proj-cb" value="${escapeHtml(p.slug)}"${checked} />
+            <span style="font-weight:500">${escapeHtml(p.name || p.slug)}</span>
+            <span style="color:#9ca3af;font-size:12px">${escapeHtml(p.slug)}</span>
+          </label>`;
+        }).join('')
+      : '<div style="color:#9ca3af;font-size:13px">Активных проектов нет</div>';
+
+    const sub = document.createElement('div');
+    sub.className = 'edit-form-overlay';
+    sub.style.zIndex = 1500;
+    sub.innerHTML = `
+      <div class="edit-form-card">
+        <div class="edit-form-head">
+          <div>${isEdit ? '✎ Редактировать' : '＋ Новый участник'}</div>
+          <button type="button" class="edit-form-close">×</button>
+        </div>
+        <label class="edit-form-row"><span>Имя</span>
+          <input type="text" id="team-f-name" value="${escapeHtml(existing?.name || '')}" placeholder="Например: Иван Петров" maxlength="120" autofocus />
+        </label>
+        <label class="edit-form-row"><span>Роль</span>
+          ${roleSelectHtml}
+        </label>
+        <label class="edit-form-row"><span>Telegram ID (chat_id)</span>
+          <input type="text" id="team-f-tgid" value="${escapeHtml(existing?.telegramUserId || '')}" placeholder="например 123456789" />
+        </label>
+        <div class="edit-form-row" id="team-f-projects-row">
+          <span>Доступные проекты</span>
+          <div style="flex:1">
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:500;cursor:pointer">
+              <input type="checkbox" id="team-f-all-projects"${allAccess ? ' checked' : ''} />
+              Все проекты <span style="color:#9ca3af;font-weight:400;font-size:12px">(включая будущие)</span>
+            </label>
+            <div id="team-f-projects-list" style="max-height:200px;overflow-y:auto;${allAccess ? 'opacity:0.4;pointer-events:none' : ''}">
+              ${projectsListHtml}
+            </div>
+          </div>
+        </div>
+        <div class="edit-form-actions">
+          <button type="button" class="edit-form-cancel" id="team-f-cancel">Отмена</button>
+          <button type="button" class="edit-form-submit" id="team-f-save">${isEdit ? 'Сохранить' : 'Создать'}</button>
+        </div>
+        <div class="edit-form-err" id="team-f-err"></div>
+      </div>
+    `;
+    document.body.appendChild(sub);
+    const closeSub = () => sub.remove();
+    sub.querySelector('.edit-form-close').addEventListener('click', closeSub);
+    sub.querySelector('#team-f-cancel').addEventListener('click', closeSub);
+
+    // Toggle multi-select когда «все проекты» переключается.
+    const allCb = sub.querySelector('#team-f-all-projects');
+    const projsList = sub.querySelector('#team-f-projects-list');
+    allCb.addEventListener('change', () => {
+      if (allCb.checked) {
+        projsList.style.opacity = '0.4';
+        projsList.style.pointerEvents = 'none';
+      } else {
+        projsList.style.opacity = '';
+        projsList.style.pointerEvents = '';
+      }
+    });
+    // Скрываем выбор проектов:
+    // - creator: всегда видит всё.
+    // - worker: проектов не имеет (станет foreman'ом отдельным шагом).
+    if (isCreator || isWorkerForm) {
+      sub.querySelector('#team-f-projects-row').style.display = 'none';
+    }
+
+    sub.querySelector('#team-f-save').addEventListener('click', async () => {
+      const name = sub.querySelector('#team-f-name').value.trim();
+      // Если creator/worker form — читаем из input (readonly), иначе из select.
+      const roleEl = sub.querySelector('#team-f-role');
+      let role = roleEl.value;
+      if (isCreator) role = 'creator';
+      else if (isWorkerForm) role = 'worker';
+      const tg   = sub.querySelector('#team-f-tgid').value.trim();
+      const allChecked = sub.querySelector('#team-f-all-projects')?.checked;
+      const allowedProjects = (allChecked || isCreator || isWorkerForm || role === 'worker')
+        ? []
+        : Array.from(sub.querySelectorAll('.team-proj-cb:checked')).map(cb => cb.value);
+      const errEl = sub.querySelector('#team-f-err');
+      errEl.textContent = '';
+      if (!name) { errEl.textContent = 'Введи имя'; return; }
+      if (tg && !/^[\-\d]+$/.test(tg)) { errEl.textContent = 'Telegram ID — только цифры'; return; }
+      if (!isCreator && !isWorkerForm && role === 'foreman' && !allChecked && !allowedProjects.length) {
+        errEl.textContent = 'Выбери хотя бы один проект или включи «Все проекты»'; return;
+      }
+      const btn = sub.querySelector('#team-f-save');
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        await postDataAction('team:upsert', { id: existing?.id || null, name, role, telegramUserId: tg, allowedProjects });
+        showToast(`✓ ${isEdit ? 'Обновлён' : 'Добавлен'}: ${name}`);
+        closeSub();
+        reload();
+        // Обновим глобальный список ответственных — чтобы свежедобавленный foreman сразу был доступен в формах тикетов.
+        if (typeof loadAssignees === 'function') loadAssignees();
+      } catch (e) {
+        errEl.textContent = e.message || String(e);
+        btn.disabled = false; btn.textContent = isEdit ? 'Сохранить' : 'Создать';
+      }
+    });
+  }
+
+  reload();
+}
+
+/* ─── Reports calendar: утренние/вечерние отчёты по дням + кастомизация бригадиру ─── */
+async function openReportsCalendarModal() {
+  // Защита от случайного показа кросс-проектных данных: если страница открыта вне
+  // конкретного проекта (state.projectSlug пуст), бэкенд при пустом slug снимает
+  // фильтр и возвращает ВСЕ диспатчи — нельзя так показывать.
+  if (!state.projectSlug) {
+    showToast('Открой конкретный проект, чтобы увидеть его отчёты');
+    return;
+  }
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.style.zIndex = 1500;
+  const today = new Date();
+  let viewYear = today.getFullYear(), viewMonth = today.getMonth(); // 0-based
+  let dispatches = []; // morning dispatches
+  let eveningPings = []; // evening pings
+
+  overlay.innerHTML = `
+    <div class="edit-form-card reports-calendar-card">
+      <div class="edit-form-head">
+        <div>📅 Календарь отчётов</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="rc-controls">
+        <button type="button" class="btn rc-prev" id="rc-prev">‹</button>
+        <div class="rc-month" id="rc-month">…</div>
+        <button type="button" class="btn rc-next" id="rc-next">›</button>
+        <span class="rc-legend">
+          <span class="rc-legend-dot rc-dot-morning"></span>утро
+          <span class="rc-legend-dot rc-dot-evening"></span>вечер
+          <span class="rc-legend-dot rc-dot-accepted"></span>принят
+        </span>
+      </div>
+      <div class="rc-grid" id="rc-grid"></div>
+      <div class="rc-detail" id="rc-detail">
+        <div class="rc-detail-empty">Кликни на день, чтобы посмотреть отчёты.</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  async function loadMonth() {
+    const first = new Date(viewYear, viewMonth, 1);
+    const last = new Date(viewYear, viewMonth + 1, 0);
+    const fromIso = first.toISOString().slice(0, 10);
+    const toIso = new Date(last.getTime() + 86400000).toISOString().slice(0, 10);
+    overlay.querySelector('#rc-month').textContent =
+      first.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    try {
+      const [m, e] = await Promise.all([
+        postDataAction('morning:list-dispatches', { slug: state.projectSlug, from: fromIso, to: toIso }),
+        postDataAction('evening:list-pings', { slug: state.projectSlug, from: fromIso, to: toIso })
+      ]);
+      dispatches = m.dispatches || [];
+      eveningPings = e.pings || [];
+    } catch (err) {
+      dispatches = [];
+      eveningPings = [];
+    }
+    render();
+  }
+
+  function render() {
+    const grid = overlay.querySelector('#rc-grid');
+    const first = new Date(viewYear, viewMonth, 1);
+    const last = new Date(viewYear, viewMonth + 1, 0);
+    const startWeekday = (first.getDay() + 6) % 7; // Mon=0
+    const days = last.getDate();
+    const cells = [];
+    // Empty cells for offset
+    for (let i = 0; i < startWeekday; i++) cells.push('<div class="rc-cell rc-cell--empty"></div>');
+    const todayIso = new Date().toISOString().slice(0, 10);
+    for (let d = 1; d <= days; d++) {
+      const dayDate = new Date(viewYear, viewMonth, d);
+      const iso = dayDate.toISOString().slice(0, 10);
+      const ds = dispatches.filter(x => (x.date || '').slice(0, 10) === iso);
+      const ep = eveningPings.filter(x => (x.date || '').slice(0, 10) === iso);
+      const hasMorning = ds.length > 0;
+      const hasEvening = ep.length > 0;
+      const hasAcceptedMorning = ds.some(x => x.status === 'all_accepted');
+      const hasResponded = ep.some(x => x.status === 'responded');
+      const isToday = iso === todayIso;
+      const cls = ['rc-cell'];
+      if (isToday) cls.push('rc-cell--today');
+      if (hasMorning || hasEvening) cls.push('rc-cell--has');
+      if (hasAcceptedMorning && hasResponded) cls.push('rc-cell--accepted');
+      const dots = [];
+      if (hasMorning) dots.push('<span class="rc-dot rc-dot-morning" title="Утренний отчёт"></span>');
+      if (hasEvening) dots.push('<span class="rc-dot rc-dot-evening" title="Вечерний пинг"></span>');
+      if (hasAcceptedMorning || hasResponded) dots.push('<span class="rc-dot rc-dot-accepted" title="Подтверждено"></span>');
+      cells.push(`<div class="${cls.join(' ')}" data-iso="${iso}">
+        <span class="rc-num">${d}</span>
+        <span class="rc-dots">${dots.join('')}</span>
+      </div>`);
+    }
+    grid.innerHTML = `
+      <div class="rc-weekdays">
+        <span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span>
+      </div>
+      <div class="rc-cells">${cells.join('')}</div>
+    `;
+    grid.querySelectorAll('.rc-cell:not(.rc-cell--empty)').forEach(c => {
+      c.addEventListener('click', () => showDayDetail(c.dataset.iso));
+    });
+  }
+
+  function showDayDetail(iso) {
+    const detail = overlay.querySelector('#rc-detail');
+    const ds = dispatches.filter(x => (x.date || '').slice(0, 10) === iso);
+    const ep = eveningPings.filter(x => (x.date || '').slice(0, 10) === iso);
+    if (!ds.length && !ep.length) {
+      detail.innerHTML = `<div class="rc-detail-empty">${escapeHtml(iso)} — отчётов нет.</div>`;
+      return;
+    }
+    const fmtTime = (iso) => {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Dubai' });
+    };
+    const morningHtml = ds.map(d => {
+      const status = d.status === 'all_accepted' ? '<span class="rc-status rc-status--ok">✅ Все приняли</span>'
+        : d.status === 'sent' ? '<span class="rc-status rc-status--warn">📤 Отправлено бригадирам</span>'
+        : d.status === 'failed' ? '<span class="rc-status rc-status--err">❌ Не отправилось</span>'
+        : `<span class="rc-status">${escapeHtml(d.status)}</span>`;
+      const foremenRows = (d.foremen || []).map(f =>
+        `<li>${escapeHtml(f.name || f.chatId)} — ${f.acceptedAt
+          ? `<b style="color:#16a34a">✅ принял ${escapeHtml(fmtTime(f.acceptedAt))}</b>`
+          : (f.at ? `<i style="color:#dc2626">⏳ не подтверждено (отправлено ${escapeHtml(fmtTime(f.at))})</i>` : '<i style="color:#dc2626">не подтверждено</i>')}</li>`
+      ).join('');
+      return `<div class="rc-dispatch">
+        <div class="rc-dispatch-head">
+          <b>🌅 Утренний отчёт</b> · ${escapeHtml(d.slug)} ${status}
+        </div>
+        <div class="rc-meta-line">📤 Передано в ${escapeHtml(fmtTime(d.dispatchedAt))} · руководитель: ${escapeHtml(d.leaderName || d.leaderChatId)}</div>
+        <details>
+          <summary>📋 Что бот сгенерил для руководителя</summary>
+          <pre class="rc-pre">${escapeHtml(d.originalBrief || '—')}</pre>
+        </details>
+        <details>
+          <summary>🎤 Кастомизация руководителя (голос → текст)</summary>
+          <pre class="rc-pre">${escapeHtml(d.leaderVoiceText || '(без правок)')}</pre>
+        </details>
+        <details>
+          <summary>📨 Что увидели бригадиры (RU + UZ)</summary>
+          <div class="rc-bilang">
+            <div class="rc-lang"><b>🇷🇺 Русский:</b><pre class="rc-pre">${escapeHtml(d.finalRu || '')}</pre></div>
+            <div class="rc-lang"><b>🇺🇿 O‘zbekcha:</b><pre class="rc-pre">${escapeHtml(d.finalUz || '')}</pre></div>
+          </div>
+        </details>
+        <div class="rc-foremen">
+          <b>👷 Бригадиры:</b>
+          <ul>${foremenRows || '<li><i>нет получателей</i></li>'}</ul>
+        </div>
+      </div>`;
+    }).join('');
+
+    const eveningHtml = ep.map(e => {
+      const status = e.status === 'responded' ? '<span class="rc-status rc-status--ok">✅ Отчёт получен</span>'
+        : e.status === 'pending' ? '<span class="rc-status rc-status--warn">⏳ Ждём ответ</span>'
+        : e.status === 'timed_out' ? '<span class="rc-status rc-status--err">⏰ Не ответил</span>'
+        : `<span class="rc-status">${escapeHtml(e.status)}</span>`;
+      const responseBlock = e.responseText
+        ? `<details open>
+            <summary>🎤 Голосовой ответ руководителя (${escapeHtml(fmtTime(e.responseAt))}) · применено обновлений: <b>${e.tasksUpdatedCount || 0}</b></summary>
+            <pre class="rc-pre">${escapeHtml(e.responseText)}</pre>
+          </details>`
+        : '<div class="rc-meta-line"><i style="color:#dc2626">⏳ Голосовой ответ ещё не получен</i></div>';
+      return `<div class="rc-dispatch rc-dispatch--evening">
+        <div class="rc-dispatch-head">
+          <b>🌙 Вечерний пинг</b> · ${escapeHtml(e.slug)} ${status}
+        </div>
+        <div class="rc-meta-line">📤 Отправлено в ${escapeHtml(fmtTime(e.sentAt))} · руководитель: ${escapeHtml(e.leaderName || e.leaderChatId)}</div>
+        <details>
+          <summary>📋 Что бот спросил у руководителя</summary>
+          <pre class="rc-pre">${escapeHtml(e.pingText || '—')}</pre>
+        </details>
+        ${responseBlock}
+      </div>`;
+    }).join('');
+
+    detail.innerHTML = `<div class="rc-day-title">📅 ${escapeHtml(iso)}</div>${morningHtml}${eveningHtml}`;
+  }
+
+  overlay.querySelector('#rc-prev').addEventListener('click', () => {
+    if (viewMonth === 0) { viewMonth = 11; viewYear--; } else viewMonth--;
+    loadMonth();
+  });
+  overlay.querySelector('#rc-next').addEventListener('click', () => {
+    if (viewMonth === 11) { viewMonth = 0; viewYear++; } else viewMonth++;
+    loadMonth();
+  });
+  loadMonth();
+}
+
+/* ─── Чёрный ящик рабочих: модалка с таблицей по дням + AI-аналитика ─── */
+async function openWorkerBlackboxModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.style.zIndex = 1500;
+  overlay.innerHTML = `
+    <div class="edit-form-card workers-blackbox-card">
+      <div class="edit-form-head">
+        <div>🔇 Чат рабочих · чёрный ящик</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="team-modal-hint">
+        Любое сообщение от Telegram-аккаунта, которого нет в «Менеджменте», попадает сюда. Голосовое транскрибируется,
+        узбекский переводится на русский, GPT классифицирует тему и тон.
+      </div>
+      <div class="wbb-controls">
+        <label class="wbb-range-label">Период:
+          <select class="wbb-range" id="wbb-range">
+            <option value="today">Сегодня</option>
+            <option value="7" selected>Последние 7 дней</option>
+            <option value="30">Последние 30 дней</option>
+            <option value="all">Всё время</option>
+          </select>
+        </label>
+        <button type="button" class="btn btn-primary" id="wbb-analyze">🧠 Анализ темами</button>
+        <button type="button" class="btn" id="wbb-refresh">↻ Обновить</button>
+      </div>
+      <div class="wbb-summary" id="wbb-summary" style="display:none"></div>
+      <div class="wbb-list" id="wbb-list">
+        <div class="team-loading">Загружаю…</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', function escClose(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escClose); } });
+
+  const list = overlay.querySelector('#wbb-list');
+  const summary = overlay.querySelector('#wbb-summary');
+
+  function pickRange() {
+    const v = overlay.querySelector('#wbb-range').value;
+    const now = new Date();
+    if (v === 'today') {
+      const f = new Date(now); f.setHours(0,0,0,0);
+      return { from: f.toISOString() };
+    }
+    if (v === '7' || v === '30') {
+      const f = new Date(now); f.setDate(f.getDate() - Number(v));
+      return { from: f.toISOString() };
+    }
+    return {};
+  }
+
+  async function reload() {
+    list.innerHTML = '<div class="team-loading">Загружаю…</div>';
+    summary.style.display = 'none';
+    try {
+      const r = await postDataAction('worker:list-messages', { ...pickRange(), limit: 500 });
+      const msgs = r.messages || [];
+      if (!msgs.length) { list.innerHTML = '<div class="team-loading">За период сообщений нет.</div>'; return; }
+      // Группируем по дню
+      const byDay = {};
+      for (const m of msgs) {
+        const d = (m.at || '').slice(0, 10) || '—';
+        (byDay[d] ||= []).push(m);
+      }
+      const days = Object.keys(byDay).sort().reverse();
+      list.innerHTML = days.map(d => {
+        const dayMsgs = byDay[d];
+        const dateLabel = d === '—' ? 'Без даты' : new Date(d + 'T12:00:00Z').toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric', weekday:'short' });
+        const rows = dayMsgs.map(m => {
+          const name = m.firstName || m.telegramUsername || ('@id ' + m.telegramUserId);
+          const time = (m.at || '').slice(11, 16);
+          const langBadge = m.language === 'uz' ? '<span class="wbb-lang-badge wbb-lang-uz">UZ</span>' : (m.language === 'ru' ? '<span class="wbb-lang-badge wbb-lang-ru">RU</span>' : `<span class="wbb-lang-badge">${escapeHtml(m.language)}</span>`);
+          const catLabel = ({complaint:'⚠️ жалоба', question:'❓ вопрос', status_update:'🟢 статус', suggestion:'💡 идея', safety:'🚨 безопасность', materials:'📦 материалы', other:'·'})[m.category] || m.category || '·';
+          const sentBadge = m.sentiment === 'negative' ? '🔴' : (m.sentiment === 'positive' ? '🟢' : '⚪');
+          const orig = (m.language === 'uz' && m.messageOriginal && m.messageOriginal !== m.messageRu)
+            ? `<div class="wbb-orig">UZ: <i>${escapeHtml(m.messageOriginal)}</i></div>`
+            : '';
+          const audioBtn = m.source === 'voice' ? '<span class="wbb-voice" title="Это было голосовое">🎤</span>' : '';
+          return `<details class="wbb-msg" ${dayMsgs.length <= 5 ? 'open' : ''}>
+            <summary class="wbb-msg-head">
+              <span class="wbb-time">${time}</span>
+              <span class="wbb-name">${escapeHtml(name)} ${audioBtn}</span>
+              ${langBadge}
+              <span class="wbb-cat">${catLabel}</span>
+              <span class="wbb-sent">${sentBadge}</span>
+            </summary>
+            <div class="wbb-body">
+              <div class="wbb-ru">${escapeHtml(m.messageRu || m.messageOriginal || '')}</div>
+              ${orig}
+            </div>
+          </details>`;
+        }).join('');
+        return `<div class="wbb-day">
+          <div class="wbb-day-head">${escapeHtml(dateLabel)} <span class="wbb-day-count">${dayMsgs.length} сообщ.</span></div>
+          <div class="wbb-day-body">${rows}</div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      list.innerHTML = `<div class="team-loading" style="color:#b91c1c">Ошибка: ${escapeHtml(e.message || String(e))}</div>`;
+    }
+  }
+
+  overlay.querySelector('#wbb-refresh').addEventListener('click', reload);
+  overlay.querySelector('#wbb-range').addEventListener('change', reload);
+  // __ANALYZE_DEBOUNCE_v1__ GPT-вызов стоит денег. Защищаем от множественных кликов:
+  // блокируем кнопку на время запроса + cooldown 5s после успеха/ошибки.
+  let _wbbAnalyzeBusy = false;
+  let _wbbAnalyzeCooldownUntil = 0;
+  const analyzeBtn = overlay.querySelector('#wbb-analyze');
+  analyzeBtn.addEventListener('click', async () => {
+    if (_wbbAnalyzeBusy) return;
+    if (Date.now() < _wbbAnalyzeCooldownUntil) {
+      const sec = Math.ceil((_wbbAnalyzeCooldownUntil - Date.now()) / 1000);
+      summary.style.display = 'block';
+      summary.innerHTML = `<i>Подожди ${sec} сек перед повторным анализом</i>`;
+      return;
+    }
+    _wbbAnalyzeBusy = true;
+    analyzeBtn.disabled = true;
+    summary.style.display = 'block';
+    summary.innerHTML = '<div class="team-loading">GPT анализирует…</div>';
+    try {
+      const r = await postDataAction('worker:analyze', { ...pickRange() });
+      if (!r.summary) { summary.innerHTML = '<i>Анализ недоступен (' + escapeHtml(r.reason || 'нет данных') + ')</i>'; return; }
+      summary.innerHTML = `<div class="wbb-summary-head">🧠 Анализ (${r.count} сообщ.)</div><div class="wbb-summary-body">${escapeHtml(r.summary).replace(/\n/g, '<br>')}</div>`;
+    } catch (e) {
+      summary.innerHTML = '<i style="color:#b91c1c">Ошибка анализа: ' + escapeHtml(e.message || String(e)) + '</i>';
+    } finally {
+      _wbbAnalyzeBusy = false;
+      _wbbAnalyzeCooldownUntil = Date.now() + 5000;
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  reload();
+}
+
+// __PROJECT_RESET_v1__ 2026-05-19 — сброс проекта к первичному состоянию.
+// Возвращает schedule.json к первому commit'у (момент авто-создания), включая planning-режим.
+async function confirmResetProject() {
+  const p = state.schedule?.project;
+  if (!p) { alert('Проект не загружен'); return; }
+  const expected = (p.name || '').trim();
+  const typed = prompt(
+    `↺ Сбросить проект «${expected}» к первичному состоянию?\n\n` +
+    `Будет удалено / отменено ВСЁ что появилось после авто-создания:\n` +
+    `  • факт-даты, прогресс, паузы, история работ\n` +
+    `  • добавленные/удалённые работы и разделы (вернутся к исходным)\n` +
+    `  • сдвинутые плановые даты\n` +
+    `  • ВСЕ тикеты этого проекта в PlanRadar\n` +
+    `  • все Airtable-записи: ответственные, обновления, заметки, материалы, ресурсы, утренние/вечерние сводки, чат рабочих\n` +
+    `  • статус «проект запущен» — вернётся в режим настройки\n\n` +
+    `Это нельзя отменить через UI — но из истории GitHub при необходимости можно вытащить вручную.\n\n` +
+    `Введи название проекта точно как «${expected}» для подтверждения:`
+  );
+  if (typed === null) return;
+  if ((typed || '').trim().toLowerCase() !== expected.toLowerCase()) {
+    alert('Название не совпало. Сброс отменён.');
+    return;
+  }
+  showToast('Сбрасываю проект (чищу тикеты + Airtable + восстанавливаю schedule)…');
+  try {
+    const r = await postDataAction('project:reset', { slug: p.slug, confirmName: typed });
+    showToast(`✓ «${r.name || expected}» сброшен · тикетов удалено: ${r.ticketsDeleted || 0} · Airtable: ${r.airtableDeleted || 0}. Перезагружаю…`);
+    setTimeout(() => { window.location.reload(); }, 1800);
+  } catch (e) {
+    showToast('Не удалось сбросить: ' + (e.message || e), 'error');
+  }
 }
 
 async function confirmDeleteProject() {
@@ -6480,11 +9104,16 @@ function bindTaskTooltip() {
     const pStart = t.planStart || t.start;
     const pEnd = t.planEnd || t.end;
     const dates = (pStart && pEnd) ? `${fmtDate(pStart)} → ${fmtDate(pEnd)}` : '';
+    const _openP = Array.isArray(t.pauses) ? t.pauses.find(p => p && !p.to) : null;
+    const _pauseLine = _openP
+      ? `<div class="task-tip-pause">⏸ На паузе с ${escapeHtml(fmtDate(_openP.from))} · ${escapeHtml((_openP.reason || '').slice(0, 80))}</div>`
+      : '';
     tip.innerHTML = `
       <div class="task-tip-name">${escapeHtml(t.name)}</div>
       <div class="task-tip-meta">
         <span class="task-tip-dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)}${dates ? ' · ' + escapeHtml(dates) : ''}
       </div>
+      ${_pauseLine}
     `;
     // Position: anchor to label, prefer right of column with a small offset
     const rect = label.getBoundingClientRect();
@@ -6547,7 +9176,7 @@ function bindTopFab() {
   const THRESHOLD = 280;
   let shown = false;
   const update = () => {
-    const want = window.scrollY > THRESHOLD && !isMobile();
+    const want = window.scrollY > THRESHOLD;
     if (want === shown) return;
     shown = want;
     if (want) {
@@ -6580,7 +9209,82 @@ function bindEditMode() {
   // Делегированный click — поверх обычных handler'ов; capture-phase, чтобы
   // перехватить клик до .section-label collapse.
   document.addEventListener('click', (e) => {
+    // Empty-state CTA: работает ВНЕ edit-mode (включает edit-mode сам и открывает форму).
+    const emptyCta = e.target.closest('[data-empty-cta][data-add-section]');
+    if (emptyCta) {
+      e.stopPropagation(); e.preventDefault();
+      if (!state.editMode) {
+        state.editMode = true;
+        document.body.classList.add('is-edit-mode');
+        const editBtn = document.getElementById('btn-edit');
+        if (editBtn) editBtn.setAttribute('data-active', 'true');
+      }
+      openAddSectionForm(emptyCta);
+      return;
+    }
+    // Empty-section row (раздел без работ): тоже работает вне edit-mode.
+    const emptyTaskRow = e.target.closest('.empty-section-row[data-add-task]');
+    if (emptyTaskRow) {
+      e.stopPropagation(); e.preventDefault();
+      if (!state.editMode) {
+        state.editMode = true;
+        document.body.classList.add('is-edit-mode');
+        const editBtn = document.getElementById('btn-edit');
+        if (editBtn) editBtn.setAttribute('data-active', 'true');
+      }
+      const sid = emptyTaskRow.getAttribute('data-add-task');
+      openAddTaskForm(sid, emptyTaskRow);
+      return;
+    }
+
+    // ── Stage manager: работает в любом режиме (просмотр + правка) ──
+    const manageStageAlways = e.target.closest('[data-stage-manage]');
+    // Сначала проверим под-кнопки внутри chip'а (rename / del / add) — они приоритетнее manage
+    const editStageAny = e.target.closest('[data-edit-stage]');
+    const delStageAny = e.target.closest('[data-del-stage]');
+    const addStageAny = e.target.closest('[data-add-stage]');
+    if (delStageAny) {
+      e.stopPropagation(); e.preventDefault();
+      const stid = delStageAny.getAttribute('data-del-stage');
+      confirmDeleteStage(stid);
+      return;
+    }
+    if (addStageAny) {
+      e.stopPropagation(); e.preventDefault();
+      openAddStageForm();
+      return;
+    }
+    // Rename — только в edit-mode (иначе trickle-down к manage)
+    if (editStageAny && state.editMode) {
+      e.stopPropagation(); e.preventDefault();
+      const stid = editStageAny.getAttribute('data-edit-stage');
+      startInlineEditStageName(stid);
+      return;
+    }
+    // Manage — всегда (включая просмотр)
+    if (manageStageAlways) {
+      e.stopPropagation(); e.preventDefault();
+      const stid = manageStageAlways.getAttribute('data-stage-manage');
+      openStageManager(stid);
+      return;
+    }
+
     if (!state.editMode) return;
+
+    const editProject = e.target.closest('[data-edit-project-name]');
+    if (editProject) {
+      e.stopPropagation(); e.preventDefault();
+      startInlineEditProjectName();
+      return;
+    }
+    // (старый блок stage-rename теперь обработан выше)
+    const _NOOP_StageManage = e.target.closest('[data-stage-manage-LEGACY-DEAD]');
+    if (_NOOP_StageManage) {
+      e.stopPropagation(); e.preventDefault();
+      const stid = _NOOP_StageManage.getAttribute('data-stage-manage-LEGACY-DEAD');
+      openStageManager(stid);
+      return;
+    }
 
     const editTask = e.target.closest('[data-edit-task]');
     if (editTask) {
@@ -6617,6 +9321,56 @@ function bindEditMode() {
       openTaskDatesEditor(tid);
       return;
     }
+    const pauseTask = e.target.closest('[data-pause-task]');
+    if (pauseTask) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = pauseTask.getAttribute('data-pause-task');
+      openTaskPauseForm(tid);
+      return;
+    }
+    const resumeTask = e.target.closest('[data-resume-task]');
+    if (resumeTask) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = resumeTask.getAttribute('data-resume-task');
+      openTaskResumeForm(tid);
+      return;
+    }
+    const pauseDel = e.target.closest('[data-pause-del-task]');
+    if (pauseDel) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = pauseDel.getAttribute('data-pause-del-task');
+      const pid = pauseDel.getAttribute('data-pause-del-id');
+      if (!tid || !pid) return;
+      if (!confirm('Удалить эту запись паузы из истории?')) return;
+      (async () => {
+        try {
+          const r = await postDataAction('task:pause-delete', { slug: state.projectSlug, taskId: tid, pauseId: pid });
+          if (r.schedule) state.schedule = r.schedule;
+          renderGantt(); renderTasksSheet();
+          try { renderProjectAnalytics(); } catch (_) {}
+          if (typeof openDrawer === 'function') openDrawer(tid);
+          showToast('✓ Запись паузы удалена');
+        } catch (err) { showToast('Ошибка: ' + (err.message || err), 'error'); }
+      })();
+      return;
+    }
+    const pauseBarDel = e.target.closest('[data-pause-bar-del]');
+    if (pauseBarDel) {
+      e.stopPropagation(); e.preventDefault();
+      const tid = pauseBarDel.getAttribute('data-pause-bar-del');
+      const pid = pauseBarDel.getAttribute('data-pause-bar-id');
+      if (!tid || !pid) return;
+      (async () => {
+        try {
+          const r = await postDataAction('task:pause-delete', { slug: state.projectSlug, taskId: tid, pauseId: pid });
+          if (r.schedule) state.schedule = r.schedule;
+          renderGantt(); renderTasksSheet();
+          try { renderProjectAnalytics(); } catch (_) {}
+          showToast('✓ Пауза удалена');
+        } catch (err) { showToast('Ошибка: ' + (err.message || err), 'error'); }
+      })();
+      return;
+    }
     const delSection = e.target.closest('[data-del-section]');
     if (delSection) {
       e.stopPropagation(); e.preventDefault();
@@ -6634,6 +9388,14 @@ function bindEditMode() {
     const addSection = e.target.closest('[data-add-section]');
     if (addSection) {
       e.stopPropagation(); e.preventDefault();
+      // Если клик из empty-state CTA — автоматически включить edit-mode,
+      // чтобы после создания первого раздела юзер видел все кнопки управления.
+      if (addSection.hasAttribute('data-empty-cta') && !state.editMode) {
+        state.editMode = true;
+        document.body.classList.add('is-edit-mode');
+        const editBtn = document.getElementById('btn-edit');
+        if (editBtn) editBtn.setAttribute('data-active', 'true');
+      }
       openAddSectionForm(addSection);
       return;
     }
@@ -6649,6 +9411,9 @@ function bindEditMode() {
 }
 
 function startInlineEditTaskName(taskId) {
+  // __INLINE_EDIT_DRAG_GUARD_v1__ Если в момент клика идёт drag bar — не запускать inline edit.
+  // Иначе pointer race: drag захватил pointer, input.blur не отрабатывает корректно.
+  if (_dragState && _dragState.active) return;
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
   if (!t) return;
   const labelEl = document.querySelector(`.task-label[data-tid="${cssEscape(taskId)}"] .tname`);
@@ -6670,6 +9435,339 @@ function startInlineEditTaskName(taskId) {
         renderGantt();
         renderTasksSheet();
         showToast(`↶ Возвращено: «${prevName}»`);
+      } } });
+    } catch (e) {
+      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+    }
+  });
+}
+
+function renderStagesBar() {
+  const host = document.getElementById('stages-bar-host');
+  if (!host) return;
+  const stages = state.schedule?.stages || [];
+  const tasks = state.schedule?.tasks || [];
+  const chips = stages.map(st => {
+    const taskCount = tasks.filter(t => String(t.stage) === String(st.id)).length;
+    return `
+    <div class="stage-chip" data-stage-id="${escapeHtml(st.id)}" data-stage-manage="${escapeHtml(st.id)}" style="--st-color:${st.color || '#94a3b8'}" title="Клик — управление работами этапа">
+      <span class="stage-chip-dot" aria-hidden="true"></span>
+      <span class="stage-chip-name" data-edit-stage="${escapeHtml(st.id)}" title="В режиме Правка клик переименует этап">${escapeHtml(st.name)}</span>
+      <span class="stage-chip-count" title="Работ в этапе">${taskCount}</span>
+      <button type="button" class="stage-chip-del" data-del-stage="${escapeHtml(st.id)}" title="Удалить этап">×</button>
+    </div>`;
+  }).join('');
+  // Orphan-задачи (stage не в списке этапов) — отдельным чипом-предупреждением
+  const stageIds = new Set(stages.map(s => String(s.id)));
+  const orphanCount = tasks.filter(t => t.stage && !stageIds.has(String(t.stage))).length;
+  const orphanChip = orphanCount ? `
+    <div class="stage-chip stage-chip-orphan" data-stage-manage="__orphan__" title="Работы без этапа — клик чтобы распределить" style="--st-color:#ef4444">
+      <span class="stage-chip-dot" aria-hidden="true"></span>
+      <span class="stage-chip-name">⚠ Без этапа</span>
+      <span class="stage-chip-count">${orphanCount}</span>
+    </div>` : '';
+  host.innerHTML = `
+    <div class="stages-bar">
+      <div class="stages-bar-label">Этапы:</div>
+      <div class="stages-bar-list">${chips}${orphanChip}<button type="button" class="stage-add-btn" data-add-stage title="Создать новый этап">+ Этап</button></div>
+    </div>
+  `;
+}
+
+function startInlineEditStageName(stageId) {
+  const stage = (state.schedule?.stages || []).find(s => String(s.id) === String(stageId));
+  if (!stage) return;
+  const labelEl = document.querySelector(`.stage-chip[data-stage-id="${cssEscape(stageId)}"] .stage-chip-name`);
+  if (!labelEl) return;
+  inlineEdit(labelEl, stage.name, async (newName) => {
+    if (!newName || newName === stage.name) return;
+    const prev = stage.name;
+    showToast('Сохраняю…');
+    try {
+      const r = await postDataAction('stage:update', { slug: state.projectSlug, stageId, patch: { name: newName } });
+      stage.name = newName;
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt();
+      showToast(`✓ Этап переименован: «${newName}»`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('stage:update', { slug: state.projectSlug, stageId, patch: { name: prev } });
+        stage.name = prev;
+        if (r2.schedule) state.schedule = r2.schedule;
+        renderGantt();
+        showToast(`↶ Возвращено: «${prev}»`);
+      } } });
+    } catch (e) {
+      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+    }
+  });
+}
+
+async function confirmDeleteStage(stageId) {
+  const stage = (state.schedule?.stages || []).find(s => String(s.id) === String(stageId));
+  if (!stage) return;
+  const orphans = (state.schedule?.tasks || []).filter(t => String(t.stage) === String(stageId));
+  // Если на этапе висят задачи — спрашиваем куда их перенести.
+  let reassignTo = null;
+  if (orphans.length) {
+    const others = (state.schedule?.stages || []).filter(s => String(s.id) !== String(stageId));
+    if (!others.length) {
+      showToast('⚠ Это единственный этап. Создай ещё один — тогда смогу перенести работы.', 'error');
+      return;
+    }
+    const labels = others.map((s, i) => `${i + 1}. ${s.name}`).join('\n');
+    const choice = prompt(
+      `В этапе «${stage.name}» ${orphans.length} ${plural(orphans.length, ['работа','работы','работ'])}.\nКуда их перенести перед удалением?\n\n${labels}\n\nВведи номер этапа (1-${others.length}) или Cancel.`
+    );
+    if (!choice) return;
+    const idx = parseInt(choice, 10) - 1;
+    if (!Number.isInteger(idx) || idx < 0 || idx >= others.length) {
+      showToast('Неверный номер. Удаление отменено.', 'error');
+      return;
+    }
+    reassignTo = others[idx].id;
+  }
+  if (!confirm(`Удалить этап «${stage.name}»${reassignTo ? ` (${orphans.length} работ переедут в «${(state.schedule?.stages||[]).find(s=>s.id===reassignTo)?.name}»)` : ''}?`)) return;
+  showToast('Удаляю…');
+  try {
+    const r = await postDataAction('stage:delete', { slug: state.projectSlug, stageId, reassignTo });
+    if (r.schedule) state.schedule = r.schedule;
+    renderGantt();
+    showToast(`✓ Этап «${stage.name}» удалён${orphans.length ? ` (${orphans.length} работ перенесены)` : ''}`);
+  } catch (e) {
+    showToast('Не удалось удалить: ' + (e.message || e), 'error');
+  }
+}
+
+/* ─── Stage Manager: модал со списком работ этапа + перенос между этапами ─── */
+function openStageManager(stageId) {
+  const isOrphan = stageId === '__orphan__';
+  const stages = state.schedule?.stages || [];
+  const tasks = state.schedule?.tasks || [];
+  const stage = isOrphan ? { id: '__orphan__', name: '⚠ Без этапа', color: '#ef4444' } : stages.find(s => String(s.id) === String(stageId));
+  if (!stage) return;
+  const stageIds = new Set(stages.map(s => String(s.id)));
+  const tasksInStage = isOrphan
+    ? tasks.filter(t => !t.stage || !stageIds.has(String(t.stage)))
+    : tasks.filter(t => String(t.stage) === String(stageId));
+  const tasksOutside = isOrphan
+    ? tasks.filter(t => t.stage && stageIds.has(String(t.stage)))
+    : tasks.filter(t => String(t.stage) !== String(stageId));
+
+  const sectionMap = {};
+  for (const sec of (state.schedule?.sections || [])) sectionMap[sec.id] = sec.name;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay stage-manager-overlay';
+
+  const otherStages = stages.filter(s => !isOrphan ? String(s.id) !== String(stageId) : true);
+
+  const renderTaskRow = (t, inStage) => {
+    const sectionName = sectionMap[t.section] || '—';
+    const stageName = (stages.find(s => s.id === t.stage)?.name) || (isOrphan && !t.stage ? 'без этапа' : 'неизв.');
+    const dateStr = t.planStart && t.planEnd ? `${fmtDate(t.planStart)} → ${fmtDate(t.planEnd)}` : '';
+    if (inStage) {
+      return `<li class="sm-task" data-task-id="${escapeHtml(t.id)}">
+        <button type="button" class="sm-task-remove" data-sm-remove="${escapeHtml(t.id)}" title="Убрать из этапа">←</button>
+        <div class="sm-task-info">
+          <div class="sm-task-name">${escapeHtml(t.name)}</div>
+          <div class="sm-task-meta">${escapeHtml(sectionName)}${dateStr ? ` · ${escapeHtml(dateStr)}` : ''}</div>
+        </div>
+      </li>`;
+    }
+    return `<li class="sm-task sm-task-other" data-task-id="${escapeHtml(t.id)}">
+      <input type="checkbox" class="sm-task-pick" data-sm-pick="${escapeHtml(t.id)}" id="sm-pick-${escapeHtml(t.id)}" />
+      <label for="sm-pick-${escapeHtml(t.id)}" class="sm-task-info">
+        <div class="sm-task-name">${escapeHtml(t.name)}</div>
+        <div class="sm-task-meta">${escapeHtml(sectionName)} · ${escapeHtml(stageName)}${dateStr ? ` · ${escapeHtml(dateStr)}` : ''}</div>
+      </label>
+    </li>`;
+  };
+
+  overlay.innerHTML = `
+    <div class="edit-form-card stage-manager-card">
+      <div class="edit-form-head">
+        <div><span class="sm-color-dot" style="background:${stage.color || '#94a3b8'}"></span>${escapeHtml(stage.name)} <span class="sm-counter">· ${tasksInStage.length} ${plural(tasksInStage.length,['работа','работы','работ'])}</span></div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="sm-cols">
+        <div class="sm-col">
+          <div class="sm-col-title">В этапе</div>
+          <ul class="sm-task-list" id="sm-list-in">
+            ${tasksInStage.length ? tasksInStage.map(t => renderTaskRow(t, true)).join('') : '<li class="sm-empty">— пусто —</li>'}
+          </ul>
+        </div>
+        <div class="sm-col">
+          <div class="sm-col-title">Добавить из других этапов</div>
+          <input type="search" class="sm-search" placeholder="Поиск по названию…" id="sm-search" />
+          <ul class="sm-task-list sm-task-list-outside" id="sm-list-out">
+            ${tasksOutside.length ? tasksOutside.map(t => renderTaskRow(t, false)).join('') : '<li class="sm-empty">— нет других работ —</li>'}
+          </ul>
+          <button type="button" class="sm-add-btn" id="sm-add-btn" disabled>＋ Добавить выбранные в этап</button>
+        </div>
+      </div>
+      <div class="sm-foot">
+        ${isOrphan ? '' : `<button type="button" class="sm-stage-delete" data-sm-stage-delete>🗑 Удалить этап</button>`}
+        <div class="sm-foot-spacer"></div>
+        <button type="button" class="edit-form-cancel sm-close">Закрыть</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.sm-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  // Поиск
+  const search = overlay.querySelector('#sm-search');
+  const listOut = overlay.querySelector('#sm-list-out');
+  if (search) {
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase().trim();
+      listOut.querySelectorAll('.sm-task').forEach(li => {
+        const name = (li.querySelector('.sm-task-name')?.textContent || '').toLowerCase();
+        const sec = (li.querySelector('.sm-task-meta')?.textContent || '').toLowerCase();
+        li.style.display = (!q || name.includes(q) || sec.includes(q)) ? '' : 'none';
+      });
+    });
+  }
+
+  // Pick checkbox → enable add button
+  const addBtn = overlay.querySelector('#sm-add-btn');
+  function refreshAddBtn() {
+    const picked = overlay.querySelectorAll('.sm-task-pick:checked').length;
+    addBtn.disabled = !picked;
+    addBtn.textContent = picked ? `＋ Добавить ${picked} в этап` : '＋ Добавить выбранные в этап';
+  }
+  overlay.addEventListener('change', e => { if (e.target.matches('.sm-task-pick')) refreshAddBtn(); });
+
+  // Add picked tasks to stage
+  addBtn?.addEventListener('click', async () => {
+    if (isOrphan) { showToast('Назначай этап задачам через клик по этапу', 'error'); return; }
+    const ids = Array.from(overlay.querySelectorAll('.sm-task-pick:checked')).map(el => el.getAttribute('data-sm-pick'));
+    if (!ids.length) return;
+    addBtn.disabled = true; addBtn.textContent = 'Сохраняю…';
+    try {
+      const r = await postDataAction('stage:assign-tasks', { slug: state.projectSlug, stageId, taskIds: ids });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt();
+      showToast(`✓ ${r.assigned} ${plural(r.assigned, ['работа','работы','работ'])} в этап «${stage.name}»`);
+      close();
+      // Re-open with fresh data so user can continue
+      setTimeout(() => openStageManager(stageId), 50);
+    } catch (e) {
+      showToast('Не удалось: ' + (e.message || e), 'error');
+      addBtn.disabled = false; refreshAddBtn();
+    }
+  });
+
+  // Remove task from stage (puts back to first OTHER stage)
+  overlay.addEventListener('click', async e => {
+    const rm = e.target.closest('[data-sm-remove]');
+    if (!rm) return;
+    const tid = rm.getAttribute('data-sm-remove');
+    // Move to first available "other" stage. If isOrphan — assign to first stage.
+    const targetStage = isOrphan ? stages[0]?.id : (otherStages[0]?.id);
+    if (!targetStage) { showToast('Нет другого этапа — сначала создай ещё один', 'error'); return; }
+    const targetName = stages.find(s => s.id === targetStage)?.name || targetStage;
+    rm.disabled = true;
+    try {
+      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch: { stage: targetStage } });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt();
+      showToast(`→ Работа в этап «${targetName}»`);
+      close();
+      setTimeout(() => openStageManager(stageId), 50);
+    } catch (e) {
+      showToast('Не удалось: ' + (e.message || e), 'error');
+      rm.disabled = false;
+    }
+  });
+
+  // Delete stage button
+  overlay.querySelector('[data-sm-stage-delete]')?.addEventListener('click', async () => {
+    close();
+    confirmDeleteStage(stageId);
+  });
+}
+
+function openAddStageForm() {
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const colors = ['#1e3b60','#2d6a8f','#c9a96e','#8a5a44','#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#a855f7','#ec4899','#94a3b8'];
+  const colorChips = colors.map(c => `<button type="button" class="ef-color" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('');
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>+ Новый этап</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <label class="edit-form-row"><span>Название</span>
+        <input type="text" id="ef-name" maxlength="80" placeholder="Например: Этап 5 · Гарантия" autofocus />
+      </label>
+      <div class="edit-form-row"><span>Цвет</span>
+        <div class="ef-colors">${colorChips}</div>
+      </div>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">Создать</button>
+      </div>
+      <div class="edit-form-err" id="ef-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  let chosenColor = colors[0];
+  const colorEls = overlay.querySelectorAll('.ef-color');
+  const markChosen = () => { colorEls.forEach(el => el.classList.toggle('is-chosen', el.getAttribute('data-color') === chosenColor)); };
+  markChosen();
+  colorEls.forEach(el => el.addEventListener('click', () => { chosenColor = el.getAttribute('data-color'); markChosen(); }));
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('#ef-name').focus();
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const name = overlay.querySelector('#ef-name').value.trim();
+    const err = overlay.querySelector('#ef-err');
+    if (!name) { err.textContent = 'Введи название этапа'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
+    try {
+      const r = await postDataAction('stage:create', { slug: state.projectSlug, name, color: chosenColor });
+      // r.stage = новый этап. Обновим в state.schedule.stages.
+      if (r.stage) {
+        state.schedule.stages = state.schedule.stages || [];
+        state.schedule.stages.push(r.stage);
+      }
+      renderGantt();
+      close();
+      showToast(`✓ Этап «${name}» создан`);
+    } catch (e) {
+      err.textContent = 'Не удалось создать: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Создать';
+    }
+  });
+}
+
+function startInlineEditProjectName() {
+  const titleEl = document.querySelector('#hero-title');
+  if (!titleEl) return;
+  const cur = state.schedule?.project?.name || '';
+  inlineEdit(titleEl, cur, async (newName) => {
+    if (!newName || newName === cur) return;
+    showToast('Сохраняю…');
+    try {
+      const r = await postDataAction('project:rename', { slug: state.projectSlug, newName });
+      if (state.schedule?.project) state.schedule.project.name = newName;
+      // Re-render header
+      try { renderHero(); } catch (_) {}
+      document.title = `${newName} · График работ · CYFR`;
+      showToast(`✓ Проект переименован: «${newName}»`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await postDataAction('project:rename', { slug: state.projectSlug, newName: cur });
+        if (state.schedule?.project) state.schedule.project.name = cur;
+        try { renderHero(); } catch (_) {}
+        document.title = `${cur} · График работ · CYFR`;
+        showToast(`↶ Возвращено: «${cur}»`);
       } } });
     } catch (e) {
       showToast('Не удалось сохранить: ' + (e.message || e), 'error');
@@ -6830,16 +9928,16 @@ function openAddTaskForm(sectionId, anchorEl) {
       </label>
       <div class="edit-form-fact-block" id="ef-fact-block" hidden>
         <div class="edit-form-row-2col">
-          <label><span>Факт: старт</span><input type="date" id="ef-actual-start" value="${today}" /></label>
-          <label><span>Факт: финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="ef-actual-end" /></label>
+          <label><span>Факт: старт</span><input type="date" id="ef-actual-start" value="${today}" max="${today}" /></label>
+          <label><span>Факт: финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="ef-actual-end" max="${today}" /></label>
         </div>
       </div>
       <div class="edit-form-section-h" style="margin-top:18px">👷 Подрядчик</div>
       <label class="edit-form-toggle">
-        <input type="checkbox" id="ef-is-sub"${sec.sub ? ' checked disabled' : ''} />
-        <span>🟡 Эту работу делает субподрядчик${sec.sub ? ' <em class="muted">(весь раздел уже на субе)</em>' : ''}</span>
+        <input type="checkbox" id="ef-is-sub"${sec.sub ? ' checked' : ''} />
+        <span>🟡 Эту работу делает субподрядчик${sec.sub ? ' <em class="muted">(раздел на субе по умолчанию — но можно снять для конкретной работы)</em>' : ''}</span>
       </label>
-      <div class="edit-form-sub-block" id="ef-sub-block" hidden>
+      <div class="edit-form-sub-block" id="ef-sub-block"${sec.sub ? '' : ' hidden'}>
         <label class="edit-form-row"><span>Имя/название субподрядчика <em class="muted">(необязательно)</em></span>
           <input type="text" id="ef-sub-name" maxlength="120" placeholder="Например: Альтаир Электро" />
         </label>
@@ -6860,10 +9958,9 @@ function openAddTaskForm(sectionId, anchorEl) {
   const hasFactCb = overlay.querySelector('#ef-has-fact');
   const factBlock = overlay.querySelector('#ef-fact-block');
   hasFactCb.addEventListener('change', () => { factBlock.hidden = !hasFactCb.checked; });
-  // Sub-блок: если раздел уже SUB → чекбокс заблокирован но имя SUB поле всё равно видно
+  // Sub-блок: чекбокс всегда активен, инициализирован по дефолту раздела, но юзер может перебить.
   const isSubCb = overlay.querySelector('#ef-is-sub');
   const subBlock = overlay.querySelector('#ef-sub-block');
-  if (sec.sub) subBlock.hidden = false;
   isSubCb.addEventListener('change', () => { subBlock.hidden = !isSubCb.checked; });
   overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
     const name = overlay.querySelector('#ef-name').value.trim();
@@ -6881,9 +9978,11 @@ function openAddTaskForm(sectionId, anchorEl) {
         err.textContent = 'Финиш факта не может быть раньше старта факта'; return;
       }
     }
-    // Sub-флаг применяем только если раздел НЕ SUB (иначе наследуется)
-    const sub = !sec.sub && isSubCb.checked ? true : undefined;
-    const subcontractorName = (subBlock.hidden ? '' : (overlay.querySelector('#ef-sub-name').value || '').trim()) || undefined;
+    // Sub-флаг: если выбор юзера совпадает с дефолтом раздела — не сохраняем явно (наследуем).
+    // Если отличается — сохраняем явный true/false (override).
+    const wantSub = isSubCb.checked;
+    const sub = wantSub === !!sec.sub ? undefined : wantSub;
+    const subcontractorName = (!wantSub ? '' : (overlay.querySelector('#ef-sub-name').value || '').trim()) || undefined;
     err.textContent = '';
     const submitBtn = overlay.querySelector('.edit-form-submit');
     submitBtn.disabled = true; submitBtn.textContent = 'Создаю…';
@@ -6908,14 +10007,18 @@ function openTaskDatesEditor(taskId) {
   const sec = state.sectionById[t.section] || {};
   const overlay = document.createElement('div');
   overlay.className = 'edit-form-overlay';
+  // __FACT_FUTURE_GUARD_v1__ today для max-атрибута date-инпутов факта.
+  // Без объявления ${today} в шаблоне падает ReferenceError и меню не открывается.
+  const today = new Date().toISOString().slice(0, 10);
   const ps = t.planStart || t.start || '';
   const pe = t.planEnd || t.end || '';
   const aS = t.actualStart || '';
   const aE = t.actualEnd || '';
   const hasFact = !!(aS || aE);
-  const taskSub = t.sub === true;
+  const taskSubExplicit = (typeof t.sub === 'boolean'); // явно выставлен ли task-level override
+  const taskSubEffective = effectiveSub(t, sec);
   const taskSubName = t.subcontractorName || '';
-  const sectionForcesSub = !!sec.sub; // если раздел уже SUB — флаг работы наследуется, но имя задаётся отдельно
+  const sectionDefault = !!sec.sub;
   overlay.innerHTML = `
     <div class="edit-form-card">
       <div class="edit-form-head">
@@ -6934,17 +10037,17 @@ function openTaskDatesEditor(taskId) {
       </label>
       <div class="edit-form-fact-block" id="td-fact-block" ${hasFact ? '' : 'hidden'}>
         <div class="edit-form-row-2col">
-          <label><span>Старт</span><input type="date" id="td-actual-start" value="${aS}" /></label>
-          <label><span>Финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="td-actual-end" value="${aE}" /></label>
+          <label><span>Старт</span><input type="date" id="td-actual-start" value="${aS}" max="${today}" /></label>
+          <label><span>Финиш <em class="muted">(пусто = в работе)</em></span><input type="date" id="td-actual-end" value="${aE}" max="${today}" /></label>
         </div>
         <button type="button" class="edit-form-fact-clear" id="td-fact-clear" title="Полностью убрать фактические даты">Убрать факт целиком</button>
       </div>
       <div class="edit-form-section-h" style="margin-top:18px">👷 Подрядчик</div>
       <label class="edit-form-toggle">
-        <input type="checkbox" id="td-is-sub" ${(taskSub || sectionForcesSub) ? 'checked' : ''} ${sectionForcesSub ? 'disabled' : ''} />
-        <span>🟡 Эту работу делает субподрядчик${sectionForcesSub ? ' <em class="muted">(весь раздел на субе)</em>' : ''}</span>
+        <input type="checkbox" id="td-is-sub" ${taskSubEffective ? 'checked' : ''} />
+        <span>🟡 Эту работу делает субподрядчик${sectionDefault ? ' <em class="muted">(раздел на субе по умолчанию — можно снять для этой работы)</em>' : ''}</span>
       </label>
-      <div class="edit-form-sub-block" id="td-sub-block" ${(taskSub || sectionForcesSub || taskSubName) ? '' : 'hidden'}>
+      <div class="edit-form-sub-block" id="td-sub-block" ${(taskSubEffective || taskSubName) ? '' : 'hidden'}>
         <label class="edit-form-row"><span>Имя/название субподрядчика <em class="muted">(необязательно)</em></span>
           <input type="text" id="td-sub-name" maxlength="120" value="${escapeHtml(taskSubName)}" placeholder="Например: Альтаир Электро" />
         </label>
@@ -6970,11 +10073,10 @@ function openTaskDatesEditor(taskId) {
     cb.checked = false;
     block.hidden = true;
   });
-  // Sub-блок toggle
+  // Sub-блок toggle: чекбокс всегда активен. На submit вычислим — override или inherit.
   const subCb = overlay.querySelector('#td-is-sub');
   const subBlock = overlay.querySelector('#td-sub-block');
   subCb.addEventListener('change', () => {
-    if (sectionForcesSub) return; // disabled — игнор
     subBlock.hidden = !subCb.checked;
     if (!subCb.checked) overlay.querySelector('#td-sub-name').value = '';
   });
@@ -6988,6 +10090,10 @@ function openTaskDatesEditor(taskId) {
     if (!planStart || !planEnd) { err.textContent = 'План: старт и финиш обязательны'; return; }
     if (planEnd < planStart) { err.textContent = 'Финиш плана не может быть раньше старта'; return; }
     if (factOn && aStart && aEnd && aEnd < aStart) { err.textContent = 'Финиш факта не может быть раньше старта факта'; return; }
+    // __FACT_FUTURE_GUARD_v1__ Не даём сохранить факт в будущем — даже если юзер ввёл руками.
+    const _todayIso = new Date().toISOString().slice(0, 10);
+    if (factOn && aStart && aStart > _todayIso) { err.textContent = 'Факт-старт не может быть в будущем'; return; }
+    if (factOn && aEnd && aEnd > _todayIso) { err.textContent = 'Факт-финиш не может быть в будущем'; return; }
     err.textContent = '';
 
     // Собираем patch с минимальными изменениями
@@ -7003,12 +10109,16 @@ function openTaskDatesEditor(taskId) {
       if (aS) patch.actualStart = null;
       if (aE) patch.actualEnd = null;
     }
-    // Sub-флаг и имя — только если раздел НЕ forces (иначе наследуется)
-    if (!sectionForcesSub) {
-      const wantSub = subCb.checked;
-      if (wantSub !== taskSub) patch.sub = wantSub ? true : null;
-    }
-    const newSubName = (subBlock.hidden ? '' : (overlay.querySelector('#td-sub-name').value || '').trim());
+    // Sub-флаг — tri-state: совпало с дефолтом раздела → clear (null = inherit), иначе → явный true/false.
+    const wantSub = subCb.checked;
+    const wantExplicit = wantSub !== sectionDefault; // нужен ли override
+    let nextSubVal; // true | false | null (null = inherit)
+    if (wantExplicit) nextSubVal = wantSub;
+    else nextSubVal = null;
+    // Сравниваем с текущим состоянием поля t.sub
+    const curSubVal = taskSubExplicit ? t.sub : null;
+    if (nextSubVal !== curSubVal) patch.sub = nextSubVal;
+    const newSubName = (!subCb.checked ? '' : (overlay.querySelector('#td-sub-name').value || '').trim());
     if (newSubName !== taskSubName) patch.subcontractorName = newSubName ? newSubName : null;
 
     if (!Object.keys(patch).length) { close(); return; }
@@ -7020,7 +10130,7 @@ function openTaskDatesEditor(taskId) {
     const submitBtn = overlay.querySelector('.edit-form-submit');
     submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
     try {
-      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch });
+      const r = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId, patch }, { subjectName: t.name });
       if (r.schedule) state.schedule = r.schedule;
       else Object.assign(t, patch);
       try { renderProjectAnalytics(); } catch (_) {}
@@ -7029,7 +10139,7 @@ function openTaskDatesEditor(taskId) {
       close();
       const summary = Object.entries(patch).map(([k,v]) => v === null ? `${k}=пусто` : `${k}=${v}`).join(', ');
       showToast(`✓ Даты обновлены: ${summary}`, { action: { label: 'Отменить', onClick: async () => {
-        const r2 = await postDataAction('task:update', { slug: state.projectSlug, taskId, patch: inverse });
+        const r2 = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId, patch: inverse }, { skipReason: true });
         if (r2.schedule) state.schedule = r2.schedule;
         try { renderProjectAnalytics(); } catch (_) {}
         renderGantt();
@@ -7037,8 +10147,231 @@ function openTaskDatesEditor(taskId) {
         showToast('↶ Возвращено');
       } } });
     } catch (e) {
+      if (e.cancelled) {
+        submitBtn.disabled = false; submitBtn.textContent = 'Сохранить';
+        return;
+      }
       err.textContent = 'Не удалось: ' + (e.message || e);
       submitBtn.disabled = false; submitBtn.textContent = 'Сохранить';
+    }
+  });
+}
+
+function openTaskPauseForm(taskId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>⏸ Поставить на паузу «${escapeHtml(t.name)}»</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="edit-form-section-h">⚙️ Что приостанавливаем</div>
+      <div class="pause-dt-group" role="radiogroup" aria-label="Тип паузы">
+        <label class="pause-dt-opt"><input type="radio" name="tp-dt" value="plan" checked /><span><b>План</b><em class="muted"> — пауза на плановых датах (обычно)</em></span></label>
+        <label class="pause-dt-opt"><input type="radio" name="tp-dt" value="actual" /><span><b>Факт</b><em class="muted"> — работа уже идёт, временно остановили</em></span></label>
+        <label class="pause-dt-opt"><input type="radio" name="tp-dt" value="both" /><span><b>Оба</b><em class="muted"> — и план и факт стоят</em></span></label>
+      </div>
+      <div class="edit-form-section-h" style="margin-top:14px">📅 Период</div>
+      <div class="edit-form-row-2col">
+        <label><span>С какого числа</span><input type="date" id="tp-from" value="${today}" /></label>
+        <label><span>До какого числа <em class="muted">(пусто = открыта)</em></span><input type="date" id="tp-to" value="" /></label>
+      </div>
+      <label class="edit-form-row" style="margin-top:14px"><span>📅 Новая плановая дата окончания работы <em class="muted">(если меняется, иначе пусто)</em></span>
+        <input type="date" id="tp-newend" value="" />
+      </label>
+      <div class="edit-form-section-h" style="margin-top:18px">📝 Причина <span class="muted">(обязательно)</span></div>
+      <label class="edit-form-row">
+        <input type="text" id="tp-reason" maxlength="200" placeholder="Например: ждём поставку плитки, нет рабочих, переделка" />
+      </label>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">⏸ Приостановить</button>
+      </div>
+      <div class="edit-form-err" id="tp-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  setTimeout(() => overlay.querySelector('#tp-reason').focus(), 50);
+
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const from = overlay.querySelector('#tp-from').value;
+    const to = overlay.querySelector('#tp-to').value;
+    const newEnd = overlay.querySelector('#tp-newend').value;
+    const reason = overlay.querySelector('#tp-reason').value.trim();
+    const dtEl = overlay.querySelector('input[name="tp-dt"]:checked');
+    const dateType = dtEl ? dtEl.value : 'plan';
+    const err = overlay.querySelector('#tp-err');
+    if (!from) { err.textContent = 'Укажи дату начала паузы'; return; }
+    if (to && to < from) { err.textContent = 'Дата окончания паузы не может быть раньше начала'; return; }
+    if (!reason) { err.textContent = 'Причина паузы обязательна'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
+    try {
+      const r = await postDataAction('task:pause', {
+        slug: state.projectSlug, taskId,
+        pauseFrom: from, resumeAt: to || null, reason,
+        newPlanEnd: newEnd || null,
+        dateType
+      });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt(); renderTasksSheet();
+      try { renderProjectAnalytics(); } catch (_) {}
+      close();
+      showToast('⏸ «' + t.name + '» на паузе');
+    } catch (e) {
+      err.textContent = 'Не удалось: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = '⏸ Приостановить';
+    }
+  });
+}
+
+function openTaskPauseEditForm(taskId, pauseId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  const p = (Array.isArray(t.pauses) ? t.pauses : []).find(x => x && x.id === pauseId);
+  if (!p) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const wasOpen = !p.to;
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>⏸ Пауза «${escapeHtml(t.name)}»</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <div class="edit-form-section-h">⚙️ Что приостанавливаем</div>
+      <div class="pause-dt-group" role="radiogroup" aria-label="Тип паузы">
+        <label class="pause-dt-opt"><input type="radio" name="tpe-dt" value="plan"${(p.dateType||'plan')==='plan'?' checked':''} /><span><b>План</b><em class="muted"> — пауза на плановых датах</em></span></label>
+        <label class="pause-dt-opt"><input type="radio" name="tpe-dt" value="actual"${(p.dateType||'plan')==='actual'?' checked':''} /><span><b>Факт</b><em class="muted"> — фактическая работа стоит</em></span></label>
+        <label class="pause-dt-opt"><input type="radio" name="tpe-dt" value="both"${(p.dateType||'plan')==='both'?' checked':''} /><span><b>Оба</b><em class="muted"> — и план и факт стоят</em></span></label>
+      </div>
+      <div class="edit-form-section-h" style="margin-top:14px">📅 Период</div>
+      <div class="edit-form-row-2col">
+        <label><span>Начало</span><input type="date" id="tpe-from" value="${p.from || ''}" /></label>
+        <label><span>Конец <em class="muted">(пусто = открыта)</em></span><input type="date" id="tpe-to" value="${p.to || ''}" /></label>
+      </div>
+      <div class="edit-form-section-h" style="margin-top:18px">📝 Причина</div>
+      <label class="edit-form-row">
+        <input type="text" id="tpe-reason" maxlength="200" value="${escapeHtml(p.reason || '')}" />
+      </label>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-del" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca">🗑 Удалить паузу</button>
+        <button type="button" class="edit-form-submit">Сохранить</button>
+      </div>
+      <div class="edit-form-err" id="tpe-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelector('.edit-form-del').addEventListener('click', async () => {
+    if (!confirm('Удалить эту паузу?')) return;
+    try {
+      const r = await postDataAction('task:pause-delete', { slug: state.projectSlug, taskId, pauseId });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt(); renderTasksSheet();
+      try { renderProjectAnalytics(); } catch (_) {}
+      close();
+      showToast('✓ Пауза удалена');
+    } catch (e) { overlay.querySelector('#tpe-err').textContent = 'Не удалось: ' + (e.message || e); }
+  });
+
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const from = overlay.querySelector('#tpe-from').value;
+    const to = overlay.querySelector('#tpe-to').value;
+    const reason = overlay.querySelector('#tpe-reason').value.trim();
+    const err = overlay.querySelector('#tpe-err');
+    if (!from) { err.textContent = 'Дата начала обязательна'; return; }
+    if (to && to < from) { err.textContent = 'Конец паузы не может быть раньше начала'; return; }
+    if (!reason) { err.textContent = 'Причина обязательна'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
+    const dtEl = overlay.querySelector('input[name="tpe-dt"]:checked');
+    const dateType = dtEl ? dtEl.value : null;
+    try {
+      const r = await postDataAction('task:pause-edit', {
+        slug: state.projectSlug, taskId, pauseId,
+        from, to: to || null, reason, dateType
+      });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt(); renderTasksSheet();
+      try { renderProjectAnalytics(); } catch (_) {}
+      close();
+      showToast('✓ Пауза обновлена');
+    } catch (e) {
+      err.textContent = 'Не удалось: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Сохранить';
+    }
+  });
+}
+
+function openTaskResumeForm(taskId) {
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t) return;
+  const openPause = Array.isArray(t.pauses) ? [...t.pauses].reverse().find(p => p && !p.to) : null;
+  if (!openPause) {
+    showToast('У «' + t.name + '» нет активной паузы');
+    return;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const minResume = openPause.from > today ? openPause.from : today;
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>▶️ Возобновить «${escapeHtml(t.name)}»</div>
+        <button type="button" class="edit-form-close">×</button>
+      </div>
+      <p class="muted" style="margin:6px 0 14px">Пауза с <strong>${escapeHtml(fmtDate(openPause.from))}</strong> · причина: «${escapeHtml(openPause.reason || '—')}»</p>
+      <label class="edit-form-row"><span>С какого числа возобновляем</span>
+        <input type="date" id="tr-at" value="${minResume}" min="${openPause.from}" />
+      </label>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">▶️ Возобновить</button>
+      </div>
+      <div class="edit-form-err" id="tr-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const at = overlay.querySelector('#tr-at').value;
+    const err = overlay.querySelector('#tr-err');
+    if (!at) { err.textContent = 'Укажи дату возобновления'; return; }
+    if (at < openPause.from) { err.textContent = 'Дата возобновления не может быть раньше начала паузы'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
+    try {
+      const r = await postDataAction('task:resume', { slug: state.projectSlug, taskId, resumeAt: at });
+      if (r.schedule) state.schedule = r.schedule;
+      renderGantt(); renderTasksSheet();
+      try { renderProjectAnalytics(); } catch (_) {}
+      close();
+      showToast('▶️ «' + t.name + '» возобновлена');
+    } catch (e) {
+      err.textContent = 'Не удалось: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = '▶️ Возобновить';
     }
   });
 }
@@ -7106,6 +10439,71 @@ function openAddSectionForm() {
   });
 }
 
+function openEditSectionForm(sectionId) {
+  const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
+  if (!sec) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-form-overlay';
+  const colors = ['#ef4444','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#94a3b8'];
+  const colorChips = colors.map(c => `<button type="button" class="ef-color${c === sec.color ? ' is-chosen' : ''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('');
+  overlay.innerHTML = `
+    <div class="edit-form-card">
+      <div class="edit-form-head">
+        <div>✎ Раздел «${escapeHtml(sec.name)}»</div>
+        <button type="button" class="edit-form-close" aria-label="Закрыть">×</button>
+      </div>
+      <label class="edit-form-row"><span>Название</span>
+        <input type="text" id="ef-name" maxlength="80" value="${escapeHtml(sec.name)}" />
+      </label>
+      <div class="edit-form-row"><span>Цвет</span>
+        <div class="ef-colors">${colorChips}</div>
+      </div>
+      <label class="edit-form-row edit-form-checkbox"><input type="checkbox" id="ef-sub" ${sec.sub ? 'checked' : ''} /> <span>Это работы субподрядчика</span></label>
+      <div class="edit-form-actions">
+        <button type="button" class="edit-form-cancel">Отмена</button>
+        <button type="button" class="edit-form-submit">Сохранить</button>
+      </div>
+      <div class="edit-form-err" id="ef-err"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  let chosenColor = sec.color;
+  const colorEls = overlay.querySelectorAll('.ef-color');
+  const markChosen = () => colorEls.forEach(el => el.classList.toggle('is-chosen', el.getAttribute('data-color') === chosenColor));
+  colorEls.forEach(el => el.addEventListener('click', () => { chosenColor = el.getAttribute('data-color'); markChosen(); }));
+  const close = () => overlay.remove();
+  overlay.querySelector('.edit-form-close').addEventListener('click', close);
+  overlay.querySelector('.edit-form-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  setTimeout(() => overlay.querySelector('#ef-name')?.focus(), 30);
+  overlay.querySelector('.edit-form-submit').addEventListener('click', async () => {
+    const name = overlay.querySelector('#ef-name').value.trim();
+    const sub = overlay.querySelector('#ef-sub').checked;
+    const err = overlay.querySelector('#ef-err');
+    if (!name) { err.textContent = 'Введи название раздела'; return; }
+    err.textContent = '';
+    const submitBtn = overlay.querySelector('.edit-form-submit');
+    submitBtn.disabled = true; submitBtn.textContent = 'Сохраняю…';
+    const patch = {};
+    if (name !== sec.name) patch.name = name;
+    if (chosenColor !== sec.color) patch.color = chosenColor;
+    if (!!sub !== !!sec.sub) patch.sub = sub;
+    if (!Object.keys(patch).length) { close(); return; }
+    try {
+      const r = await postDataAction('section:update', { slug: state.projectSlug, sectionId, patch });
+      if (r.schedule) state.schedule = r.schedule;
+      else Object.assign(sec, patch);
+      state.schedule.sections.forEach(s => state.sectionById[s.id] = s);
+      renderGantt(); renderLegend(); renderTasksSheet();
+      close();
+      showToast('✓ Раздел сохранён');
+    } catch (e) {
+      err.textContent = 'Не удалось сохранить: ' + (e.message || e);
+      submitBtn.disabled = false; submitBtn.textContent = 'Сохранить';
+    }
+  });
+}
+
 function openSectionColorPicker(sectionId, anchorEl) {
   const sec = (state.schedule?.sections || []).find(x => x.id === sectionId);
   if (!sec) return;
@@ -7166,12 +10564,17 @@ function showToast(text, opts) {
   txt.className = 'app-toast-text';
   txt.textContent = text;
   toast.appendChild(txt);
+  // __TOAST_EXPIRY_GUARD_v1__ После ttl надо «закрыть» action: даже если CSS-кнопка ещё в DOM
+  // на короткой transition-фазе, click не должен запускать stale onClick → ошибки 404 на удалённых
+  // pause-id, неправильный rollback на drag.
+  let expired = false;
   if (action && action.label && action.onClick) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'app-toast-action';
     btn.textContent = action.label;
     btn.addEventListener('click', () => {
+      if (expired || btn.disabled) return;
       btn.disabled = true;
       btn.textContent = '…';
       Promise.resolve(action.onClick())
@@ -7182,7 +10585,12 @@ function showToast(text, opts) {
   }
   toast.className = `app-toast app-toast--${level}${action ? ' app-toast--with-action' : ''} is-visible`;
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => { toast.classList.remove('is-visible'); }, ttl);
+  _toastTimer = setTimeout(() => {
+    expired = true;
+    toast.classList.remove('is-visible');
+    // Полная очистка контента после CSS-fade (300ms): больше нельзя нажать undo на stale state.
+    setTimeout(() => { try { if (!toast.classList.contains('is-visible')) toast.innerHTML = ''; } catch (_) {} }, 350);
+  }, ttl);
 }
 
 /* ─── Undo helpers ─── */
@@ -7207,6 +10615,40 @@ function cssEscape(s) {
 let _barDragBound = false;
 const _dragState = { active: false, suppressClick: false };
 
+// ── Modal scroll lock: при появлении любого .edit-form-overlay
+// ставим body.has-modal-open (overflow:hidden + touch-action:none),
+// убираем при закрытии. Лечит iOS-баг где скролл внутри модалки
+// уезжает в фон (Гантт).
+let _modalScrollLockBound = false;
+function bindModalScrollLock() {
+  if (_modalScrollLockBound) return;
+  _modalScrollLockBound = true;
+  const refresh = () => {
+    const has = !!document.querySelector('.edit-form-overlay');
+    document.body.classList.toggle('has-modal-open', has);
+  };
+  const obs = new MutationObserver(refresh);
+  obs.observe(document.body, { childList: true, subtree: true });
+  refresh();
+}
+
+// Touch bar selection state (mobile: tap-to-select → drag)
+let _selectedBarEl = null;
+
+function selectGanttBar(bar) {
+  if (_selectedBarEl && _selectedBarEl !== bar) deselectGanttBar();
+  _selectedBarEl = bar;
+  state.selectedBarTid = bar.getAttribute('data-tid');
+  bar.classList.add('bar-selected');
+  try { window.navigator.vibrate?.(12); } catch (_) {}
+}
+function deselectGanttBar() {
+  if (_selectedBarEl) _selectedBarEl.classList.remove('bar-selected');
+  _selectedBarEl = null;
+  state.selectedBarTid = null;
+  hideBarStepCtrl(false);
+}
+
 function bindBarDrag() {
   if (_barDragBound) return;
   _barDragBound = true;
@@ -7215,16 +10657,37 @@ function bindBarDrag() {
 
   // Capture-phase pointerdown — должен сработать ДО любых click'ов на бар.
   gantt.addEventListener('pointerdown', (e) => {
-    if (!state.editMode) return;
-    if (e.button !== undefined && e.button !== 0) return; // только LMB
-    const bar = e.target.closest('.bar-plan, .bar-fact');
-    if (!bar) return;
-    // если кликнули прогресс-индикатор — игнорим
-    if (e.target.closest('.bar-plan-progress')) {
-      // оставим pass-through
+    if (!state.editMode) {
+      if (_selectedBarEl && e.pointerType === 'touch') deselectGanttBar();
+      return;
+    }
+    if (e.button !== undefined && e.button !== 0) return;
+    // ✕ delete button on pause bar — let click propagate (don't intercept here)
+    if (e.target.closest('.bar-pause-del')) return;
+    const bar = e.target.closest('.bar-plan, .bar-fact, .bar-pause');
+    if (!bar) {
+      if (_selectedBarEl && e.pointerType === 'touch') { deselectGanttBar(); }
+      return;
     }
     e.stopPropagation();
     e.preventDefault();
+
+    if (e.pointerType === 'touch') {
+      // Mobile: tap on pause → open edit modal. Tap on plan/fact → select + step controller.
+      if (bar.classList.contains('bar-pause')) {
+        const _tid = bar.getAttribute('data-tid');
+        const _pid = bar.getAttribute('data-pause-id');
+        if (_tid && _pid && typeof openTaskPauseEditForm === 'function') openTaskPauseEditForm(_tid, _pid);
+        return;
+      }
+      if (_selectedBarEl === bar) return;
+      if (_bscTid !== null) return;
+      selectGanttBar(bar);
+      showBarStepCtrl(bar);
+      return;
+    }
+    // Desktop/mouse: drag directly
+    if (_selectedBarEl) deselectGanttBar();
     startBarDrag(e, bar);
   }, true);
 
@@ -7236,6 +10699,22 @@ function bindBarDrag() {
       _dragState.suppressClick = false;
     }
   }, true);
+
+  // iOS Safari fix: non-passive touchstart prevents browser from committing to a pan-scroll
+  // gesture when finger lands on a bar in edit mode. Без этого iOS принимает решение
+  // «это скролл» на самом touchstart по touch-action: pan-x — и любой последующий
+  // preventDefault на pointerdown уже игнорируется.
+  gantt.addEventListener('touchstart', (e) => {
+    if (!state.editMode) return;
+    if (e.target.closest('.bar-pause-del')) return;
+    const bar = e.target.closest('.bar-plan, .bar-fact, .bar-pause');
+    if (bar) e.preventDefault();
+  }, { passive: false });
+
+  // iOS Safari fix: prevent gantt scroll while pointer drag is in progress.
+  gantt.addEventListener('touchmove', (e) => {
+    if (_dragState.active) e.preventDefault();
+  }, { passive: false });
 }
 
 function startBarDrag(downEv, bar) {
@@ -7243,23 +10722,41 @@ function startBarDrag(downEv, bar) {
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(tid));
   if (!t) return;
   const isFact = bar.classList.contains('bar-fact');
+  const isPause = bar.classList.contains('bar-pause');
   const cellW = state.cellW || 22;
   const rect = bar.getBoundingClientRect();
   const offsetX = downEv.clientX - rect.left;
-  // edge zones: 12px на каждом краю (мин 8 если бар маленький)
-  const edge = Math.min(12, Math.max(6, rect.width * 0.18));
+  const isTouch = downEv.pointerType === 'touch';
+  const edge = isTouch
+    ? Math.min(22, Math.max(14, rect.width * 0.28))
+    : Math.min(12, Math.max(6, rect.width * 0.18));
+  try { bar.setPointerCapture(downEv.pointerId); } catch (_) {}
   let mode = 'move';
   if (offsetX < edge) mode = 'resize-left';
   else if (offsetX > rect.width - edge) mode = 'resize-right';
 
-  // Сохраняем оригинальные значения
-  const origStartIso = isFact ? (t.actualStart || null) : (t.planStart || t.start);
-  const origEndIso   = isFact ? (t.actualEnd   || null) : (t.planEnd   || t.end);
-  // Для fact-режима resize-left невозможен если actualStart нет — fallback на move
-  if (isFact && (!origStartIso)) return; // нечего двигать
+  // For pause bars: state lives in t.pauses[i], not in t fields directly.
+  let pauseRec = null;
+  let pauseId = null;
+  let pauseBarKind = null; // 'plan' | 'actual' — какая половина у legacy 'both'
+  if (isPause) {
+    pauseId = bar.getAttribute('data-pause-id');
+    pauseBarKind = bar.getAttribute('data-bar-kind') || null;
+    pauseRec = (Array.isArray(t.pauses) ? t.pauses : []).find(p => p && p.id === pauseId);
+    if (!pauseRec || !pauseRec.from) return;
+  }
+
+  // Original values
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const origStartIso = isPause
+    ? pauseRec.from
+    : (isFact ? (t.actualStart || null) : (t.planStart || t.start));
+  const origEndIso = isPause
+    ? (pauseRec.to || todayIso) // open-ended pause renders to today; drag treats today as end
+    : (isFact ? (t.actualEnd || null) : (t.planEnd || t.end));
+  if (isFact && (!origStartIso)) return;
   if (isFact && !origEndIso && mode === 'resize-right') {
-    // running fact (без даты конца) — резайз правого края = выставляем actualEnd на сегодня + delta
-    // Разрешаем — обработаем при apply
+    // running fact — резайз правого края = выставляем actualEnd на сегодня + delta
   }
 
   const origLeft = parseFloat(bar.style.left) || 0;
@@ -7268,6 +10765,8 @@ function startBarDrag(downEv, bar) {
   bar.classList.add('is-dragging');
   bar.classList.add(`is-dragging-${mode}`);
   document.body.classList.add('is-bar-dragging');
+  // Keep gantt scroll locked for the duration of drag (deselectGanttBar may have cleared it)
+  document.getElementById('gantt')?.style.setProperty('touch-action', 'none');
 
   // Dragging hint badge (floating)
   const hint = document.createElement('div');
@@ -7295,7 +10794,7 @@ function startBarDrag(downEv, bar) {
   const updateHint = (e, deltaDays, newStart, newEnd) => {
     const arrow = deltaDays === 0 ? '' : (deltaDays > 0 ? '→ +' : '← ');
     const days = Math.abs(deltaDays);
-    const lbl = isFact ? 'Факт' : 'План';
+    const lbl = isPause ? '⏸ Пауза' : (isFact ? 'Факт' : 'План');
     let txt;
     if (mode === 'move') {
       txt = `${lbl}: ${fmtRu(newStart)} → ${fmtRu(newEnd)}`;
@@ -7360,12 +10859,70 @@ function startBarDrag(downEv, bar) {
     bar.classList.remove(`is-dragging-${mode}`);
     hint.remove();
     _dragState.active = false;
+    document.getElementById('gantt')?.style.removeProperty('touch-action');
 
     const deltaDays = lastDelta;
     if (deltaDays === 0) {
       // вернуть исходные стили
       bar.style.left = origLeft + 'px';
       bar.style.width = origWidth + 'px';
+      // Click без движения по pause → открыть модалку правки
+      if (isPause && downEv.pointerType !== 'touch') {
+        if (typeof openTaskPauseEditForm === 'function') openTaskPauseEditForm(tid, pauseId);
+      }
+      // Тач без движения = деселект (второй тап для сброса выделения)
+      if (downEv.pointerType === 'touch') deselectGanttBar();
+      return;
+    }
+
+    // PAUSE drag: persist via task:pause-edit
+    if (isPause) {
+      const wasOpen = !pauseRec.to;
+      let newFrom = pauseRec.from;
+      let newTo = pauseRec.to || null; // keep open if was open
+      if (mode === 'move') {
+        newFrom = shift(pauseRec.from, deltaDays);
+        if (!wasOpen) newTo = shift(pauseRec.to, deltaDays);
+      } else if (mode === 'resize-left') {
+        newFrom = shift(pauseRec.from, deltaDays);
+        if (!wasOpen && newFrom > pauseRec.to) newFrom = pauseRec.to;
+      } else { // resize-right
+        if (wasOpen) {
+          // Closing the pause: set 'to' = today + delta (clip to ≥ from)
+          let v = shift(todayIso, deltaDays);
+          if (v < pauseRec.from) v = pauseRec.from;
+          newTo = v;
+        } else {
+          let v = shift(pauseRec.to, deltaDays);
+          if (v < pauseRec.from) v = pauseRec.from;
+          newTo = v;
+        }
+      }
+      const inversePauseRec = { from: pauseRec.from, to: pauseRec.to || null };
+      // Если это legacy 'both' pause и юзер тащит конкретный bar (план/факт) — передаём splitKind
+      // backend split'нёт запись на 2 независимые перед apply edit.
+      const _splitKind = (pauseRec.dateType === 'both' && (pauseBarKind === 'plan' || pauseBarKind === 'actual')) ? pauseBarKind : null;
+      showToast('Сохраняю…');
+      try {
+        const r = await postDataAction('task:pause-edit', { slug: state.projectSlug, taskId: tid, pauseId, from: newFrom, to: newTo, splitKind: _splitKind });
+        if (r.schedule) state.schedule = r.schedule;
+        try { renderProjectAnalytics(); } catch (_) {}
+        deselectGanttBar();
+        renderGantt();
+        renderTasksSheet();
+        const days = Math.abs(deltaDays);
+        const arrow = deltaDays > 0 ? '+' : '−';
+        showToast(`✓ Пауза: ${arrow}${days} ${plural(days, ['день','дня','дней'])}`, { action: { label: 'Отменить', onClick: async () => {
+          const r2 = await postDataAction('task:pause-edit', { slug: state.projectSlug, taskId: tid, pauseId, from: inversePauseRec.from, to: inversePauseRec.to });
+          if (r2.schedule) state.schedule = r2.schedule;
+          renderGantt(); renderTasksSheet();
+          showToast('↶ Пауза возвращена');
+        } } });
+      } catch (err) {
+        bar.style.left = origLeft + 'px';
+        bar.style.width = origWidth + 'px';
+        showToast('Не удалось сохранить: ' + (err.message || err), 'error');
+      }
       return;
     }
 
@@ -7373,17 +10930,30 @@ function startBarDrag(downEv, bar) {
     const patch = {};
     let descParts = [];
     if (isFact) {
+      // __FACT_FUTURE_GUARD_v1__ Факт НИКОГДА не должен быть в будущем — clamp обе даты к today.
+      const _todayIso = new Date().toISOString().slice(0, 10);
       if (mode === 'move') {
-        if (origStartIso) { patch.actualStart = shift(origStartIso, deltaDays); descParts.push('факт-старт'); }
-        if (origEndIso)   { patch.actualEnd   = shift(origEndIso,   deltaDays); descParts.push('факт-финиш'); }
+        let aS = origStartIso ? shift(origStartIso, deltaDays) : null;
+        let aE = origEndIso ? shift(origEndIso, deltaDays) : null;
+        if (aS && aS > _todayIso) {
+          // Снять deltaDays чтобы actualStart = today; пересчитать actualEnd соответственно
+          const cap = (new Date(_todayIso) - new Date(origStartIso)) / 86400000;
+          aS = _todayIso;
+          aE = origEndIso ? shift(origEndIso, cap) : null;
+        }
+        if (aE && aE > _todayIso) aE = _todayIso;
+        if (aS) { patch.actualStart = aS; descParts.push('факт-старт'); }
+        if (aE) { patch.actualEnd = aE; descParts.push('факт-финиш'); }
       } else if (mode === 'resize-left') {
         let v = shift(origStartIso, deltaDays);
         if (origEndIso && v > origEndIso) v = origEndIso;
+        if (v > _todayIso) v = _todayIso;
         patch.actualStart = v; descParts.push('факт-старт');
       } else {
         const base = origEndIso || origStartIso;
         let v = shift(base, deltaDays);
         if (origStartIso && v < origStartIso) v = origStartIso;
+        if (v > _todayIso) v = _todayIso;
         patch.actualEnd = v; descParts.push('факт-финиш');
       }
     } else {
@@ -7408,16 +10978,20 @@ function startBarDrag(downEv, bar) {
 
     showToast('Сохраняю…');
     try {
-      const r = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch });
+      const r = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId: tid, patch }, { subjectName: t.name });
       if (r.schedule) state.schedule = r.schedule;
       else Object.assign(t, patch);
       try { renderProjectAnalytics(); } catch (_) {}
+      deselectGanttBar();
       renderGantt();
       renderTasksSheet();
       const days = Math.abs(deltaDays);
       const arrow = deltaDays > 0 ? '+' : '−';
-      showToast(`✓ ${descParts.join(', ')}: ${arrow}${days} ${plural(days, ['день','дня','дней'])}`, { action: { label: 'Отменить', onClick: async () => {
-        const r2 = await postDataAction('task:update', { slug: state.projectSlug, taskId: tid, patch: inversePatch });
+      const cascadeNote = (r.cascade && r.cascade.shifted && r.cascade.shifted.length)
+        ? ` · ↓ зависимых: ${r.cascade.shifted.length}`
+        : '';
+      showToast(`✓ ${descParts.join(', ')}: ${arrow}${days} ${plural(days, ['день','дня','дней'])}${cascadeNote}`, { action: { label: 'Отменить', onClick: async () => {
+        const r2 = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId: tid, patch: inversePatch }, { skipReason: true });
         if (r2.schedule) state.schedule = r2.schedule;
         else Object.assign(t, inversePatch);
         try { renderProjectAnalytics(); } catch (_) {}
@@ -7428,7 +11002,11 @@ function startBarDrag(downEv, bar) {
     } catch (e) {
       bar.style.left = origLeft + 'px';
       bar.style.width = origWidth + 'px';
-      showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+      if (e.cancelled) {
+        showToast('↶ Откат — причина не указана');
+      } else {
+        showToast('Не удалось сохранить: ' + (e.message || e), 'error');
+      }
     }
   };
 
@@ -7436,6 +11014,180 @@ function startBarDrag(downEv, bar) {
   document.addEventListener('pointerup', onUp);
   document.addEventListener('pointercancel', onUp);
 }
+
+// ─── Mobile bar step controller ───────────────────────────────────────────────
+let _bscTid = null, _bscIsFact = false;
+let _bscOrigStart = null, _bscOrigEnd = null;
+let _bscDeltaStart = 0, _bscDeltaEnd = 0;
+let _bscBarOrigLeft = 0, _bscBarOrigWidth = 0;
+
+const _bscShift = (iso, d) => {
+  if (!iso) return iso;
+  const dt = new Date(iso + 'T00:00:00Z');
+  dt.setUTCDate(dt.getUTCDate() + d);
+  return dt.toISOString().slice(0, 10);
+};
+const _bscFmt = (iso) => iso
+  ? new Date(iso + 'T00:00:00Z').toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', timeZone: 'UTC' })
+  : '—';
+
+function showBarStepCtrl(bar) {
+  const tid = bar.getAttribute('data-tid');
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(tid));
+  if (!t) return;
+  _bscTid = tid;
+  _bscIsFact = bar.classList.contains('bar-fact');
+  _bscOrigStart = _bscIsFact ? (t.actualStart || null) : (t.planStart || t.start || null);
+  _bscOrigEnd   = _bscIsFact ? (t.actualEnd   || null) : (t.planEnd   || t.end   || null);
+  _bscDeltaStart = 0;
+  _bscDeltaEnd   = 0;
+  _bscBarOrigLeft  = parseFloat(bar.style.left)  || 0;
+  _bscBarOrigWidth = parseFloat(bar.style.width) || 0;
+  _bscUpdateDisplay();
+  const ctrl = document.getElementById('bar-step-ctrl');
+  if (ctrl) ctrl.hidden = false;
+}
+
+function hideBarStepCtrl(restoreVisual) {
+  const ctrl = document.getElementById('bar-step-ctrl');
+  if (ctrl) ctrl.hidden = true;
+  if (restoreVisual && _selectedBarEl) {
+    _selectedBarEl.style.left  = _bscBarOrigLeft  + 'px';
+    _selectedBarEl.style.width = _bscBarOrigWidth + 'px';
+  }
+  _bscTid = null;
+}
+
+function _bscUpdateDisplay() {
+  const curStart = _bscOrigStart ? _bscShift(_bscOrigStart, _bscDeltaStart) : null;
+  const curEnd   = _bscOrigEnd   ? _bscShift(_bscOrigEnd,   _bscDeltaEnd)   : null;
+  const startEl = document.getElementById('bsc-start');
+  const endEl   = document.getElementById('bsc-end');
+  if (startEl) startEl.textContent = _bscFmt(curStart);
+  if (endEl)   endEl.textContent   = _bscFmt(curEnd);
+  if (_selectedBarEl) {
+    const cw = state.cellW || 22;
+    _selectedBarEl.style.left  = (_bscBarOrigLeft + _bscDeltaStart * cw) + 'px';
+    _selectedBarEl.style.width = (_bscBarOrigWidth + (_bscDeltaEnd - _bscDeltaStart) * cw) + 'px';
+  }
+}
+
+function _bscStep(action) {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const curStart = _bscOrigStart ? _bscShift(_bscOrigStart, _bscDeltaStart) : null;
+  const curEnd   = _bscOrigEnd   ? _bscShift(_bscOrigEnd,   _bscDeltaEnd)   : null;
+  if (action === 'start-dec') {
+    _bscDeltaStart -= 1;
+  } else if (action === 'start-inc') {
+    const newStart = _bscOrigStart ? _bscShift(_bscOrigStart, _bscDeltaStart + 1) : null;
+    if (newStart && curEnd && newStart > curEnd) return; // разрешаем start == end (однодневная задача)
+    _bscDeltaStart += 1;
+  } else if (action === 'end-dec') {
+    const newEnd = _bscOrigEnd ? _bscShift(_bscOrigEnd, _bscDeltaEnd - 1) : null;
+    if (newEnd && curStart && newEnd < curStart) return; // разрешаем end == start
+    _bscDeltaEnd -= 1;
+  } else if (action === 'end-inc') {
+    if (_bscIsFact) {
+      const newEnd = _bscOrigEnd
+        ? _bscShift(_bscOrigEnd, _bscDeltaEnd + 1)
+        : _bscShift(todayIso, _bscDeltaEnd + 1);
+      if (newEnd > todayIso) { showToast('Нельзя ставить дату окончания в будущем', 'error'); return; }
+    }
+    _bscDeltaEnd += 1;
+  }
+  _bscUpdateDisplay();
+  try { window.navigator.vibrate?.(6); } catch (_) {}
+}
+
+async function _bscSave() {
+  if (!_bscTid) { deselectGanttBar(); return; }
+  if (_bscDeltaStart === 0 && _bscDeltaEnd === 0) { hideBarStepCtrl(false); deselectGanttBar(); return; }
+  const t = (state.schedule?.tasks || []).find(x => String(x.id) === String(_bscTid));
+  if (!t) { deselectGanttBar(); return; }
+  const patch = {};
+  if (_bscIsFact) {
+    if (_bscDeltaStart !== 0 && _bscOrigStart) patch.actualStart = _bscShift(_bscOrigStart, _bscDeltaStart);
+    if (_bscDeltaEnd !== 0) {
+      const base = _bscOrigEnd || new Date().toISOString().slice(0, 10);
+      patch.actualEnd = _bscShift(base, _bscDeltaEnd);
+    }
+  } else {
+    if (_bscDeltaStart !== 0 && _bscOrigStart) patch.planStart = _bscShift(_bscOrigStart, _bscDeltaStart);
+    if (_bscDeltaEnd !== 0   && _bscOrigEnd)   patch.planEnd   = _bscShift(_bscOrigEnd,   _bscDeltaEnd);
+  }
+  if (!Object.keys(patch).length) { hideBarStepCtrl(false); deselectGanttBar(); return; }
+  const inversePatch = {};
+  for (const k of Object.keys(patch)) inversePatch[k] = t[k] || null;
+  const savedTid = _bscTid;
+  hideBarStepCtrl(false);
+  deselectGanttBar();
+  showToast('Сохраняю…');
+  try {
+    const r = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId: savedTid, patch }, { subjectName: t.name });
+    if (r.schedule) state.schedule = r.schedule;
+    else Object.assign(t, patch);
+    try { renderProjectAnalytics(); } catch (_) {}
+    renderGantt();
+    renderTasksSheet();
+    showToast('✓ Даты обновлены', { action: { label: 'Отменить', onClick: async () => {
+      const r2 = await taskUpdateMaybeReason({ slug: state.projectSlug, taskId: savedTid, patch: inversePatch }, { skipReason: true });
+      if (r2.schedule) state.schedule = r2.schedule;
+      else Object.assign(t, inversePatch);
+      try { renderProjectAnalytics(); } catch (_) {}
+      renderGantt(); renderTasksSheet();
+      showToast('↶ Даты возвращены');
+    }} });
+  } catch (e) {
+    try { renderGantt(); } catch (_) {}
+    try { renderTasksSheet(); } catch (_) {}
+    if (e.cancelled) {
+      showToast('↶ Откат — причина не указана');
+    } else {
+      try { window.navigator.vibrate?.([40, 60, 40]); } catch (_) {}
+      showToast('⚠ НЕ сохранилось: ' + (e.message || e) + ' · попробуй ещё раз', { level: 'error', action: { label: 'Понял', onClick: () => {} } });
+    }
+  }
+}
+
+let _bscBound = false;
+function bindBarStepCtrl() {
+  if (_bscBound) return;
+  _bscBound = true;
+  if (!document.getElementById('bar-step-ctrl')) {
+    const el = document.createElement('div');
+    el.id = 'bar-step-ctrl';
+    el.className = 'bar-step-ctrl';
+    el.hidden = true;
+    el.innerHTML = `
+      <div class="bsc-col">
+        <div class="bsc-label">Старт</div>
+        <div class="bsc-row">
+          <button class="bsc-btn" data-bsc="start-dec">◀</button>
+          <span class="bsc-val" id="bsc-start">—</span>
+          <button class="bsc-btn" data-bsc="start-inc">▶</button>
+        </div>
+      </div>
+      <div class="bsc-sep"></div>
+      <div class="bsc-col">
+        <div class="bsc-label">Финиш</div>
+        <div class="bsc-row">
+          <button class="bsc-btn" data-bsc="end-dec">◀</button>
+          <span class="bsc-val" id="bsc-end">—</span>
+          <button class="bsc-btn" data-bsc="end-inc">▶</button>
+        </div>
+      </div>
+      <button class="bsc-save" id="bsc-save">✓</button>
+      <button class="bsc-close" id="bsc-cancel">✕</button>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('bar-step-ctrl').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-bsc]');
+    if (btn) { _bscStep(btn.dataset.bsc); return; }
+    if (e.target.id === 'bsc-save')   { _bscSave(); return; }
+    if (e.target.id === 'bsc-cancel') { hideBarStepCtrl(true); deselectGanttBar(); }
+  });
+}
+// ──────────────────────────────────────────────────────────────────────────────
 
 let _kpBoundOnce = false;
 function bindKpPopover() {

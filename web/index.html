@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f97316" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Orange Group Office · График работ · CYFR</title>
   <meta name="description" content="График отделочных работ Orange Group Office — CYFR FITOUT L.L.C" />
   <link rel="icon" type="image/svg+xml" href="/assets/cyfr-logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/styles.css?v=202605080600" />
   <script>
     // Применить тему до рендера (избежать FOUC)
     try {
@@ -24,13 +28,13 @@
   <div class="page">
     <!-- Top bar -->
     <header class="top-bar">
-      <div class="brand">
+      <a class="brand" href="/" title="К списку проектов" aria-label="К списку проектов">
         <img src="/assets/cyfr-logo.svg" alt="CYFR" class="brand-mark" />
         <div class="brand-text">
           <div class="brand-name">CYFR</div>
           <div class="brand-tag">Отделочные работы · Дубай</div>
         </div>
-      </div>
+      </a>
       <nav class="top-nav">
         <a class="top-nav-link active" href="#">График</a>
         <a class="top-nav-link" href="https://cyfr.ae" target="_blank" rel="noopener">cyfr.ae →</a>
@@ -48,6 +52,27 @@
               <div class="admin-dropdown-text">
                 <div class="admin-dropdown-name">Применить конспект встречи</div>
                 <div class="admin-dropdown-desc">Read.ai → анализ → дополнение тикетов</div>
+              </div>
+            </button>
+            <button type="button" class="admin-dropdown-item" data-admin-action="team">
+              <span class="admin-dropdown-ico" aria-hidden="true">👥</span>
+              <div class="admin-dropdown-text">
+                <div class="admin-dropdown-name">Команда / Ответственные</div>
+                <div class="admin-dropdown-desc">Добавить/удалить пользователей с Telegram ID</div>
+              </div>
+            </button>
+            <button type="button" class="admin-dropdown-item" data-admin-action="worker-blackbox">
+              <span class="admin-dropdown-ico" aria-hidden="true">🔇</span>
+              <div class="admin-dropdown-text">
+                <div class="admin-dropdown-name">Чат рабочих (чёрный ящик)</div>
+                <div class="admin-dropdown-desc">Голосовые/текст рабочих с переводом и AI-аналитикой</div>
+              </div>
+            </button>
+            <button type="button" class="admin-dropdown-item admin-dropdown-item--danger" data-admin-action="reset-project">
+              <span class="admin-dropdown-ico" aria-hidden="true">↺</span>
+              <div class="admin-dropdown-text">
+                <div class="admin-dropdown-name">Сбросить проект</div>
+                <div class="admin-dropdown-desc">Вернуть к состоянию на момент создания (отменить ВСЕ правки)</div>
               </div>
             </button>
             <button type="button" class="admin-dropdown-item admin-dropdown-item--danger" data-admin-action="delete-project">
@@ -69,6 +94,7 @@
         <h1 class="hero-title" id="hero-title">Загрузка…</h1>
         <p class="hero-sub" id="hero-sub">Отделочные работы</p>
         <div class="hero-updated" id="hero-updated" aria-live="polite"></div>
+        <div class="project-state-zone" id="project-state-zone"></div>
       </div>
       <div class="hero-stats">
         <button type="button" class="stat" data-stat="total" aria-label="Детали по стоимости">
@@ -174,6 +200,9 @@
     <!-- Resource heatmap (toggle) -->
     <section class="resource-heatmap" id="resource-heatmap" hidden></section>
 
+    <!-- Stages bar (видна только в режиме Правка, рендерится из app.js → renderStagesBar) -->
+    <div id="stages-bar-host" class="stages-bar-host"></div>
+
     <!-- Gantt -->
     <section class="gantt-wrap">
       <div class="gantt" id="gantt">
@@ -235,12 +264,15 @@
     <aside class="tasks-sheet-panel" role="dialog" aria-modal="true" aria-label="Все виды работ">
       <div class="tasks-sheet-head">
         <div class="tasks-sheet-title">Виды работ</div>
-        <button class="tasks-sheet-close" data-tasks-close aria-label="Закрыть">×</button>
+        <div class="tasks-sheet-head-actions">
+          <button type="button" class="tasks-sheet-done" id="tasks-sheet-done">✓ Готово</button>
+          <button class="tasks-sheet-close" data-tasks-close aria-label="Закрыть">×</button>
+        </div>
       </div>
       <div class="tasks-sheet-body" id="tasks-sheet-body"></div>
     </aside>
   </div>
 
-  <script src="/app.js" type="module"></script>
+  <script src="/app.js?v=202605080600" type="module"></script>
 </body>
 </html>
