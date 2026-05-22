@@ -4663,6 +4663,14 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
+    },
+    {
+      "id": "50",
+      "name": "__zzz_test_work__",
+      "section": "zzz-bot-test",
+      "stage": "ST1",
+      "planStart": "2026-07-01",
+      "planEnd": "2026-07-05"
     }
   ],
   "history": [
