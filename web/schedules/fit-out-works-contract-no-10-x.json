@@ -4666,11 +4666,44 @@
     },
     {
       "id": "50",
-      "name": "__zzz_test_work__",
+      "name": "__zzz_renamed__",
       "section": "zzz-bot-test",
       "stage": "ST1",
       "planStart": "2026-07-01",
-      "planEnd": "2026-07-05"
+      "planEnd": "2026-07-05",
+      "history": [
+        {
+          "type": "rename_task",
+          "by": "bot",
+          "at": "2026-05-22T05:10:59.270Z",
+          "before": {
+            "planStart": "2026-07-01",
+            "planEnd": "2026-07-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "__zzz_test_work__",
+            "section": "zzz-bot-test",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-01",
+            "planEnd": "2026-07-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "__zzz_renamed__",
+            "section": "zzz-bot-test",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "name"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "name=__zzz_renamed__"
+        }
+      ]
     }
   ],
   "history": [
