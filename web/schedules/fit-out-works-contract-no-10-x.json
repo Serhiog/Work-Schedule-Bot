@@ -114,6 +114,11 @@
       "name": "Мебель",
       "color": "#eab308",
       "sub": true
+    },
+    {
+      "id": "zzz-bot-test",
+      "name": "__ZZZ_BOT_TEST__",
+      "color": "#94a3b8"
     }
   ],
   "stages": [
