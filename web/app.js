@@ -2262,35 +2262,20 @@ function askReason({ title = 'Укажи причину', sub = '', presets = []
   });
 }
 
-/* Fetch last meaningful commit for this schedule from GitHub API.
- * GitHub /commits?path=... не следует за переименованиями, поэтому для
- * orange-1801 (переехал из web/schedule.json) опрашиваем оба пути и мержим. */
+/* Последний осмысленный коммит schedule — берём ЧЕРЕЗ наш сервер (/api/last-commit),
+ * чтобы браузер не ходил в api.github.com напрямую. С GitHub теперь говорит только сервер. */
 async function fetchLastCommit(slug) {
   if (!slug) return null;
-  const paths = [`web/schedules/${slug}.json`];
-  if (slug === 'orange-1801') paths.push('web/schedule.json');
   try {
-    const results = await Promise.all(paths.map(async (p) => {
-      const u = `https://api.github.com/repos/Serhiog/Work-Schedule-Bot/commits?path=${encodeURIComponent(p)}&per_page=10`;
-      const r = await fetch(u, { headers: { 'Accept': 'application/vnd.github+json' } });
-      if (!r.ok) return [];
-      const arr = await r.json();
-      return Array.isArray(arr) ? arr : [];
-    }));
-    const all = results.flat();
-    if (all.length === 0) return null;
-    // Сортируем по дате автора desc
-    all.sort((a, b) => new Date(b.commit?.author?.date || 0) - new Date(a.commit?.author?.date || 0));
-    const pick = all.find((c) => /^bot:/i.test(String(c?.commit?.message || ''))) ||
-                 all.find((c) => !/^(chore|Merge)/i.test(String(c?.commit?.message || ''))) ||
-                 all[0];
-    const commit = pick?.commit;
-    if (!commit) return null;
-    const msgLine = String(commit.message || '').split('\n')[0].replace(/^bot:\s*/i, '');
+    const r = await fetch(`/api/last-commit?slug=${encodeURIComponent(slug)}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const c = j && j.commit;
+    if (!c || !c.date) return null;
     return {
-      date: new Date(commit.author?.date || commit.committer?.date),
-      author: commit.author?.name || commit.committer?.name || 'Bot',
-      message: msgLine,
+      date: new Date(c.date),
+      author: c.author || 'Bot',
+      message: c.message || '',
     };
   } catch (e) {
     return null;
