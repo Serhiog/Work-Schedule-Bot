@@ -14,7 +14,10 @@
 const $ = (sel) => document.querySelector(sel);
 const DAY_MS = 86400000;
 
-const MOBILE_MQ = window.matchMedia('(max-width: 720px)');
+// «Мобильная» раскладка = узкий экран ИЛИ низкий (телефон в ландшафте: ширина >720, но высота мала).
+// Иначе телефон в горизонтали попадал в desktop-раскладку с вложенным скроллом → залипание шапки
+// не снималось на iOS. Единый одно-скролльный layout для обеих ориентаций. __MOBILE_LANDSCAPE_FIX__
+const MOBILE_MQ = window.matchMedia('(max-width: 720px), (max-height: 500px)');
 const isMobile = () => MOBILE_MQ.matches;
 const CELL_BASE = 22;
 const CELL_MIN = 4;
@@ -2730,8 +2733,9 @@ function renderGantt() {
         const running = !t.actualEnd;
         const hasPause = Array.isArray(t.pauses) && t.pauses.length > 0;
         const hasOpenPause = hasPause && t.pauses.some(p => p && !p.to);
-        factHtml = `<div class="bar-fact${light ? ' light' : ''}${running ? ' running' : ''}${hasOpenPause ? ' paused' : ''}" style="left:${aLeft}px; --bar-left:${aLeft}px; width:${aWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="Факт: ${escapeHtml(fmtDate(aStart))} — ${t.actualEnd ? escapeHtml(fmtDate(t.actualEnd)) : (hasOpenPause ? 'на паузе' : 'в работе')}">
-          ${escapeHtml(t.name)}
+        factHtml = `<div class="bar-fact${light ? ' light' : ''}${running ? ' running' : ''}${hasOpenPause ? ' paused' : ''}" style="left:${aLeft}px; --bar-left:${aLeft}px; width:${aWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="Факт: ${escapeHtml(fmtDate(aStart))} — ${t.actualEnd ? escapeHtml(fmtDate(t.actualEnd)) : (hasOpenPause ? 'на паузе' : 'в работе')} · ${aDur} ${daysWord(aDur)}">
+          <span class="bar-fact-text">${escapeHtml(t.name)}</span>
+          <span class="bar-days" aria-hidden="true">${aDur}d</span>
         </div>`;
       }
 
@@ -2841,9 +2845,10 @@ function renderGantt() {
       const progFill = prog > 0 ? `<div class="bar-plan-progress" style="width:${progPct}%; background:${bTop}" aria-hidden="true"></div>` : '';
       const ticketBadge = buildTaskTicketBadge(t.id, pLeft, pWidth, { todayD, start, cellW, pStart, pEnd });
       body += `<div class="task-grid${hidden}${critCls}${matRiskCls}" data-tid="${t.id}" data-section-id="${secId}" style="width:${gridW}px; background-image: ${stripeBg ? stripeBg + ', ' : ''}linear-gradient(to right, var(--line-2) 1px, transparent 1px); background-size: auto, ${cellW}px 100%;">
-        <div class="bar-plan${light ? ' light' : ''}" style="left:${pLeft}px; --bar-left:${pLeft}px; width:${pWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="План: ${escapeHtml(fmtDate(pStart))} — ${escapeHtml(fmtDate(pEnd))} · ${progPct}%">
+        <div class="bar-plan${light ? ' light' : ''}" style="left:${pLeft}px; --bar-left:${pLeft}px; width:${pWidth}px; --b-top:${bTop}; --b-bot:${bBot};" data-tid="${t.id}" title="План: ${escapeHtml(fmtDate(pStart))} — ${escapeHtml(fmtDate(pEnd))} · ${pDur} ${daysWord(pDur)} · ${progPct}%">
           ${progFill}
           <span class="bar-plan-text">${escapeHtml(t.name)}</span>
+          <span class="bar-days" aria-hidden="true">${pDur}d</span>
         </div>
         ${factHtml}
         ${pauseHtml}
@@ -2934,6 +2939,9 @@ function renderGantt() {
       toggle();
     });
     el.addEventListener('keydown', (e) => {
+      // Печатаем в инлайн-инпуте (переименование раздела) — не перехватывать пробел/Enter,
+      // иначе пробел блокируется и раздел сворачивается. __SECTION_RENAME_SPACE_FIX__
+      if (e.target.closest('input, textarea') || e.target.isContentEditable) return;
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
     });
   });
@@ -2993,7 +3001,7 @@ function setupFloatingMobileDates() {
     window._floatingDatesCleanup();
     window._floatingDatesCleanup = null;
   }
-  if (window.innerWidth > 768) return;
+  if (!isMobile()) return; // и портрет (≤720), и ландшафт телефона (низкая высота) __MOBILE_LANDSCAPE_FIX__
 
   const gantt = $('#gantt');
   if (!gantt) return;

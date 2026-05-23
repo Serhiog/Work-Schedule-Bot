@@ -876,7 +876,7 @@ body.is-edit-mode .bar-plan-text,
 body.is-edit-mode .bar-plan > *,
 body.is-edit-mode .bar-fact > * { pointer-events: none; touch-action: none; }
 /* Visible drag-handles on bar edges (mobile edit-mode) — easier to grab with finger */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   body.is-edit-mode .bar-plan,
   body.is-edit-mode .bar-fact {
     height: 26px;
@@ -977,13 +977,33 @@ body.is-edit-mode .bar-fact > * { pointer-events: none; touch-action: none; }
   transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
 }
-.bar-plan-text {
+.bar-plan-text,
+.bar-fact-text {
   position: relative;
   z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Длительность работы — «12d» у правого конца полосы. План: число дней статично.
+   Факт: реальное число дней. __BAR_DAYS_BADGE__ */
+.bar-days {
+  position: relative;
+  z-index: 5; /* выше паузы (z-index:4), чтобы число всегда читалось */
+  flex: 0 0 auto;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.34);
+}
+.bar-fact .bar-days { background: rgba(0,0,0,0.22); color: #fff; }
 
 /* Fact (actual) bar — bottom row: solid vertical gradient, clear shadow =
    reads as "actually built". Distinction from plan is dashed vs solid
@@ -1032,16 +1052,17 @@ body.is-edit-mode .bar-fact > * { pointer-events: none; touch-action: none; }
   z-index: 4;
   pointer-events: auto;
   cursor: help;
-  /* Diagonal stripes pattern */
+  /* Diagonal stripes — ПОЛУПРОЗРАЧНЫЕ, чтобы пауза не перекрывала полосу/длительность,
+     но оставалась хорошо видна. __PAUSE_TRANSLUCENT__ */
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(120, 113, 108, 0.86) 0px,
-      rgba(120, 113, 108, 0.86) 5px,
-      rgba(231, 229, 228, 0.92) 5px,
-      rgba(231, 229, 228, 0.92) 10px
+      rgba(87, 83, 78, 0.55) 0px,
+      rgba(87, 83, 78, 0.55) 5px,
+      rgba(231, 229, 228, 0.45) 5px,
+      rgba(231, 229, 228, 0.45) 10px
     );
-  border: 1px solid rgba(68, 64, 60, 0.7);
+  border: 1px solid rgba(68, 64, 60, 0.55);
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   display: flex;
   align-items: center;
@@ -1053,12 +1074,12 @@ body.is-edit-mode .bar-fact > * { pointer-events: none; touch-action: none; }
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(217, 119, 6, 0.9) 0px,
-      rgba(217, 119, 6, 0.9) 5px,
-      rgba(254, 243, 199, 0.95) 5px,
-      rgba(254, 243, 199, 0.95) 10px
+      rgba(217, 119, 6, 0.6) 0px,
+      rgba(217, 119, 6, 0.6) 5px,
+      rgba(254, 243, 199, 0.5) 5px,
+      rgba(254, 243, 199, 0.5) 10px
     );
-  border-color: rgba(180, 83, 9, 0.8);
+  border-color: rgba(180, 83, 9, 0.65);
 }
 /* Pause-overlay aligned with PLAN bar (top: 4px) */
 .bar-pause--plan { top: 4px; }
@@ -1792,7 +1813,7 @@ body.is-edit-mode .bar-pause:hover { box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.6
   line-height: 1;
   transition: transform 200ms ease;
 }
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .top-fab { width: 40px; height: 40px; left: 20px; bottom: 76px; }
 }
 
@@ -2079,7 +2100,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   .hero { grid-template-columns: 1fr; }
   .hero-stats { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .gantt-wrap { margin-left: -12px; margin-right: -12px; }
   .page { padding: 14px 12px 0; }
   .top-bar { padding: 2px 0 10px; margin-bottom: 12px; }
@@ -4541,7 +4562,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   font-size: 11px;
   font-feature-settings: "tnum";
 }
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .mat-task-card { padding: 10px 12px; }
   .mat-task-card-head { flex-direction: column; align-items: stretch; gap: 6px; }
   .mat-task-card-deadline { align-self: flex-start; }
@@ -4639,7 +4660,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   font-size: 11px;
   color: var(--muted);
 }
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .materials-alert-banner { padding: 8px 10px; margin: 6px -8px 8px; }
   .mat-alert-deadline { width: 100%; margin-left: 0; }
 }
@@ -5266,7 +5287,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
    сдвинуты на 110px относительно day-cells Гантта и пин-колонка показывает
    подсветку на разных вертикалях. JS уже выставляет --rh-label-w=110px;
    тут просто компактим внутренности под 110px. */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .rh-row-label {
     padding: 4px 6px;
     font-size: 10px;
@@ -6572,7 +6593,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
 .report-btn-next:hover { box-shadow: 0 5px 14px rgba(37, 99, 235, 0.40); transform: translateY(-1px); }
 
 /* Mobile */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .report-panel {
     width: 100%;
     height: 100%;
@@ -6994,7 +7015,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   color: #94a3b8;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .report-result-actions { flex-direction: column; }
   .report-result-btn, .report-result-btn--ghost { width: 100%; }
   .report-result-html { max-height: 320px; padding: 14px 16px; }
@@ -7077,7 +7098,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
 }
 /* Mobile: nested scroll внутри drawer плохо работает на iOS — отдаём скролл
    самому drawer'у, а список тянется на всю длину. */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .dep-rows {
     max-height: none;
     overflow-y: visible;
@@ -7260,7 +7281,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   from { opacity: 0; transform: translateX(-4px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .task-tip { display: none !important; }
   /* Edit-mode кнопки на мобильной — увеличить до 32×32px (Apple touch target) */
   .row-edit-btn, .row-del-btn, .row-dates-btn,
@@ -7567,7 +7588,7 @@ body:has(.bar-step-ctrl:not([hidden])) .app-toast {
   bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   .inline-edit-input { width: 180px; }
   .edit-form-overlay {
     padding: 8px;
@@ -9057,7 +9078,7 @@ body.is-edit-mode #hero-title[data-edit-project-name]:hover {
 }
 
 /* iOS Safari: input < 16px → auto-zoom при focus. Все text-like inputs ≥ 16px. */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   input[type="text"],
   input[type="search"],
   input[type="number"],
@@ -9093,7 +9114,7 @@ body.is-edit-mode #hero-title[data-edit-project-name]:hover {
 
 /* __MOBILE_HARDENING_v2__ iOS auto-zoom guard для date/time inputs. Дата/время в модалках
    часто выпадали из правила выше потому что класс другой. Явно покрываем. */
-@media (max-width: 720px) {
+@media (max-width: 720px), (max-height: 500px) {
   input[type="date"], input[type="time"], input[type="datetime-local"] {
     font-size: 16px !important;
     min-height: 36px;
