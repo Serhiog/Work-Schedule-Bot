@@ -443,6 +443,22 @@
           "reason": null,
           "planning": true,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T15:57:08.899Z",
+          "reason": "10% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.1,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Сантехника черновая» → 10%"
         }
       ],
       "pauses": [
@@ -455,7 +471,8 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0
+      "progress": 0.1,
+      "actualStart": "2026-05-23"
     },
     {
       "id": "2",
@@ -701,6 +718,22 @@
           "reason": null,
           "planning": true,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T15:57:08.899Z",
+          "reason": "20% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.2,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Электрика черновая» → 20%"
         }
       ],
       "pauses": [
@@ -713,7 +746,8 @@
           "at": "2026-05-20T16:59:50.455Z"
         }
       ],
-      "progress": 0
+      "progress": 0.2,
+      "actualStart": "2026-05-23"
     },
     {
       "id": "4",
@@ -1660,9 +1694,25 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T15:57:08.899Z",
+          "reason": "30% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.3,
+            "actualStart": "2026-05-18"
+          },
+          "summary": "прогресс «Демонтажные работы» → 30%"
         }
       ],
-      "progress": 0,
+      "progress": 0.3,
       "actualStart": "2026-05-18"
     },
     {
