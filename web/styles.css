@@ -55,8 +55,8 @@
   --bg: #0d1118;
   --card: #161c27;
   --cell: #1a2030;
-  --weekend: #131a2a;
-  --holiday: #2d1f1a;
+  --weekend: #20304f;
+  --holiday: #46301c;
   --today: #4a3d00;
   --surface: #1a2030;
   --surface-2: #151b26;
@@ -66,8 +66,8 @@
   --input-border: #3a465d;
   --overlay: rgba(0, 0, 0, 0.7);
   --scrollbar: #2d3648;
-  --stripe-weekend: rgba(255, 255, 255, 0.025);
-  --stripe-holiday: rgba(220, 100, 60, 0.10);
+  --stripe-weekend: rgba(120, 160, 230, 0.16);
+  --stripe-holiday: rgba(245, 158, 11, 0.24);
   --stripe-today:   rgba(245, 158, 11, 0.12);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 6px 20px -8px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.35);
@@ -1935,8 +1935,11 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
 .tasks-sheet-close:hover { background: var(--line); color: var(--ink); }
 [data-theme="dark"] .tasks-sheet-close { background: var(--surface-2); color: var(--ink-2); }
 .tasks-sheet-body {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0; /* иначе в коротком (ландшафт телефона) viewport список не скроллится и обрезается __TASKS_SHEET_SCROLL_FIX__ */
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 10px 0 20px;
 }
 .tasks-sheet-section {
