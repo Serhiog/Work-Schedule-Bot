@@ -150,8 +150,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-23",
-      "planEnd": "2026-06-06",
+      "planStart": "2026-05-25",
+      "planEnd": "2026-06-08",
       "history": [
         {
           "type": "set_dates",
@@ -605,6 +605,20 @@
           "reason": "откат тестового аудио-ответа",
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "at": "2026-05-23T16:53:53.120Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "начинаем 25 мая",
+          "before": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-06"
+          },
+          "after": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08"
+          }
         }
       ],
       "pauses": [
@@ -628,8 +642,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-23",
-      "planEnd": "2026-06-11",
+      "planStart": "2026-05-25",
+      "planEnd": "2026-06-13",
       "history": [
         {
           "type": "set_dates",
@@ -1006,6 +1020,20 @@
           "reason": "откат тестового аудио-ответа",
           "planning": false,
           "summary": "planStart=2026-05-23, planEnd=2026-06-11"
+        },
+        {
+          "at": "2026-05-23T16:53:53.120Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "начинаем 25 мая",
+          "before": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-11"
+          },
+          "after": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-13"
+          }
         }
       ],
       "pauses": [
