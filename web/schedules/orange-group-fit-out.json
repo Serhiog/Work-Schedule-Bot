@@ -2,7 +2,7 @@
   "project": {
     "slug": "orange-group-fit-out",
     "code": "ORANGE-GRO",
-    "name": "ORANGE GROUP fit-out",
+    "name": "Тестовый проект",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "ORANGE GROUP BUYING AND SELLING OF REAL ESTATE CO. L.L.C.",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-12-28",
     "durationDays": 196,
     "contractEndDate": "2026-10-26",
-    "lastUpdated": "2026-05-08T16:27:53.117Z",
-    "lastUpdatedBy": "Foreman test",
+    "lastUpdated": "2026-05-23T16:52:55.335Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
