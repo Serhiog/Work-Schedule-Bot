@@ -4658,6 +4658,15 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
+    },
+    {
+      "id": "50",
+      "name": "ЗЗЗ_РАНТАЙМ_ТЕСТ",
+      "section": "demolition",
+      "stage": "ST1",
+      "planStart": "2026-05-23",
+      "planEnd": "2026-05-25",
+      "sub": false
     }
   ],
   "history": [
