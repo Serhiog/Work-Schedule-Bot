@@ -151,7 +151,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 10,
       "planStart": "2026-05-23",
-      "planEnd": "2026-06-07",
+      "planEnd": "2026-06-06",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -364,6 +364,37 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-06-07"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.203Z",
+          "before": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-07",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-06-06"
         }
       ],
       "pauses": [
@@ -851,8 +882,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-11-08",
-      "planEnd": "2026-11-22",
+      "planStart": "2026-11-07",
+      "planEnd": "2026-11-21",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1212,6 +1243,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-11-08",
+            "planEnd": "2026-11-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-07",
+            "planEnd": "2026-11-21",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -1728,8 +1793,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 14,
-      "planStart": "2026-06-07",
-      "planEnd": "2026-07-10",
+      "planStart": "2026-06-06",
+      "planEnd": "2026-07-09",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1926,6 +1991,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-06-07",
+            "planEnd": "2026-07-10",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-07-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -1938,8 +2037,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-09-18",
-      "planEnd": "2026-10-16",
+      "planStart": "2026-09-17",
+      "planEnd": "2026-10-15",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2263,6 +2362,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-09-18",
+            "planEnd": "2026-10-16",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-17",
+            "planEnd": "2026-10-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -2275,8 +2408,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-06-07",
-      "planEnd": "2026-06-12",
+      "planStart": "2026-06-06",
+      "planEnd": "2026-06-11",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2570,6 +2703,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-06-07",
+            "planEnd": "2026-06-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -2582,8 +2749,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 3,
-      "planStart": "2026-07-05",
-      "planEnd": "2026-07-17",
+      "planStart": "2026-07-04",
+      "planEnd": "2026-07-16",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2877,6 +3044,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-07-05",
+            "planEnd": "2026-07-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-04",
+            "planEnd": "2026-07-16",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -2889,8 +3090,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-09",
-      "planEnd": "2026-08-28",
+      "planStart": "2026-08-08",
+      "planEnd": "2026-08-27",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3119,6 +3320,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-08-09",
+            "planEnd": "2026-08-28",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -3131,8 +3366,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-10-18",
-      "planEnd": "2026-10-30",
+      "planStart": "2026-10-17",
+      "planEnd": "2026-10-29",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3489,6 +3724,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-10-18",
+            "planEnd": "2026-10-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-17",
+            "planEnd": "2026-10-29",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -3501,8 +3770,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-19",
-      "planEnd": "2026-09-18",
+      "planStart": "2026-07-18",
+      "planEnd": "2026-09-17",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3920,6 +4189,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-07-19",
+            "planEnd": "2026-09-18",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-18",
+            "planEnd": "2026-09-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -3932,8 +4235,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-11-25",
-      "planEnd": "2026-12-04",
+      "planStart": "2026-11-24",
+      "planEnd": "2026-12-03",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4356,6 +4659,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-11-25",
+            "planEnd": "2026-12-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-24",
+            "planEnd": "2026-12-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -4368,8 +4705,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-11-01",
-      "planEnd": "2026-11-07",
+      "planStart": "2026-10-31",
+      "planEnd": "2026-11-06",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4695,6 +5032,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-11-01",
+            "planEnd": "2026-11-07",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-31",
+            "planEnd": "2026-11-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
@@ -4786,8 +5157,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-18",
-      "planEnd": "2026-11-06",
+      "planStart": "2026-10-17",
+      "planEnd": "2026-11-05",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5016,6 +5387,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": 1,
           "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-10-18",
+            "planEnd": "2026-11-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-17",
+            "planEnd": "2026-11-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
         }
       ]
     },
