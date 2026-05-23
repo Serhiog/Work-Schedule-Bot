@@ -1919,10 +1919,41 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-21"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:11:56.825Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-21",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-19",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-19"
         }
       ],
       "progress": 0.7,
-      "actualStart": "2026-05-21"
+      "actualStart": "2026-05-19"
     },
     {
       "id": "12",
