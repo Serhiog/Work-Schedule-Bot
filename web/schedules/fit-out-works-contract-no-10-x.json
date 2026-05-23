@@ -540,6 +540,38 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "mark_started",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T16:26:35.144Z",
+          "reason": "начали сегодня",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.01,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Сантехника черновая» → 1%"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T16:26:35.144Z",
+          "reason": null,
+          "before": {
+            "progress": 0.01,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.05,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Сантехника черновая» → 5%"
         }
       ],
       "pauses": [
@@ -552,7 +584,8 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0
+      "progress": 0.05,
+      "actualStart": "2026-05-23"
     },
     {
       "id": "2",
@@ -2110,9 +2143,25 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T16:26:35.144Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.83,
+            "actualStart": "2026-05-18"
+          },
+          "summary": "прогресс «Демонтажные работы» → 83%"
         }
       ],
-      "progress": 0,
+      "progress": 0.83,
       "actualStart": "2026-05-18"
     },
     {
