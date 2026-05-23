@@ -491,6 +491,22 @@
             "actualStart": "2026-05-23"
           },
           "summary": "прогресс «Сантехника черновая» → 11%"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:10:10.531Z",
+          "reason": null,
+          "before": {
+            "progress": 0.11,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.11,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Сантехника черновая» → 11%"
         }
       ],
       "pauses": [
@@ -787,6 +803,22 @@
           "type": "set_progress",
           "by": "RETEST",
           "at": "2026-05-23T16:09:30.928Z",
+          "reason": null,
+          "before": {
+            "progress": 0.12,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.12,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Электрика черновая» → 12%"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:10:10.531Z",
           "reason": null,
           "before": {
             "progress": 0.12,
@@ -1824,9 +1856,26 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:10:10.531Z",
+          "reason": "текущая готовность",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.7,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Демонтажные работы» → 70%"
         }
       ],
-      "progress": 0
+      "progress": 0.7,
+      "actualStart": "2026-05-23"
     },
     {
       "id": "12",
