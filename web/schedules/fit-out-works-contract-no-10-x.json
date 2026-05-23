@@ -2318,10 +2318,28 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "mark_complete",
+          "by": "Антон П.",
+          "at": "2026-05-23T16:53:53.120Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 1,
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23"
+          },
+          "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
         }
       ],
-      "progress": 0,
-      "actualStart": "2026-05-18"
+      "progress": 1,
+      "actualStart": "2026-05-18",
+      "actualEnd": "2026-05-23"
     },
     {
       "id": "12",
