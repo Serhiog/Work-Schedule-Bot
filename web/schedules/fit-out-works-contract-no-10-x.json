@@ -43,9 +43,10 @@
         "note": "Устранение замечаний и сдача"
       }
     ],
-    "isPlanning": true,
+    "isPlanning": false,
     "isStarted": false,
-    "isPaused": false
+    "isPaused": false,
+    "startedAt": "2026-05-23T15:49:19.046Z"
   },
   "sections": [
     {
@@ -5645,6 +5646,11 @@
       "by": "UI reset",
       "type": "project_reset",
       "summary": "Проект сброшен к первичному состоянию (commit dcc558f); тикетов удалено: 0; Airtable-записей: 5"
+    },
+    {
+      "type": "project_started",
+      "by": "web",
+      "at": "2026-05-23T15:49:19.046Z"
     }
   ]
 }
