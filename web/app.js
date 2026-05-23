@@ -26,6 +26,26 @@ const ZOOM_PRESETS = [6, 10, 14, 18, 22, 28, 36, 50, 70];
 const clampCell = (x) => Math.max(CELL_MIN, Math.min(CELL_MAX, x));
 const currentCellW = () => state.cellW;
 const MOBILE_LABEL_W = 110;
+
+// Госпраздники ОАЭ — отмечаются на календаре всегда. Фиксированные (григорианские) — точные;
+// исламские (по луне) помечены «≈», т.к. зависят от наблюдения месяца и уточняются после
+// официального объявления. Покрывают окно текущих проектов; продлевать по мере надобности.
+// __UAE_HOLIDAYS__
+const UAE_HOLIDAYS = [
+  { date: '2026-05-26', name: '≈ День Арафа (ОАЭ)' },
+  { date: '2026-05-27', name: '≈ Ид аль-Адха (Курбан-байрам), день 1' },
+  { date: '2026-05-28', name: '≈ Ид аль-Адха, день 2' },
+  { date: '2026-05-29', name: '≈ Ид аль-Адха, день 3' },
+  { date: '2026-06-16', name: '≈ Исламский Новый год' },
+  { date: '2026-08-25', name: '≈ День рождения Пророка Мухаммеда' },
+  { date: '2026-12-01', name: 'День памяти (ОАЭ)' },
+  { date: '2026-12-02', name: 'Национальный день ОАЭ, день 1' },
+  { date: '2026-12-03', name: 'Национальный день ОАЭ, день 2' },
+  { date: '2027-01-01', name: 'Новый год' },
+  { date: '2027-03-10', name: '≈ Ид аль-Фитр (Ураза-байрам), день 1' },
+  { date: '2027-03-11', name: '≈ Ид аль-Фитр, день 2' },
+  { date: '2027-03-12', name: '≈ Ид аль-Фитр, день 3' },
+];
 const currentLabelW = () => (isMobile() ? MOBILE_LABEL_W : 260);
 const zoomPct = () => Math.round((state.cellW / CELL_BASE) * 100);
 
@@ -304,7 +324,8 @@ async function init() {
   state.schedule = s;
   s.stages.forEach((st) => (state.stageById[st.id] = st));
   s.sections.forEach((se) => (state.sectionById[se.id] = se));
-  s.holidays.forEach((h) => state.holidayMap.set(h.date, h.name));
+  UAE_HOLIDAYS.forEach((h) => state.holidayMap.set(h.date, h.name)); // госпраздники ОАЭ — всегда
+  (s.holidays || []).forEach((h) => state.holidayMap.set(h.date, h.name)); // + специфичные для проекта
 
   // Parse URL filter params
   const params = new URLSearchParams(window.location.search);
@@ -2582,8 +2603,8 @@ function renderGantt() {
   months.push({ start: curStart, count: totalDays - curStart, label: monthLabel(days[curStart]) });
 
   const isWeekend = (d) => {
-    const dow = d.getUTCDay(); // 0=Sun … 5=Fri, 6=Sat
-    return dow === 5 || dow === 6;
+    const dow = d.getUTCDay(); // 0=Вс, 6=Сб
+    return dow === 6 || dow === 0; // выходные ОАЭ — суббота и воскресенье (НЕ пятница) __WEEKEND_SAT_SUN__
   };
 
   // ── column stripes (weekend/holiday/today) — цвета через CSS-переменные,
