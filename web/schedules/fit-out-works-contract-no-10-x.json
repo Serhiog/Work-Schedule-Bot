@@ -1582,7 +1582,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
-      "planEnd": "2026-06-01",
+      "planEnd": "2026-05-23",
       "history": [
         {
           "type": "set_dates",
@@ -2045,10 +2045,43 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "update_task",
+          "by": "откат теста",
+          "at": "2026-05-23T16:20:44.667Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd",
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": "откат тестовых данных (возврат планового финиша демонтажа)",
+          "planning": false,
+          "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
         }
       ],
-      "progress": 0.7,
-      "actualStart": "2026-05-18"
+      "progress": 0
     },
     {
       "id": "12",
