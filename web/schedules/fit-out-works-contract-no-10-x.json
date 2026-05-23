@@ -2,7 +2,7 @@
   "project": {
     "slug": "fit-out-works-contract-no-10-x",
     "code": "FIT-OUT-WO",
-    "name": "Fit-Out Works Contract No. 10-X",
+    "name": "Shoreline 9, 109",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Ms. Amina Toka",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2027-03-16",
     "durationDays": 310,
     "contractEndDate": "2027-03-16",
-    "lastUpdated": "2026-05-23T13:39:51.363Z",
-    "lastUpdatedBy": "Приложение №2 (Claude Code, вручную)",
+    "lastUpdated": "2026-05-23T16:00:33.094Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
