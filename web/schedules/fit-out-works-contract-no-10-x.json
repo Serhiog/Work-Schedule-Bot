@@ -475,6 +475,22 @@
             "actualStart": "2026-05-23"
           },
           "summary": "прогресс «Сантехника черновая» → 11%"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:09:30.928Z",
+          "reason": null,
+          "before": {
+            "progress": 0.11,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.11,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Сантехника черновая» → 11%"
         }
       ],
       "pauses": [
@@ -758,6 +774,22 @@
           "reason": "12 процентов готовности",
           "before": {
             "progress": 0.2,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.12,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Электрика черновая» → 12%"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:09:30.928Z",
+          "reason": null,
+          "before": {
+            "progress": 0.12,
             "actualStart": "2026-05-23",
             "actualEnd": null
           },
