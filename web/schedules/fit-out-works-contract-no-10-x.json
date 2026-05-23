@@ -596,8 +596,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-23",
-      "planEnd": "2026-06-11",
+      "planStart": "2026-05-24",
+      "planEnd": "2026-06-12",
       "history": [
         {
           "type": "set_dates",
@@ -928,6 +928,20 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "at": "2026-05-23T16:26:35.144Z",
+          "by": "Sergei Grishenkov",
+          "action": "shift_plan_start",
+          "reason": "планируем начать завтра",
+          "before": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-11"
+          },
+          "after": {
+            "planStart": "2026-05-24",
+            "planEnd": "2026-06-12"
+          }
         }
       ],
       "pauses": [
@@ -1615,7 +1629,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
-      "planEnd": "2026-05-23",
+      "planEnd": "2026-06-02",
       "history": [
         {
           "type": "set_dates",
@@ -2159,6 +2173,22 @@
             "actualStart": "2026-05-18"
           },
           "summary": "прогресс «Демонтажные работы» → 83%"
+        },
+        {
+          "at": "2026-05-23T16:26:35.144Z",
+          "by": "Sergei Grishenkov",
+          "action": "shift_plan_end",
+          "reason": "завершим 2 июня",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18"
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-02",
+            "actualStart": "2026-05-18"
+          }
         }
       ],
       "progress": 0.83,
