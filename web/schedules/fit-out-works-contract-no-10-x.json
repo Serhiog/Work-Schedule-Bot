@@ -1388,8 +1388,6 @@
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
       "planEnd": "2026-05-23",
-      "actualStart": "2026-05-23",
-      "actualEnd": null,
       "history": [
         {
           "type": "set_dates",
@@ -1597,9 +1595,42 @@
             "actualEnd": null
           },
           "summary": "прогресс «Демонтажные работы» → 30%"
+        },
+        {
+          "type": "update_task",
+          "by": "reset test",
+          "at": "2026-05-23T15:34:16.857Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-23",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.3,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
         }
       ],
-      "progress": 0.3
+      "progress": 0
     },
     {
       "id": "12",
