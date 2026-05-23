@@ -628,8 +628,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-24",
-      "planEnd": "2026-06-12",
+      "planStart": "2026-05-23",
+      "planEnd": "2026-06-11",
       "history": [
         {
           "type": "set_dates",
@@ -974,6 +974,38 @@
             "planStart": "2026-05-24",
             "planEnd": "2026-06-12"
           }
+        },
+        {
+          "type": "set_dates",
+          "by": "откат теста",
+          "at": "2026-05-23T16:32:20.526Z",
+          "before": {
+            "planStart": "2026-05-24",
+            "planEnd": "2026-06-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "откат тестового аудио-ответа",
+          "planning": false,
+          "summary": "planStart=2026-05-23, planEnd=2026-06-11"
         }
       ],
       "pauses": [
