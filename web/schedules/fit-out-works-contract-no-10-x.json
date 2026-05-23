@@ -151,7 +151,7 @@
       "durationDaysPlanned": 10,
       "planStart": "2026-05-23",
       "planEnd": "2026-06-06",
-      "actualStart": null,
+      "actualStart": "2026-05-23",
       "actualEnd": null,
       "history": [
         {
@@ -394,6 +394,23 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-06-06"
+        },
+        {
+          "type": "set_progress",
+          "by": "TEST",
+          "at": "2026-05-23T15:33:07.175Z",
+          "reason": "10% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.1,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "summary": "прогресс «Сантехника черновая» → 10%"
         }
       ],
       "pauses": [
@@ -405,7 +422,8 @@
           "dateType": "plan",
           "at": "2026-05-20T16:59:36.235Z"
         }
-      ]
+      ],
+      "progress": 0.1
     },
     {
       "id": "2",
@@ -418,7 +436,7 @@
       "durationDaysPlanned": 15,
       "planStart": "2026-05-23",
       "planEnd": "2026-06-11",
-      "actualStart": null,
+      "actualStart": "2026-05-23",
       "actualEnd": null,
       "history": [
         {
@@ -603,6 +621,23 @@
           "cascadeFrom": "7",
           "cascadeDeltaDays": -2,
           "summary": "каскад -2 дн. от «Демонтажные работы» (#7)"
+        },
+        {
+          "type": "set_progress",
+          "by": "TEST",
+          "at": "2026-05-23T15:33:07.175Z",
+          "reason": "20% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.2,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "summary": "прогресс «Электрика черновая» → 20%"
         }
       ],
       "pauses": [
@@ -614,7 +649,8 @@
           "dateType": "plan",
           "at": "2026-05-20T16:59:50.455Z"
         }
-      ]
+      ],
+      "progress": 0.2
     },
     {
       "id": "4",
@@ -1290,7 +1326,7 @@
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
       "planEnd": "2026-05-23",
-      "actualStart": null,
+      "actualStart": "2026-05-23",
       "actualEnd": null,
       "history": [
         {
@@ -1482,8 +1518,26 @@
           "reason": null,
           "planning": true,
           "summary": "planEnd=2026-05-23"
+        },
+        {
+          "type": "set_progress",
+          "by": "TEST",
+          "at": "2026-05-23T15:33:07.175Z",
+          "reason": "30% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.3,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "summary": "прогресс «Демонтажные работы» → 30%"
         }
-      ]
+      ],
+      "progress": 0.3
     },
     {
       "id": "12",
@@ -5479,7 +5533,7 @@
       "durationDaysPlanned": 5,
       "planStart": "2026-05-23",
       "planEnd": "2026-05-27",
-      "actualStart": null,
+      "actualStart": "2026-05-23",
       "actualEnd": null,
       "history": [
         {
@@ -5487,9 +5541,27 @@
           "by": "Приложение №2 (Claude Code, вручную)",
           "at": "2026-05-23T13:39:51.363Z",
           "summary": "Добавлено доп.соглашением: «Разработка проектного решения»"
+        },
+        {
+          "type": "set_progress",
+          "by": "TEST",
+          "at": "2026-05-23T15:33:07.175Z",
+          "reason": "40% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.4,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "summary": "прогресс «Разработка проектного решения» → 40%"
         }
       ],
-      "pauses": []
+      "pauses": [],
+      "progress": 0.4
     },
     {
       "id": "51",
