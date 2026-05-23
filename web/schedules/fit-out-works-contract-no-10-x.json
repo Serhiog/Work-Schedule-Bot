@@ -9,14 +9,14 @@
     "contractDate": "2025-12-27",
     "currency": "AED",
     "vatRate": 0.05,
-    "totalExVat": 700000,
-    "totalIncVat": 735000,
+    "totalExVat": 748571.43,
+    "totalIncVat": 786000,
     "startDate": "2026-05-11",
     "endDate": "2027-03-16",
     "durationDays": 310,
     "contractEndDate": "2027-03-16",
-    "lastUpdated": "2026-05-20T16:39:11.572Z",
-    "lastUpdatedBy": "Reset via UI",
+    "lastUpdated": "2026-05-23T13:39:51.363Z",
+    "lastUpdatedBy": "Приложение №2 (Claude Code, вручную)",
     "paymentStages": [
       {
         "id": "P1",
@@ -103,17 +103,16 @@
       "color": "#475569"
     },
     {
+      "id": "annex-2",
+      "name": "Приложение № 2",
+      "color": "#0ea5e9"
+    },
+    {
       "id": "permits",
       "name": "Разрешения",
       "color": "#475569",
       "stage": "ST1",
       "isPermits": true
-    },
-    {
-      "id": "b",
-      "name": "Мебель",
-      "color": "#eab308",
-      "sub": true
     }
   ],
   "stages": [
@@ -5468,6 +5467,52 @@
       "actualEnd": null,
       "cost": 0,
       "history": []
+    },
+    {
+      "id": "50",
+      "section": "annex-2",
+      "stage": "ST1",
+      "name": "Разработка проектного решения",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 6000,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-05-23",
+      "planEnd": "2026-05-27",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "create",
+          "by": "Приложение №2 (Claude Code, вручную)",
+          "at": "2026-05-23T13:39:51.363Z",
+          "summary": "Добавлено доп.соглашением: «Разработка проектного решения»"
+        }
+      ],
+      "pauses": []
+    },
+    {
+      "id": "51",
+      "section": "annex-2",
+      "stage": "ST2",
+      "name": "Закольцовка системы кондиционирования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 45000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-05-28",
+      "planEnd": "2026-06-06",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "create",
+          "by": "Приложение №2 (Claude Code, вручную)",
+          "at": "2026-05-23T13:39:51.363Z",
+          "summary": "Добавлено доп.соглашением: «Закольцовка системы кондиционирования»"
+        }
+      ],
+      "pauses": []
     }
   ],
   "history": [
