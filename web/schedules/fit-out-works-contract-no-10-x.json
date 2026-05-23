@@ -5626,8 +5626,6 @@
       "durationDaysPlanned": 5,
       "planStart": "2026-05-23",
       "planEnd": "2026-05-27",
-      "actualStart": "2026-05-23",
-      "actualEnd": null,
       "history": [
         {
           "type": "create",
@@ -5651,10 +5649,43 @@
             "actualEnd": null
           },
           "summary": "прогресс «Разработка проектного решения» → 40%"
+        },
+        {
+          "type": "update_task",
+          "by": "reset test",
+          "at": "2026-05-23T15:34:18.461Z",
+          "before": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-05-27",
+            "actualStart": "2026-05-23",
+            "actualEnd": null,
+            "name": "Разработка проектного решения",
+            "section": "annex-2",
+            "progress": 0.4,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-23",
+            "planEnd": "2026-05-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Разработка проектного решения",
+            "section": "annex-2",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
         }
       ],
       "pauses": [],
-      "progress": 0.4
+      "progress": 0
     },
     {
       "id": "51",
