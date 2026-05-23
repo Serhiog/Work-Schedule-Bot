@@ -2079,9 +2079,41 @@
           "reason": "откат тестовых данных (возврат планового финиша демонтажа)",
           "planning": false,
           "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:25:28.867Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-18"
         }
       ],
-      "progress": 0
+      "progress": 0,
+      "actualStart": "2026-05-18"
     },
     {
       "id": "12",
