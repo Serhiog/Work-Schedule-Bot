@@ -1518,7 +1518,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
-      "planEnd": "2026-05-23",
+      "planEnd": "2026-06-01",
       "history": [
         {
           "type": "set_dates",
@@ -1872,6 +1872,22 @@
             "actualStart": "2026-05-23"
           },
           "summary": "прогресс «Демонтажные работы» → 70%"
+        },
+        {
+          "at": "2026-05-23T16:10:10.531Z",
+          "by": "RETEST",
+          "action": "shift_plan_end",
+          "reason": "перенос финиша на 1 июня",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-23"
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-23"
+          }
         }
       ],
       "progress": 0.7,
