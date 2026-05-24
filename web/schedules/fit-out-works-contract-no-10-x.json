@@ -6362,12 +6362,44 @@
       "permitType": "gate_pass",
       "isPermit": true,
       "planStart": "2026-05-11",
-      "planEnd": "2027-03-16",
+      "planEnd": "2026-12-03",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
       "cost": 0,
-      "history": []
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-24T16:32:45.967Z",
+          "before": {
+            "planStart": "2026-05-11",
+            "planEnd": "2027-03-16",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Gate Pass",
+            "section": "permits",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-11",
+            "planEnd": "2026-12-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Gate Pass",
+            "section": "permits",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "корректировка",
+          "planning": false,
+          "summary": "planEnd=2026-12-03"
+        }
+      ]
     },
     {
       "id": "permit-work-permit",
