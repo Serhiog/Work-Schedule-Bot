@@ -5981,8 +5981,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "update_task",
+          "by": "web",
+          "at": "2026-05-24T16:35:43.099Z",
+          "before": {
+            "planStart": "2026-10-31",
+            "planEnd": "2026-11-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-31",
+            "planEnd": "2026-11-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "sub"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "sub=false"
         }
-      ]
+      ],
+      "sub": false
     },
     {
       "id": "48",
