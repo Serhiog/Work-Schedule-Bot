@@ -698,6 +698,18 @@
             "planEnd": "2026-06-08",
             "pausesCount": 2
           }
+        },
+        {
+          "type": "pause_delete",
+          "by": "cleanup-test",
+          "at": "2026-05-26T13:34:34.553Z",
+          "pauseId": "p_bdowekvo",
+          "removed": {
+            "from": "2026-05-26",
+            "to": null,
+            "reason": "выходной"
+          },
+          "summary": "Пауза «Сантехника черновая» удалена (была: 2026-05-26 · выходной)"
         }
       ],
       "pauses": [
@@ -708,14 +720,6 @@
           "reason": "праздники",
           "dateType": "plan",
           "at": "2026-05-20T16:59:36.235Z"
-        },
-        {
-          "id": "p_bdowekvo",
-          "from": "2026-05-26",
-          "to": null,
-          "reason": "выходной",
-          "dateType": "plan",
-          "at": "2026-05-26T09:41:16.474Z"
         }
       ],
       "progress": 0
