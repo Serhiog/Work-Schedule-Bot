@@ -748,6 +748,21 @@
             "dateType": "plan"
           },
           "summary": "Пауза «Сантехника черновая» обновлена: 2026-05-25→2026-05-29 → 2026-05-25→2026-05-29"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-05-26T15:09:11.057Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0
+          },
+          "summary": "прогресс «Сантехника черновая» → 0%"
         }
       ],
       "pauses": [
@@ -1304,6 +1319,21 @@
             "dateType": "plan"
           },
           "summary": "Пауза «Электрика черновая» обновлена: 2026-05-26→2026-05-29 → 2026-05-25→2026-05-29"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-05-26T15:09:11.057Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0
+          },
+          "summary": "прогресс «Электрика черновая» → 0%"
         }
       ],
       "pauses": [
