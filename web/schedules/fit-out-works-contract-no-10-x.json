@@ -651,6 +651,39 @@
             "actualStart": "2026-05-26"
           },
           "summary": "прогресс «Сантехника черновая» → 50%"
+        },
+        {
+          "type": "update_task",
+          "by": "web",
+          "at": "2026-05-26T09:28:52.511Z",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08",
+            "actualStart": "2026-05-26",
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0.5,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": "откат ошибочных тестовых данных",
+          "planning": false,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
         }
       ],
       "pauses": [
@@ -663,8 +696,7 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0.5,
-      "actualStart": "2026-05-26"
+      "progress": 0
     },
     {
       "id": "2",
