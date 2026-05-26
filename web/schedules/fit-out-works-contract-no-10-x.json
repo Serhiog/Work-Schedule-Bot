@@ -619,6 +619,22 @@
             "planStart": "2026-05-25",
             "planEnd": "2026-06-08"
           }
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон",
+          "at": "2026-05-26T09:27:16.420Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.3,
+            "actualStart": "2026-05-26"
+          },
+          "summary": "прогресс «Сантехника черновая» → 30%"
         }
       ],
       "pauses": [
@@ -631,7 +647,8 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0
+      "progress": 0.3,
+      "actualStart": "2026-05-26"
     },
     {
       "id": "2",
@@ -1065,6 +1082,22 @@
           "reason": null,
           "planning": false,
           "summary": "sub=false"
+        },
+        {
+          "type": "mark_started",
+          "by": "Антон",
+          "at": "2026-05-26T09:27:16.420Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.01,
+            "actualStart": "2026-05-26"
+          },
+          "summary": "прогресс «Электрика черновая» → 1%"
         }
       ],
       "pauses": [
@@ -1077,8 +1110,9 @@
           "at": "2026-05-20T16:59:50.455Z"
         }
       ],
-      "progress": 0,
-      "sub": false
+      "progress": 0.01,
+      "sub": false,
+      "actualStart": "2026-05-26"
     },
     {
       "id": "4",
