@@ -1162,6 +1162,39 @@
             "actualStart": "2026-05-26"
           },
           "summary": "прогресс «Электрика черновая» → 1%"
+        },
+        {
+          "type": "update_task",
+          "by": "web",
+          "at": "2026-05-26T09:28:55.863Z",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-13",
+            "actualStart": "2026-05-26",
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0.01,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": "откат ошибочных тестовых данных",
+          "planning": false,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
         }
       ],
       "pauses": [
@@ -1174,9 +1207,8 @@
           "at": "2026-05-20T16:59:50.455Z"
         }
       ],
-      "progress": 0.01,
-      "sub": false,
-      "actualStart": "2026-05-26"
+      "progress": 0,
+      "sub": false
     },
     {
       "id": "4",
