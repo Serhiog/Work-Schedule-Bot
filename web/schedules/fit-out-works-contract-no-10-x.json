@@ -684,6 +684,20 @@
           "reason": "откат ошибочных тестовых данных",
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "at": "2026-05-26T09:41:16.138Z",
+          "by": "Антон П.",
+          "action": "pause_task",
+          "reason": "выходной",
+          "before": {
+            "planEnd": "2026-06-08",
+            "pausesCount": 1
+          },
+          "after": {
+            "planEnd": "2026-06-08",
+            "pausesCount": 2
+          }
         }
       ],
       "pauses": [
@@ -694,6 +708,14 @@
           "reason": "праздники",
           "dateType": "plan",
           "at": "2026-05-20T16:59:36.235Z"
+        },
+        {
+          "id": "p_bdowekvo",
+          "from": "2026-05-26",
+          "to": null,
+          "reason": "выходной",
+          "dateType": "plan",
+          "at": "2026-05-26T09:41:16.474Z"
         }
       ],
       "progress": 0
@@ -1195,6 +1217,20 @@
           "reason": "откат ошибочных тестовых данных",
           "planning": false,
           "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "at": "2026-05-26T09:41:16.138Z",
+          "by": "Антон П.",
+          "action": "pause_task",
+          "reason": "выходной",
+          "before": {
+            "planEnd": "2026-06-13",
+            "pausesCount": 1
+          },
+          "after": {
+            "planEnd": "2026-06-13",
+            "pausesCount": 2
+          }
         }
       ],
       "pauses": [
@@ -1205,6 +1241,14 @@
           "reason": "праздники",
           "dateType": "plan",
           "at": "2026-05-20T16:59:50.455Z"
+        },
+        {
+          "id": "p_djmss169",
+          "from": "2026-05-26",
+          "to": null,
+          "reason": "выходной",
+          "dateType": "plan",
+          "at": "2026-05-26T09:41:16.474Z"
         }
       ],
       "progress": 0,
