@@ -1235,6 +1235,18 @@
             "planEnd": "2026-06-13",
             "pausesCount": 2
           }
+        },
+        {
+          "type": "pause_delete",
+          "by": "cleanup-test",
+          "at": "2026-05-26T13:34:37.970Z",
+          "pauseId": "p_djmss169",
+          "removed": {
+            "from": "2026-05-26",
+            "to": null,
+            "reason": "выходной"
+          },
+          "summary": "Пауза «Электрика черновая» удалена (была: 2026-05-26 · выходной)"
         }
       ],
       "pauses": [
@@ -1245,14 +1257,6 @@
           "reason": "праздники",
           "dateType": "plan",
           "at": "2026-05-20T16:59:50.455Z"
-        },
-        {
-          "id": "p_djmss169",
-          "from": "2026-05-26",
-          "to": null,
-          "reason": "выходной",
-          "dateType": "plan",
-          "at": "2026-05-26T09:41:16.474Z"
         }
       ],
       "progress": 0,
