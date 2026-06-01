@@ -150,8 +150,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-25",
-      "planEnd": "2026-06-08",
+      "planStart": "2026-05-26",
+      "planEnd": "2026-06-09",
       "history": [
         {
           "type": "set_dates",
@@ -763,6 +763,20 @@
             "progress": 0
           },
           "summary": "прогресс «Сантехника черновая» → 0%"
+        },
+        {
+          "at": "2026-06-01T16:04:22.840Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "не начали",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-08"
+          },
+          "after": {
+            "planStart": "2026-05-26",
+            "planEnd": "2026-06-09"
+          }
         }
       ],
       "pauses": [
@@ -786,8 +800,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-25",
-      "planEnd": "2026-06-13",
+      "planStart": "2026-05-26",
+      "planEnd": "2026-06-14",
       "history": [
         {
           "type": "set_dates",
@@ -1334,6 +1348,20 @@
             "progress": 0
           },
           "summary": "прогресс «Электрика черновая» → 0%"
+        },
+        {
+          "at": "2026-06-01T16:04:22.840Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "не начали",
+          "before": {
+            "planStart": "2026-05-25",
+            "planEnd": "2026-06-13"
+          },
+          "after": {
+            "planStart": "2026-05-26",
+            "planEnd": "2026-06-14"
+          }
         }
       ],
       "pauses": [
@@ -1358,8 +1386,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-06-01",
-      "planEnd": "2026-07-18",
+      "planStart": "2026-06-02",
+      "planEnd": "2026-07-19",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1554,6 +1582,22 @@
             "reason": "праздники"
           },
           "summary": "Пауза «Полная замена системы кондиционирования» удалена (была: 2026-05-27→2026-05-30 · праздники)"
+        },
+        {
+          "at": "2026-06-01T16:04:22.840Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "не начали",
+          "before": {
+            "planStart": "2026-06-01",
+            "planEnd": "2026-07-18",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-06-02",
+            "planEnd": "2026-07-19",
+            "actualStart": null
+          }
         }
       ]
     },
@@ -6790,8 +6834,8 @@
       "unit": "",
       "costIncVat": 45000,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-28",
-      "planEnd": "2026-06-06",
+      "planStart": "2026-05-29",
+      "planEnd": "2026-06-07",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -6800,6 +6844,22 @@
           "by": "Приложение №2 (Claude Code, вручную)",
           "at": "2026-05-23T13:39:51.363Z",
           "summary": "Добавлено доп.соглашением: «Закольцовка системы кондиционирования»"
+        },
+        {
+          "at": "2026-06-01T16:04:22.840Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "не начали",
+          "before": {
+            "planStart": "2026-05-28",
+            "planEnd": "2026-06-06",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          }
         }
       ],
       "pauses": []
