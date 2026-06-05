@@ -12,7 +12,7 @@
     "totalExVat": 748571.43,
     "totalIncVat": 786000,
     "startDate": "2026-05-11",
-    "endDate": "2026-12-03",
+    "endDate": "2026-12-16",
     "durationDays": 310,
     "contractEndDate": "2027-03-16",
     "lastUpdated": "2026-05-23T16:00:33.094Z",
@@ -150,8 +150,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-26",
-      "planEnd": "2026-06-09",
+      "planStart": "2026-06-08",
+      "planEnd": "2026-06-22",
       "history": [
         {
           "type": "set_dates",
@@ -777,6 +777,40 @@
             "planStart": "2026-05-26",
             "planEnd": "2026-06-09"
           }
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-05-26",
+            "planEnd": "2026-06-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника черновая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ],
       "pauses": [
@@ -800,8 +834,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-05-26",
-      "planEnd": "2026-06-14",
+      "planStart": "2026-06-08",
+      "planEnd": "2026-06-27",
       "history": [
         {
           "type": "set_dates",
@@ -1362,6 +1396,40 @@
             "planStart": "2026-05-26",
             "planEnd": "2026-06-14"
           }
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-05-26",
+            "planEnd": "2026-06-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика черновая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ],
       "pauses": [
@@ -1658,8 +1726,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-11-07",
-      "planEnd": "2026-11-21",
+      "planStart": "2026-11-20",
+      "planEnd": "2026-12-04",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2053,6 +2121,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-11-07",
+            "planEnd": "2026-11-21",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-20",
+            "planEnd": "2026-12-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая на кухне",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -2066,7 +2168,7 @@
       "costIncVat": 0,
       "durationDaysPlanned": 7,
       "planStart": "2026-05-18",
-      "planEnd": "2026-05-23",
+      "planEnd": "2026-06-05",
       "history": [
         {
           "type": "set_dates",
@@ -2739,6 +2841,37 @@
           "reason": null,
           "planning": false,
           "summary": "actualEnd=2026-06-05"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.897Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-05",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "summary": "planEnd=2026-06-05"
         }
       ],
       "progress": 1,
@@ -3052,8 +3185,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 14,
-      "planStart": "2026-06-06",
-      "planEnd": "2026-07-09",
+      "planStart": "2026-06-19",
+      "planEnd": "2026-07-22",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3284,6 +3417,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-07-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-19",
+            "planEnd": "2026-07-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Штукатурка с маяками",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -3296,8 +3463,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-09-17",
-      "planEnd": "2026-10-15",
+      "planStart": "2026-09-30",
+      "planEnd": "2026-10-28",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3655,6 +3822,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-09-17",
+            "planEnd": "2026-10-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-30",
+            "planEnd": "2026-10-28",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Шпатлёвка (2 слоя)",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -3667,8 +3868,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-06-06",
-      "planEnd": "2026-06-11",
+      "planStart": "2026-06-19",
+      "planEnd": "2026-06-24",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3996,6 +4197,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-19",
+            "planEnd": "2026-06-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -4008,8 +4243,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 3,
-      "planStart": "2026-07-04",
-      "planEnd": "2026-07-16",
+      "planStart": "2026-07-17",
+      "planEnd": "2026-07-29",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4337,6 +4572,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-07-04",
+            "planEnd": "2026-07-16",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-17",
+            "planEnd": "2026-07-29",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Нанесение гидроизоляционного состава",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -4349,8 +4618,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-08",
-      "planEnd": "2026-08-27",
+      "planStart": "2026-08-21",
+      "planEnd": "2026-09-09",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4613,6 +4882,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-21",
+            "planEnd": "2026-09-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой полов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -4625,8 +4928,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-10-17",
-      "planEnd": "2026-10-29",
+      "planStart": "2026-10-30",
+      "planEnd": "2026-11-11",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5017,6 +5320,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-10-17",
+            "planEnd": "2026-10-29",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-30",
+            "planEnd": "2026-11-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Покраска водоэмульсионной краской",
+            "section": "paint",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -5029,8 +5366,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-18",
-      "planEnd": "2026-09-17",
+      "planStart": "2026-07-31",
+      "planEnd": "2026-09-30",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5482,6 +5819,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-07-18",
+            "planEnd": "2026-09-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-31",
+            "planEnd": "2026-09-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Облицовка плиткой стен",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -5494,8 +5865,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-11-24",
-      "planEnd": "2026-12-03",
+      "planStart": "2026-12-07",
+      "planEnd": "2026-12-16",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5952,6 +6323,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-11-24",
+            "planEnd": "2026-12-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-12-07",
+            "planEnd": "2026-12-16",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехника чистовая",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -5964,8 +6369,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-10-31",
-      "planEnd": "2026-11-06",
+      "planStart": "2026-11-13",
+      "planEnd": "2026-11-19",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -6356,6 +6761,40 @@
           "reason": null,
           "planning": false,
           "summary": "sub=false"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-10-31",
+            "planEnd": "2026-11-06",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-11-13",
+            "planEnd": "2026-11-19",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электрика чистовая",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ],
       "sub": false
@@ -6448,8 +6887,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-17",
-      "planEnd": "2026-11-05",
+      "planStart": "2026-10-30",
+      "planEnd": "2026-11-18",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -6712,6 +7151,40 @@
           "cascadeFrom": "1",
           "cascadeDeltaDays": -1,
           "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-10-17",
+            "planEnd": "2026-11-05",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-30",
+            "planEnd": "2026-11-18",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Кухонная мебель",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
         }
       ]
     },
@@ -6723,7 +7196,7 @@
       "permitType": "noc",
       "isPermit": true,
       "planStart": "2026-05-11",
-      "planEnd": "2026-12-03",
+      "planEnd": "2026-12-16",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
@@ -6770,7 +7243,7 @@
       "permitType": "gate_pass",
       "isPermit": true,
       "planStart": "2026-05-11",
-      "planEnd": "2026-12-03",
+      "planEnd": "2026-12-16",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
@@ -6817,7 +7290,7 @@
       "permitType": "work_permit",
       "isPermit": true,
       "planStart": "2026-05-11",
-      "planEnd": "2026-12-03",
+      "planEnd": "2026-12-16",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
