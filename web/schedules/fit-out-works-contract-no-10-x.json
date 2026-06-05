@@ -2708,11 +2708,42 @@
             "actualEnd": "2026-05-23"
           },
           "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:14:20.798Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualEnd"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualEnd=2026-06-05"
         }
       ],
       "progress": 1,
       "actualStart": "2026-05-18",
-      "actualEnd": "2026-05-23"
+      "actualEnd": "2026-06-05"
     },
     {
       "id": "12",
