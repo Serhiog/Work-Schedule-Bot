@@ -811,6 +811,22 @@
           "cascadeFrom": "7",
           "cascadeDeltaDays": 13,
           "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-08T15:20:03.362Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.15,
+            "actualStart": "2026-06-08"
+          },
+          "summary": "прогресс «Сантехника черновая» → 15%"
         }
       ],
       "pauses": [
@@ -823,7 +839,8 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0
+      "progress": 0.15,
+      "actualStart": "2026-06-08"
     },
     {
       "id": "2",
@@ -1430,6 +1447,22 @@
           "cascadeFrom": "7",
           "cascadeDeltaDays": 13,
           "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-08T15:20:03.362Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.05,
+            "actualStart": "2026-06-08"
+          },
+          "summary": "прогресс «Электрика черновая» → 5%"
         }
       ],
       "pauses": [
@@ -1442,8 +1475,9 @@
           "at": "2026-05-20T16:59:50.455Z"
         }
       ],
-      "progress": 0,
-      "sub": false
+      "progress": 0.05,
+      "sub": false,
+      "actualStart": "2026-06-08"
     },
     {
       "id": "4",
@@ -1666,8 +1700,26 @@
             "planEnd": "2026-07-19",
             "actualStart": null
           }
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-08T15:20:03.362Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "summary": "прогресс «Полная замена системы кондиционирования» → 0%"
         }
-      ]
+      ],
+      "progress": 0
     },
     {
       "id": "5",
@@ -7364,9 +7416,27 @@
             "planEnd": "2026-06-07",
             "actualStart": null
           }
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-08T15:20:03.362Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "summary": "прогресс «Закольцовка системы кондиционирования» → 0%"
         }
       ],
-      "pauses": []
+      "pauses": [],
+      "progress": 0
     }
   ],
   "history": [
