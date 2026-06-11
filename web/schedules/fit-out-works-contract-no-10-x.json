@@ -1781,6 +1781,22 @@
             "actualEnd": null
           },
           "summary": "прогресс «Полная замена системы кондиционирования» → 0%"
+        },
+        {
+          "at": "2026-06-11T15:19:41.191Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "старт не был начат",
+          "before": {
+            "planStart": "2026-06-02",
+            "planEnd": "2026-07-19",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-06-02",
+            "planEnd": "2026-07-19",
+            "actualStart": null
+          }
         }
       ],
       "progress": 0
@@ -7497,6 +7513,22 @@
             "actualEnd": null
           },
           "summary": "прогресс «Закольцовка системы кондиционирования» → 0%"
+        },
+        {
+          "at": "2026-06-11T15:19:41.191Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "пункт не был начат",
+          "before": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          }
         }
       ],
       "pauses": [],
