@@ -891,6 +891,22 @@
             "actualStart": "2026-06-08"
           },
           "summary": "прогресс «Сантехника черновая» → 40%"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-16T15:28:48.848Z",
+          "reason": null,
+          "before": {
+            "progress": 0.4,
+            "actualStart": "2026-06-08",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.5,
+            "actualStart": "2026-06-08"
+          },
+          "summary": "прогресс «Сантехника черновая» → 50%"
         }
       ],
       "pauses": [
@@ -903,7 +919,7 @@
           "at": "2026-05-20T16:59:36.235Z"
         }
       ],
-      "progress": 0.4,
+      "progress": 0.5,
       "actualStart": "2026-06-08"
     },
     {
@@ -1591,6 +1607,22 @@
             "actualStart": "2026-06-08"
           },
           "summary": "прогресс «Электрика черновая» → 9%"
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-16T15:28:48.848Z",
+          "reason": null,
+          "before": {
+            "progress": 0.09,
+            "actualStart": "2026-06-08",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.1,
+            "actualStart": "2026-06-08"
+          },
+          "summary": "прогресс «Электрика черновая» → 10%"
         }
       ],
       "pauses": [
@@ -1603,7 +1635,7 @@
           "at": "2026-05-20T16:59:50.455Z"
         }
       ],
-      "progress": 0.09,
+      "progress": 0.1,
       "sub": false,
       "actualStart": "2026-06-08"
     },
