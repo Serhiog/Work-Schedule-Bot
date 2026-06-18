@@ -1712,8 +1712,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-06-02",
-      "planEnd": "2026-07-19",
+      "planStart": "2026-06-03",
+      "planEnd": "2026-07-20",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -1973,6 +1973,22 @@
             "planEnd": "2026-07-19",
             "actualStart": null
           }
+        },
+        {
+          "at": "2026-06-18T16:39:19.823Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "ещё не начали",
+          "before": {
+            "planStart": "2026-06-02",
+            "planEnd": "2026-07-19",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-06-03",
+            "planEnd": "2026-07-20",
+            "actualStart": null
+          }
         }
       ],
       "progress": 0
@@ -1986,8 +2002,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-06-14",
-      "planEnd": "2026-06-23",
+      "planStart": "2026-06-15",
+      "planEnd": "2026-06-24",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2036,6 +2052,22 @@
           "after": {
             "planStart": "2026-06-14",
             "planEnd": "2026-06-23",
+            "actualStart": null
+          }
+        },
+        {
+          "at": "2026-06-18T16:39:19.823Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "ещё не начали",
+          "before": {
+            "planStart": "2026-06-14",
+            "planEnd": "2026-06-23",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-06-15",
+            "planEnd": "2026-06-24",
             "actualStart": null
           }
         }
@@ -7662,8 +7694,8 @@
       "unit": "",
       "costIncVat": 45000,
       "durationDaysPlanned": 10,
-      "planStart": "2026-05-29",
-      "planEnd": "2026-06-07",
+      "planStart": "2026-05-30",
+      "planEnd": "2026-06-08",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -7719,6 +7751,22 @@
           "after": {
             "planStart": "2026-05-29",
             "planEnd": "2026-06-07",
+            "actualStart": null
+          }
+        },
+        {
+          "at": "2026-06-18T16:39:19.823Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "ещё не начали",
+          "before": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-30",
+            "planEnd": "2026-06-08",
             "actualStart": null
           }
         }
