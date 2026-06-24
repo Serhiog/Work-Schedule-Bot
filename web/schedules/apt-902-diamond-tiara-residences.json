@@ -8,8 +8,8 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-24T14:16:55.460Z",
-    "lastUpdatedBy": "web"
+    "lastUpdated": "2026-06-24T16:12:45.339Z",
+    "lastUpdatedBy": "Platform"
   },
   "maintenance": {
     "official": true,
@@ -132,7 +132,7 @@
       }
     },
     "visits": [],
-    "nextDueDate": null
+    "nextDueDate": "2026-07-01"
   },
   "sections": [],
   "tasks": [],
