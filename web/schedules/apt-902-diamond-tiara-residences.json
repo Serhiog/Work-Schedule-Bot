@@ -1,0 +1,57 @@
+{
+  "project": {
+    "slug": "apt-902-diamond-tiara-residences",
+    "name": "Apt. 902, Diamond, Tiara Residences",
+    "kind": "maintenance",
+    "customer": "Ms. Volha Hruzdova",
+    "location": "Apt. 902, Diamond, Tiara Residences, Palm Jumeirah, Dubai, UAE",
+    "startDate": "2026-06-24",
+    "endDate": "2026-06-24",
+    "currency": "AED",
+    "lastUpdated": "2026-06-24T13:40:21.779Z",
+    "lastUpdatedBy": "Platform (create maintenance)"
+  },
+  "maintenance": {
+    "official": false,
+    "contractNo": "AMC Offer No. 1-XM",
+    "templateVersion": 1,
+    "report": {
+      "meta": {
+        "contractNo": "AMC Offer No. 1-XM",
+        "propertyAddress": "Apt. 902, Diamond, Tiara Residences, Palm Jumeirah, Dubai, UAE",
+        "customer": "Ms. Volha Hruzdova",
+        "date": {
+          "day": "",
+          "month": "",
+          "year": "2026"
+        }
+      },
+      "answers": {},
+      "defects": {
+        "selected": "a",
+        "notes": ""
+      },
+      "signature": {
+        "png": "",
+        "engineerName": "",
+        "engineerTitle": "Project Engineer",
+        "signedAt": ""
+      }
+    },
+    "visits": [],
+    "nextDueDate": null
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-06-24T13:40:21.779Z",
+      "by": "Platform",
+      "type": "create_maintenance",
+      "summary": "Лист обслуживания «Apt. 902, Diamond, Tiara Residences» создан (неофициальный)"
+    }
+  ]
+}
