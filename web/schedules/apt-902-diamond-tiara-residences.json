@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-24T13:53:00.562Z",
+    "lastUpdated": "2026-06-24T13:56:45.192Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -21,31 +21,31 @@
         "propertyAddress": "Apt. 902, Diamond, Tiara Residences, Palm Jumeirah, Dubai, UAE",
         "customer": "Ms. Volha Hruzdova",
         "date": {
-          "day": "",
-          "month": "",
+          "day": "24",
+          "month": "июня",
           "year": "2026"
         }
       },
       "answers": {
         "1.1": {
-          "value": "pass",
+          "value": "",
           "notes": "",
           "extra": {}
         },
         "1.2": {
-          "value": "",
-          "notes": "",
+          "value": "notpass",
+          "notes": "шумит компрессор",
           "extra": {}
         },
         "1.3": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {
             "airTemp": "22"
           }
         },
         "1.4": {
-          "value": "",
+          "value": "done",
           "notes": "",
           "extra": {}
         },
@@ -60,64 +60,69 @@
           "extra": {}
         },
         "2.1": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "2.2": {
-          "value": "",
+          "value": "pass",
           "notes": "",
-          "extra": {}
+          "extra": {
+            "volts": "230",
+            "amps": "12"
+          }
         },
         "2.3": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "2.4": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "3.1": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "3.2": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "3.3": {
-          "value": "",
+          "value": "done",
           "notes": "",
           "extra": {}
         },
         "3.4": {
-          "value": "",
+          "value": "done",
           "notes": "",
           "extra": {}
         },
         "4.1": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "4.2": {
-          "value": "",
+          "value": "done",
           "notes": "",
           "extra": {}
         },
         "4.3": {
-          "value": "",
+          "value": "done",
           "notes": "",
-          "extra": {}
+          "extra": {
+            "addedKg": "10"
+          }
         }
       },
       "defects": {
-        "selected": "a",
-        "notes": ""
+        "selected": "b",
+        "notes": "Пункт 1.2 — заменить компрессор внутреннего блока в спальне."
       },
       "signature": {
         "png": "",
