@@ -8,7 +8,7 @@
     "startDate": "2026-06-26",
     "endDate": "2026-06-26",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T14:28:48.456Z",
+    "lastUpdated": "2026-06-26T14:28:50.581Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -302,7 +302,7 @@
           {
             "id": "5.1",
             "en": "на инглише",
-            "ru": "",
+            "ru": "на русском",
             "status": "pass"
           }
         ]
