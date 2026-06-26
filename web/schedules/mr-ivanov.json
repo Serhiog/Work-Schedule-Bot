@@ -1,0 +1,63 @@
+{
+  "project": {
+    "slug": "mr-ivanov",
+    "name": "Mr. Ivanov",
+    "kind": "maintenance",
+    "customer": "Mr. Ivanov",
+    "location": "Apt. 1502, Marina Gate, Dubai",
+    "startDate": "2026-06-26",
+    "endDate": "2026-06-26",
+    "currency": "AED",
+    "lastUpdated": "2026-06-26T13:18:09.172Z",
+    "lastUpdatedBy": "Platform (create maintenance)"
+  },
+  "maintenance": {
+    "official": false,
+    "contractNo": "14-M",
+    "templateVersion": 1,
+    "engineerChatId": "",
+    "engineerName": "",
+    "mapsUrl": "",
+    "intervalMonths": 6,
+    "report": {
+      "meta": {
+        "contractNo": "14-M",
+        "propertyAddress": "Apt. 1502, Marina Gate, Dubai",
+        "customer": "Mr. Ivanov",
+        "date": {
+          "day": "",
+          "month": "",
+          "year": "2026"
+        }
+      },
+      "answers": {},
+      "defects": {
+        "selected": "a",
+        "notes": ""
+      },
+      "signature": {
+        "png": "",
+        "engineerName": "",
+        "engineerTitle": "Project Engineer",
+        "signedAt": ""
+      }
+    },
+    "archive": [],
+    "visits": [],
+    "lastVisitDate": null,
+    "nextDueDate": "2026-12-26"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-06-26T13:18:09.172Z",
+      "by": "Platform",
+      "type": "create_maintenance",
+      "summary": "Лист обслуживания «Mr. Ivanov» создан (неофициальный)"
+    }
+  ]
+}
