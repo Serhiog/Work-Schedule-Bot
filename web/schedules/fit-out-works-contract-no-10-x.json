@@ -11,12 +11,12 @@
     "vatRate": 0.05,
     "totalExVat": 748571.43,
     "totalIncVat": 786000,
-    "startDate": "2026-05-11",
-    "endDate": "2026-12-16",
-    "durationDays": 310,
+    "startDate": "2026-06-26",
+    "endDate": "2026-09-06",
+    "durationDays": 73,
     "contractEndDate": "2027-03-16",
-    "lastUpdated": "2026-05-23T16:00:33.094Z",
-    "lastUpdatedBy": "Bot (voice rename)",
+    "lastUpdated": "2026-06-26T19:01:20.103Z",
+    "lastUpdatedBy": "Bot (reschedule parallel)",
     "paymentStages": [
       {
         "id": "P1",
@@ -142,6 +142,726 @@
   "holidays": [],
   "tasks": [
     {
+      "id": "7",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-06-26",
+      "planEnd": "2026-07-02",
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:40:13.158Z",
+          "before": {
+            "planStart": "2026-08-14",
+            "planEnd": "2026-08-20",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-09",
+            "planEnd": "2026-07-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-09, planEnd=2026-07-15"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:40:15.026Z",
+          "before": {
+            "planStart": "2026-07-09",
+            "planEnd": "2026-07-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-16",
+            "planEnd": "2026-07-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-16, planEnd=2026-07-22"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:40:18.091Z",
+          "before": {
+            "planStart": "2026-07-16",
+            "planEnd": "2026-07-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-06-08, planEnd=2026-06-14"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:40:32.007Z",
+          "before": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-05-18, planEnd=2026-05-24"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T16:41:59.173Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-25",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-05-25"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:52:25.915Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-25",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-05-23"
+        },
+        {
+          "type": "set_progress",
+          "by": "TEST",
+          "at": "2026-05-23T15:33:07.175Z",
+          "reason": "30% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.3,
+            "actualStart": "2026-05-23",
+            "actualEnd": null
+          },
+          "summary": "прогресс «Демонтажные работы» → 30%"
+        },
+        {
+          "type": "update_task",
+          "by": "reset test",
+          "at": "2026-05-23T15:34:16.857Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-23",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.3,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T15:49:49.950Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T15:57:08.899Z",
+          "reason": "30% готовности",
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.3,
+            "actualStart": "2026-05-18"
+          },
+          "summary": "прогресс «Демонтажные работы» → 30%"
+        },
+        {
+          "type": "mark_complete",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T16:05:21.123Z",
+          "reason": "готова будет 1 июня",
+          "before": {
+            "progress": 0.3,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 1,
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23"
+          },
+          "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
+        },
+        {
+          "type": "update_task",
+          "by": "reset for retest",
+          "at": "2026-05-23T16:10:05.253Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_progress",
+          "by": "RETEST",
+          "at": "2026-05-23T16:10:10.531Z",
+          "reason": "текущая готовность",
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.7,
+            "actualStart": "2026-05-23"
+          },
+          "summary": "прогресс «Демонтажные работы» → 70%"
+        },
+        {
+          "at": "2026-05-23T16:10:10.531Z",
+          "by": "RETEST",
+          "action": "shift_plan_end",
+          "reason": "перенос финиша на 1 июня",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-23"
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-23"
+          }
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:11:54.333Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-23",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-21",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-21"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:11:56.825Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-21",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-19",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-19"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:12:01.619Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-19",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "update_task",
+          "by": "откат теста",
+          "at": "2026-05-23T16:20:44.667Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-01",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.7,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd",
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": "откат тестовых данных (возврат планового финиша демонтажа)",
+          "planning": false,
+          "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:25:28.867Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "set_progress",
+          "by": "Sergei Grishenkov",
+          "at": "2026-05-23T16:26:35.144Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0.83,
+            "actualStart": "2026-05-18"
+          },
+          "summary": "прогресс «Демонтажные работы» → 83%"
+        },
+        {
+          "at": "2026-05-23T16:26:35.144Z",
+          "by": "Sergei Grishenkov",
+          "action": "shift_plan_end",
+          "reason": "завершим 2 июня",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18"
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-02",
+            "actualStart": "2026-05-18"
+          }
+        },
+        {
+          "type": "update_task",
+          "by": "откат теста",
+          "at": "2026-05-23T16:32:22.108Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-02",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0.83,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd",
+            "actualStart",
+            "actualEnd",
+            "progress"
+          ],
+          "reason": "откат тестового аудио-ответа",
+          "planning": false,
+          "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T16:51:23.863Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualStart"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualStart=2026-05-18"
+        },
+        {
+          "type": "mark_complete",
+          "by": "Антон П.",
+          "at": "2026-05-23T16:53:53.120Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": "2026-05-18",
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 1,
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23"
+          },
+          "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:14:20.798Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-05-23",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualEnd"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualEnd=2026-06-05"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.897Z",
+          "before": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-05-23",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-05-18",
+            "planEnd": "2026-06-05",
+            "actualStart": "2026-05-18",
+            "actualEnd": "2026-06-05",
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 1,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "summary": "planEnd=2026-06-05"
+        }
+      ],
+      "progress": 1,
+      "actualStart": "2026-05-18",
+      "actualEnd": "2026-06-05"
+    },
+    {
       "id": "1",
       "section": "plumbing",
       "stage": "ST1",
@@ -150,8 +870,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-06-08",
-      "planEnd": "2026-06-22",
+      "planStart": "2026-07-03",
+      "planEnd": "2026-07-12",
       "history": [
         {
           "type": "set_dates",
@@ -979,8 +1699,8 @@
       "unit": "",
       "costIncVat": 59672.16,
       "durationDaysPlanned": 15,
-      "planStart": "2026-06-08",
-      "planEnd": "2026-06-27",
+      "planStart": "2026-07-03",
+      "planEnd": "2026-07-17",
       "history": [
         {
           "type": "set_dates",
@@ -1744,8 +2464,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-06-03",
-      "planEnd": "2026-07-20",
+      "planStart": "2026-07-03",
+      "planEnd": "2026-07-17",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2034,8 +2754,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-06-15",
-      "planEnd": "2026-06-24",
+      "planStart": "2026-07-03",
+      "planEnd": "2026-07-12",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2114,8 +2834,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 15,
-      "planStart": "2026-11-20",
-      "planEnd": "2026-12-04",
+      "planStart": "2026-07-03",
+      "planEnd": "2026-07-17",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -2547,726 +3267,6 @@
       ]
     },
     {
-      "id": "7",
-      "section": "demolition",
-      "stage": "ST1",
-      "name": "Демонтажные работы",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 7,
-      "planStart": "2026-05-18",
-      "planEnd": "2026-06-05",
-      "history": [
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:40:13.158Z",
-          "before": {
-            "planStart": "2026-08-14",
-            "planEnd": "2026-08-20",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-07-09",
-            "planEnd": "2026-07-15",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-07-09, planEnd=2026-07-15"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:40:15.026Z",
-          "before": {
-            "planStart": "2026-07-09",
-            "planEnd": "2026-07-15",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-07-16",
-            "planEnd": "2026-07-22",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-07-16, planEnd=2026-07-22"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:40:18.091Z",
-          "before": {
-            "planStart": "2026-07-16",
-            "planEnd": "2026-07-22",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-14",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-06-08, planEnd=2026-06-14"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:40:32.007Z",
-          "before": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-14",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-24",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-05-18, planEnd=2026-05-24"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T16:41:59.173Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-24",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-25",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planEnd=2026-05-25"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:52:25.915Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-25",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planEnd=2026-05-23"
-        },
-        {
-          "type": "set_progress",
-          "by": "TEST",
-          "at": "2026-05-23T15:33:07.175Z",
-          "reason": "30% готовности",
-          "before": {
-            "progress": 0,
-            "actualStart": null,
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 0.3,
-            "actualStart": "2026-05-23",
-            "actualEnd": null
-          },
-          "summary": "прогресс «Демонтажные работы» → 30%"
-        },
-        {
-          "type": "update_task",
-          "by": "reset test",
-          "at": "2026-05-23T15:34:16.857Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-23",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.3,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart",
-            "actualEnd",
-            "progress"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "actualStart=null, actualEnd=null, progress=0"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T15:49:49.950Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-18"
-        },
-        {
-          "type": "set_progress",
-          "by": "Sergei Grishenkov",
-          "at": "2026-05-23T15:57:08.899Z",
-          "reason": "30% готовности",
-          "before": {
-            "progress": 0,
-            "actualStart": "2026-05-18",
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 0.3,
-            "actualStart": "2026-05-18"
-          },
-          "summary": "прогресс «Демонтажные работы» → 30%"
-        },
-        {
-          "type": "mark_complete",
-          "by": "Sergei Grishenkov",
-          "at": "2026-05-23T16:05:21.123Z",
-          "reason": "готова будет 1 июня",
-          "before": {
-            "progress": 0.3,
-            "actualStart": "2026-05-18",
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 1,
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-05-23"
-          },
-          "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
-        },
-        {
-          "type": "update_task",
-          "by": "reset for retest",
-          "at": "2026-05-23T16:10:05.253Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-05-23",
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 1,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart",
-            "actualEnd",
-            "progress"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=null, actualEnd=null, progress=0"
-        },
-        {
-          "type": "set_progress",
-          "by": "RETEST",
-          "at": "2026-05-23T16:10:10.531Z",
-          "reason": "текущая готовность",
-          "before": {
-            "progress": 0,
-            "actualStart": null,
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 0.7,
-            "actualStart": "2026-05-23"
-          },
-          "summary": "прогресс «Демонтажные работы» → 70%"
-        },
-        {
-          "at": "2026-05-23T16:10:10.531Z",
-          "by": "RETEST",
-          "action": "shift_plan_end",
-          "reason": "перенос финиша на 1 июня",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-23"
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-23"
-          }
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T16:11:54.333Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-23",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-21",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-21"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T16:11:56.825Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-21",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-19",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-19"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T16:12:01.619Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-19",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-18"
-        },
-        {
-          "type": "update_task",
-          "by": "откат теста",
-          "at": "2026-05-23T16:20:44.667Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-01",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.7,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd",
-            "actualStart",
-            "actualEnd",
-            "progress"
-          ],
-          "reason": "откат тестовых данных (возврат планового финиша демонтажа)",
-          "planning": false,
-          "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T16:25:28.867Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-18"
-        },
-        {
-          "type": "set_progress",
-          "by": "Sergei Grishenkov",
-          "at": "2026-05-23T16:26:35.144Z",
-          "reason": null,
-          "before": {
-            "progress": 0,
-            "actualStart": "2026-05-18",
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 0.83,
-            "actualStart": "2026-05-18"
-          },
-          "summary": "прогресс «Демонтажные работы» → 83%"
-        },
-        {
-          "at": "2026-05-23T16:26:35.144Z",
-          "by": "Sergei Grishenkov",
-          "action": "shift_plan_end",
-          "reason": "завершим 2 июня",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18"
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-02",
-            "actualStart": "2026-05-18"
-          }
-        },
-        {
-          "type": "update_task",
-          "by": "откат теста",
-          "at": "2026-05-23T16:32:22.108Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-02",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0.83,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd",
-            "actualStart",
-            "actualEnd",
-            "progress"
-          ],
-          "reason": "откат тестового аудио-ответа",
-          "planning": false,
-          "summary": "planEnd=2026-05-23, actualStart=null, actualEnd=null, progress=0"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T16:51:23.863Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": null,
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualStart"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualStart=2026-05-18"
-        },
-        {
-          "type": "mark_complete",
-          "by": "Антон П.",
-          "at": "2026-05-23T16:53:53.120Z",
-          "reason": null,
-          "before": {
-            "progress": 0,
-            "actualStart": "2026-05-18",
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 1,
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-05-23"
-          },
-          "summary": "прогресс «Демонтажные работы» → 100% (закрыта)"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-06-05T06:14:20.798Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-05-23",
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 1,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-06-05",
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 1,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "actualEnd"
-          ],
-          "reason": null,
-          "planning": false,
-          "summary": "actualEnd=2026-06-05"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-06-05T06:15:06.897Z",
-          "before": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-05-23",
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-06-05",
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 1,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-05-18",
-            "planEnd": "2026-06-05",
-            "actualStart": "2026-05-18",
-            "actualEnd": "2026-06-05",
-            "name": "Демонтажные работы",
-            "section": "demolition",
-            "progress": 1,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd"
-          ],
-          "reason": "Скоуп изменён",
-          "planning": false,
-          "summary": "planEnd=2026-06-05"
-        }
-      ],
-      "progress": 1,
-      "actualStart": "2026-05-18",
-      "actualEnd": "2026-06-05"
-    },
-    {
       "id": "12",
       "section": "drywall",
       "stage": "ST2",
@@ -3275,8 +3275,8 @@
       "unit": "",
       "costIncVat": 49719.08,
       "durationDaysPlanned": 5,
-      "planStart": "2026-06-15",
-      "planEnd": "2026-10-03",
+      "planStart": "2026-07-18",
+      "planEnd": "2026-07-22",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3573,8 +3573,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 14,
-      "planStart": "2026-06-19",
-      "planEnd": "2026-07-22",
+      "planStart": "2026-07-23",
+      "planEnd": "2026-08-05",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -3851,8 +3851,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-09-30",
-      "planEnd": "2026-10-28",
+      "planStart": "2026-07-23",
+      "planEnd": "2026-07-27",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4248,381 +4248,6 @@
       ]
     },
     {
-      "id": "29",
-      "section": "flooring",
-      "stage": "ST2",
-      "name": "Стяжка с маяками",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 0,
-      "durationDaysPlanned": 7,
-      "planStart": "2026-06-19",
-      "planEnd": "2026-06-24",
-      "actualStart": null,
-      "actualEnd": null,
-      "history": [
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:00.179Z",
-          "before": {
-            "planStart": "2026-11-17",
-            "planEnd": "2026-11-23",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-10-24",
-            "planEnd": "2026-10-30",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-10-24, planEnd=2026-10-30"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:04.297Z",
-          "before": {
-            "planStart": "2026-10-24",
-            "planEnd": "2026-10-30",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-10-06",
-            "planEnd": "2026-10-12",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-10-06, planEnd=2026-10-12"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:09.285Z",
-          "before": {
-            "planStart": "2026-10-06",
-            "planEnd": "2026-10-12",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-09-28",
-            "planEnd": "2026-10-04",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-09-28, planEnd=2026-10-04"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:12.368Z",
-          "before": {
-            "planStart": "2026-09-28",
-            "planEnd": "2026-10-04",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-08-28",
-            "planEnd": "2026-09-03",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-08-28, planEnd=2026-09-03"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:18.809Z",
-          "before": {
-            "planStart": "2026-08-28",
-            "planEnd": "2026-09-03",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-07-19",
-            "planEnd": "2026-07-25",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-07-19, planEnd=2026-07-25"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:36.181Z",
-          "before": {
-            "planStart": "2026-07-19",
-            "planEnd": "2026-07-25",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-14",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planStart=2026-06-08, planEnd=2026-06-14"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:02:52.010Z",
-          "before": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-14",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-13",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "summary": "planEnd=2026-06-13"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-20T17:52:26.109Z",
-          "before": {
-            "planStart": "2026-06-08",
-            "planEnd": "2026-06-13",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-06",
-            "planEnd": "2026-06-11",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "cascadeFrom": "7",
-          "cascadeDeltaDays": -2,
-          "summary": "каскад -2 дн. от «Демонтажные работы» (#7)"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T13:21:16.071Z",
-          "before": {
-            "planStart": "2026-06-06",
-            "planEnd": "2026-06-11",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-07",
-            "planEnd": "2026-06-12",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "cascadeFrom": "1",
-          "cascadeDeltaDays": 1,
-          "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-05-23T13:21:22.204Z",
-          "before": {
-            "planStart": "2026-06-07",
-            "planEnd": "2026-06-12",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-06",
-            "planEnd": "2026-06-11",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": null,
-          "planning": true,
-          "cascadeFrom": "1",
-          "cascadeDeltaDays": -1,
-          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
-        },
-        {
-          "type": "set_dates",
-          "by": "web",
-          "at": "2026-06-05T06:15:06.909Z",
-          "before": {
-            "planStart": "2026-06-06",
-            "planEnd": "2026-06-11",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "after": {
-            "planStart": "2026-06-19",
-            "planEnd": "2026-06-24",
-            "actualStart": null,
-            "actualEnd": null,
-            "name": "Стяжка с маяками",
-            "section": "flooring",
-            "progress": 0,
-            "subcontractorName": null
-          },
-          "changedFields": [
-            "planStart",
-            "planEnd"
-          ],
-          "reason": "Скоуп изменён",
-          "planning": false,
-          "cascadeFrom": "7",
-          "cascadeDeltaDays": 13,
-          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
-        }
-      ]
-    },
-    {
       "id": "31",
       "section": "finishing",
       "stage": "ST2",
@@ -4631,8 +4256,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 3,
-      "planStart": "2026-07-17",
-      "planEnd": "2026-07-29",
+      "planStart": "2026-07-23",
+      "planEnd": "2026-07-25",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -4998,6 +4623,470 @@
       ]
     },
     {
+      "id": "51",
+      "section": "annex-2",
+      "stage": "ST2",
+      "name": "Закольцовка системы кондиционирования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 45000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-07-23",
+      "planEnd": "2026-08-01",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "create",
+          "by": "Приложение №2 (Claude Code, вручную)",
+          "at": "2026-05-23T13:39:51.363Z",
+          "summary": "Добавлено доп.соглашением: «Закольцовка системы кондиционирования»"
+        },
+        {
+          "at": "2026-06-01T16:04:22.840Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "не начали",
+          "before": {
+            "planStart": "2026-05-28",
+            "planEnd": "2026-06-06",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          }
+        },
+        {
+          "type": "set_progress",
+          "by": "Антон П.",
+          "at": "2026-06-08T15:20:03.362Z",
+          "reason": null,
+          "before": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "after": {
+            "progress": 0,
+            "actualStart": null,
+            "actualEnd": null
+          },
+          "summary": "прогресс «Закольцовка системы кондиционирования» → 0%"
+        },
+        {
+          "at": "2026-06-11T15:19:41.191Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "пункт не был начат",
+          "before": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          }
+        },
+        {
+          "at": "2026-06-18T16:39:19.823Z",
+          "by": "Антон П.",
+          "action": "shift_plan_start",
+          "reason": "ещё не начали",
+          "before": {
+            "planStart": "2026-05-29",
+            "planEnd": "2026-06-07",
+            "actualStart": null
+          },
+          "after": {
+            "planStart": "2026-05-30",
+            "planEnd": "2026-06-08",
+            "actualStart": null
+          }
+        }
+      ],
+      "pauses": [],
+      "progress": 0
+    },
+    {
+      "id": "29",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Стяжка с маяками",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 0,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-06",
+      "planEnd": "2026-08-12",
+      "actualStart": null,
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:00.179Z",
+          "before": {
+            "planStart": "2026-11-17",
+            "planEnd": "2026-11-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-24",
+            "planEnd": "2026-10-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-10-24, planEnd=2026-10-30"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:04.297Z",
+          "before": {
+            "planStart": "2026-10-24",
+            "planEnd": "2026-10-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-10-06",
+            "planEnd": "2026-10-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-10-06, planEnd=2026-10-12"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:09.285Z",
+          "before": {
+            "planStart": "2026-10-06",
+            "planEnd": "2026-10-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-28",
+            "planEnd": "2026-10-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-09-28, planEnd=2026-10-04"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:12.368Z",
+          "before": {
+            "planStart": "2026-09-28",
+            "planEnd": "2026-10-04",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-28",
+            "planEnd": "2026-09-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-08-28, planEnd=2026-09-03"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:18.809Z",
+          "before": {
+            "planStart": "2026-08-28",
+            "planEnd": "2026-09-03",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-19",
+            "planEnd": "2026-07-25",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-19, planEnd=2026-07-25"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:36.181Z",
+          "before": {
+            "planStart": "2026-07-19",
+            "planEnd": "2026-07-25",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-06-08, planEnd=2026-06-14"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:02:52.010Z",
+          "before": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-14",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planEnd=2026-06-13"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-20T17:52:26.109Z",
+          "before": {
+            "planStart": "2026-06-08",
+            "planEnd": "2026-06-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#7)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:16.071Z",
+          "before": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-07",
+            "planEnd": "2026-06-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": 1,
+          "summary": "каскад +1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-05-23T13:21:22.204Z",
+          "before": {
+            "planStart": "2026-06-07",
+            "planEnd": "2026-06-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -1,
+          "summary": "каскад -1 дн. от «Сантехника черновая» (#1)"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-05T06:15:06.909Z",
+          "before": {
+            "planStart": "2026-06-06",
+            "planEnd": "2026-06-11",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-19",
+            "planEnd": "2026-06-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Стяжка с маяками",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": "Скоуп изменён",
+          "planning": false,
+          "cascadeFrom": "7",
+          "cascadeDeltaDays": 13,
+          "summary": "каскад +13 дн. от «Демонтажные работы» (#7)"
+        }
+      ]
+    },
+    {
       "id": "39",
       "section": "flooring",
       "stage": "ST3",
@@ -5006,8 +5095,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-21",
-      "planEnd": "2026-09-09",
+      "planStart": "2026-08-13",
+      "planEnd": "2026-08-22",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5316,8 +5405,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 7,
-      "planStart": "2026-10-30",
-      "planEnd": "2026-11-11",
+      "planStart": "2026-08-13",
+      "planEnd": "2026-08-19",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -5754,8 +5843,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-31",
-      "planEnd": "2026-09-30",
+      "planStart": "2026-08-13",
+      "planEnd": "2026-08-22",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -6253,8 +6342,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-12-07",
-      "planEnd": "2026-12-16",
+      "planStart": "2026-08-23",
+      "planEnd": "2026-09-01",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -6757,8 +6846,8 @@
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 10,
-      "planStart": "2026-11-13",
-      "planEnd": "2026-11-19",
+      "planStart": "2026-08-23",
+      "planEnd": "2026-09-01",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -7190,14 +7279,14 @@
     {
       "id": "48",
       "section": "finishing",
-      "stage": "ST3",
+      "stage": "ST4",
       "name": "???Отделка скрытых дверей",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-06-24",
-      "planEnd": "2026-06-28",
+      "planStart": "2026-09-02",
+      "planEnd": "2026-09-06",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -7269,14 +7358,14 @@
     {
       "id": "49",
       "section": "furniture",
-      "stage": "ST3",
+      "stage": "ST4",
       "name": "Кухонная мебель",
       "qty": null,
       "unit": "",
       "costIncVat": 0,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-30",
-      "planEnd": "2026-11-18",
+      "planStart": "2026-09-02",
+      "planEnd": "2026-09-06",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -7583,8 +7672,8 @@
       "name": "NOC (No Objection Certificate)",
       "permitType": "noc",
       "isPermit": true,
-      "planStart": "2026-05-11",
-      "planEnd": "2026-12-16",
+      "planStart": "2026-06-26",
+      "planEnd": "2026-09-06",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
@@ -7621,7 +7710,8 @@
           "planning": false,
           "summary": "planEnd=2026-12-03"
         }
-      ]
+      ],
+      "durationDaysPlanned": 30
     },
     {
       "id": "permit-gate-pass",
@@ -7630,8 +7720,8 @@
       "name": "Gate Pass",
       "permitType": "gate_pass",
       "isPermit": true,
-      "planStart": "2026-05-11",
-      "planEnd": "2026-12-16",
+      "planStart": "2026-06-26",
+      "planEnd": "2026-09-06",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
@@ -7668,7 +7758,8 @@
           "planning": false,
           "summary": "planEnd=2026-12-03"
         }
-      ]
+      ],
+      "durationDaysPlanned": 30
     },
     {
       "id": "permit-work-permit",
@@ -7677,8 +7768,8 @@
       "name": "Work Permit",
       "permitType": "work_permit",
       "isPermit": true,
-      "planStart": "2026-05-11",
-      "planEnd": "2026-12-16",
+      "planStart": "2026-06-26",
+      "planEnd": "2026-09-06",
       "progress": 0,
       "actualStart": null,
       "actualEnd": null,
@@ -7715,96 +7806,8 @@
           "planning": false,
           "summary": "planEnd=2026-12-03"
         }
-      ]
-    },
-    {
-      "id": "51",
-      "section": "annex-2",
-      "stage": "ST2",
-      "name": "Закольцовка системы кондиционирования",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 45000,
-      "durationDaysPlanned": 10,
-      "planStart": "2026-05-30",
-      "planEnd": "2026-06-08",
-      "actualStart": null,
-      "actualEnd": null,
-      "history": [
-        {
-          "type": "create",
-          "by": "Приложение №2 (Claude Code, вручную)",
-          "at": "2026-05-23T13:39:51.363Z",
-          "summary": "Добавлено доп.соглашением: «Закольцовка системы кондиционирования»"
-        },
-        {
-          "at": "2026-06-01T16:04:22.840Z",
-          "by": "Антон П.",
-          "action": "shift_plan_start",
-          "reason": "не начали",
-          "before": {
-            "planStart": "2026-05-28",
-            "planEnd": "2026-06-06",
-            "actualStart": null
-          },
-          "after": {
-            "planStart": "2026-05-29",
-            "planEnd": "2026-06-07",
-            "actualStart": null
-          }
-        },
-        {
-          "type": "set_progress",
-          "by": "Антон П.",
-          "at": "2026-06-08T15:20:03.362Z",
-          "reason": null,
-          "before": {
-            "progress": 0,
-            "actualStart": null,
-            "actualEnd": null
-          },
-          "after": {
-            "progress": 0,
-            "actualStart": null,
-            "actualEnd": null
-          },
-          "summary": "прогресс «Закольцовка системы кондиционирования» → 0%"
-        },
-        {
-          "at": "2026-06-11T15:19:41.191Z",
-          "by": "Антон П.",
-          "action": "shift_plan_start",
-          "reason": "пункт не был начат",
-          "before": {
-            "planStart": "2026-05-29",
-            "planEnd": "2026-06-07",
-            "actualStart": null
-          },
-          "after": {
-            "planStart": "2026-05-29",
-            "planEnd": "2026-06-07",
-            "actualStart": null
-          }
-        },
-        {
-          "at": "2026-06-18T16:39:19.823Z",
-          "by": "Антон П.",
-          "action": "shift_plan_start",
-          "reason": "ещё не начали",
-          "before": {
-            "planStart": "2026-05-29",
-            "planEnd": "2026-06-07",
-            "actualStart": null
-          },
-          "after": {
-            "planStart": "2026-05-30",
-            "planEnd": "2026-06-08",
-            "actualStart": null
-          }
-        }
       ],
-      "pauses": [],
-      "progress": 0
+      "durationDaysPlanned": 30
     }
   ],
   "history": [
