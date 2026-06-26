@@ -8,7 +8,7 @@
     "startDate": "2026-06-26",
     "endDate": "2026-06-26",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T15:32:10.962Z",
+    "lastUpdated": "2026-06-26T15:32:13.677Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -297,7 +297,8 @@
     ],
     "visitDates": [
       "2026-12-15",
-      "2026-12-26"
+      "2026-12-26",
+      "2026-12-29"
     ]
   },
   "sections": [],
