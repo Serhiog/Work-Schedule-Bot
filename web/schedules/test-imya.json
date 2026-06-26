@@ -1,0 +1,63 @@
+{
+  "project": {
+    "slug": "test-imya",
+    "name": "тест имя",
+    "kind": "maintenance",
+    "customer": "иван",
+    "location": "адрес",
+    "startDate": "2026-06-26",
+    "endDate": "2026-06-26",
+    "currency": "AED",
+    "lastUpdated": "2026-06-26T14:27:30.732Z",
+    "lastUpdatedBy": "Platform (create maintenance)"
+  },
+  "maintenance": {
+    "official": true,
+    "contractNo": "1",
+    "templateVersion": 1,
+    "engineerChatId": "",
+    "engineerName": "",
+    "mapsUrl": "",
+    "intervalMonths": 6,
+    "report": {
+      "meta": {
+        "contractNo": "1",
+        "propertyAddress": "адрес",
+        "customer": "иван",
+        "date": {
+          "day": "",
+          "month": "",
+          "year": "2026"
+        }
+      },
+      "answers": {},
+      "defects": {
+        "selected": "a",
+        "notes": ""
+      },
+      "signature": {
+        "png": "",
+        "engineerName": "",
+        "engineerTitle": "Project Engineer",
+        "signedAt": ""
+      }
+    },
+    "archive": [],
+    "visits": [],
+    "lastVisitDate": null,
+    "nextDueDate": "2026-12-26"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-06-26T14:27:30.732Z",
+      "by": "Platform",
+      "type": "create_maintenance",
+      "summary": "Лист обслуживания «тест имя» создан (официальный)"
+    }
+  ]
+}
