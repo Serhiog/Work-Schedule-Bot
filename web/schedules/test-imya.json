@@ -8,7 +8,7 @@
     "startDate": "2026-06-26",
     "endDate": "2026-06-26",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T14:28:45.473Z",
+    "lastUpdated": "2026-06-26T14:28:48.456Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -301,7 +301,7 @@
         "items": [
           {
             "id": "5.1",
-            "en": "",
+            "en": "на инглише",
             "ru": "",
             "status": "pass"
           }
