@@ -1,0 +1,63 @@
+{
+  "project": {
+    "slug": "zz-test-checklist-edit",
+    "name": "ZZ TEST checklist edit",
+    "kind": "maintenance",
+    "customer": "test",
+    "location": "test addr",
+    "startDate": "2026-06-26",
+    "endDate": "2026-06-26",
+    "currency": "AED",
+    "lastUpdated": "2026-06-26T12:57:56.577Z",
+    "lastUpdatedBy": "Platform (create maintenance)"
+  },
+  "maintenance": {
+    "official": false,
+    "contractNo": "",
+    "templateVersion": 1,
+    "engineerChatId": "",
+    "engineerName": "",
+    "mapsUrl": "",
+    "intervalMonths": 6,
+    "report": {
+      "meta": {
+        "contractNo": "",
+        "propertyAddress": "test addr",
+        "customer": "test",
+        "date": {
+          "day": "",
+          "month": "",
+          "year": "2026"
+        }
+      },
+      "answers": {},
+      "defects": {
+        "selected": "a",
+        "notes": ""
+      },
+      "signature": {
+        "png": "",
+        "engineerName": "",
+        "engineerTitle": "Project Engineer",
+        "signedAt": ""
+      }
+    },
+    "archive": [],
+    "visits": [],
+    "lastVisitDate": null,
+    "nextDueDate": "2026-12-26"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-06-26T12:57:56.577Z",
+      "by": "Platform",
+      "type": "create_maintenance",
+      "summary": "Лист обслуживания «ZZ TEST checklist edit» создан (неофициальный)"
+    }
+  ]
+}
