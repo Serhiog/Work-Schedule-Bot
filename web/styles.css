@@ -2189,12 +2189,12 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
     height: auto;
     overflow-x: auto;
     overflow-y: clip;
-    /* __MOBILE_VSCROLL_FIX__ Только pan-x: график берёт горизонтальный жест себе,
-       вертикальный сразу отдаёт странице (иначе на Android палец на графике не
-       прокручивал страницу вниз — pan-y «съедался», т.к. график overflow-y:clip).
+    /* __MOBILE_VSCROLL_FIX_v2__ pan-x pan-y: горизонтальный жест берёт график (overflow-x),
+       вертикальный — страница (график по вертикали обрезан, overflow-y:clip → жест уходит на body).
+       РАНЬШЕ был только pan-x → палец НА графике вообще не скроллил страницу вверх/вниз (баг).
        2-пальцевый зум не зависит от touch-action — он на JS (attachGanttGestures). */
-    touch-action: pan-x;
-    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
   /* Тень под прилипшей шапкой дат — визуально отделяет от прокручиваемых строк */
