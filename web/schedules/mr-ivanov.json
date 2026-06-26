@@ -8,8 +8,8 @@
     "startDate": "2026-06-26",
     "endDate": "2026-06-26",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T13:18:09.172Z",
-    "lastUpdatedBy": "Platform (create maintenance)"
+    "lastUpdated": "2026-06-26T13:18:10.319Z",
+    "lastUpdatedBy": "web-photo"
   },
   "maintenance": {
     "official": false,
@@ -25,15 +25,38 @@
         "propertyAddress": "Apt. 1502, Marina Gate, Dubai",
         "customer": "Mr. Ivanov",
         "date": {
-          "day": "",
-          "month": "",
+          "day": "15",
+          "month": "June",
           "year": "2026"
         }
       },
-      "answers": {},
+      "answers": {
+        "1.1": {
+          "value": "pass",
+          "notes": "",
+          "extra": {}
+        },
+        "1.2": {
+          "value": "pass",
+          "notes": "",
+          "extra": {
+            "k1_2_0": "21"
+          }
+        },
+        "2.1": {
+          "value": "notpass",
+          "notes": "leak under sink / течь под раковиной",
+          "extra": {}
+        },
+        "2.2": {
+          "value": "done",
+          "notes": "",
+          "extra": {}
+        }
+      },
       "defects": {
-        "selected": "a",
-        "notes": ""
+        "selected": "b",
+        "notes": "leak under kitchen sink, needs repair"
       },
       "signature": {
         "png": "",
@@ -45,7 +68,60 @@
     "archive": [],
     "visits": [],
     "lastVisitDate": null,
-    "nextDueDate": "2026-12-26"
+    "nextDueDate": "2026-12-26",
+    "checklist": [
+      {
+        "id": 1,
+        "en": "AIR CONDITIONING",
+        "ru": "Кондиционирование воздуха",
+        "items": [
+          {
+            "id": "1.1",
+            "en": "Check units for abnormal noise and vibration",
+            "ru": "Проверка блоков на шум и вибрацию",
+            "status": "pass"
+          },
+          {
+            "id": "1.2",
+            "en": "Measure and record supply air temperature",
+            "ru": "Измерение температуры подающего воздуха",
+            "status": "pass",
+            "extra": [
+              {
+                "key": "k1_2_0",
+                "label": "Air Temp",
+                "unit": "°C"
+              }
+            ]
+          },
+          {
+            "id": "1.3",
+            "en": "Dismantle, wash and clean air filters",
+            "ru": "Снятие и очистка воздушных фильтров",
+            "status": "done"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "en": "PLUMBING",
+        "ru": "Водопровод и канализация",
+        "items": [
+          {
+            "id": "2.1",
+            "en": "Visual inspection of pipelines for leaks",
+            "ru": "Осмотр трубопроводов на утечки",
+            "status": "pass"
+          },
+          {
+            "id": "2.2",
+            "en": "Clean aerators on all taps",
+            "ru": "Очистка аэраторов на кранах",
+            "status": "done"
+          }
+        ]
+      }
+    ]
   },
   "sections": [],
   "tasks": [],
