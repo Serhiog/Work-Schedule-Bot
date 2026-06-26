@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T15:28:00.465Z",
+    "lastUpdated": "2026-06-26T15:28:36.109Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -133,7 +133,7 @@
         "reportId": "r1"
       }
     ],
-    "nextDueDate": "2026-12-23",
+    "nextDueDate": "2026-12-10",
     "engineerChatId": "584268213",
     "engineerName": "Антон М.",
     "mapsUrl": "https://maps.google.com/?q=Tiara+Residences+Palm+Jumeirah",
@@ -424,6 +424,11 @@
           }
         ]
       }
+    ],
+    "visitDates": [
+      "2026-12-10",
+      "2026-12-20",
+      "2026-12-23"
     ]
   },
   "sections": [],
