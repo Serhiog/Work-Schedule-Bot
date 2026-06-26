@@ -8,11 +8,11 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T15:19:40.604Z",
+    "lastUpdated": "2026-06-26T15:27:49.671Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
-    "official": true,
+    "official": false,
     "contractNo": "AMC Offer No. 1-XM",
     "templateVersion": 1,
     "report": {
