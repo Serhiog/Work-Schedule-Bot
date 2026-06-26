@@ -7,8 +7,17 @@
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <title>Orange Group Office · График работ · CYFR</title>
-  <meta name="description" content="График отделочных работ Orange Group Office — CYFR FITOUT L.L.C" />
+  <title>CYFR · Загрузка…</title>
+  <meta name="description" content="CYFR FITOUT L.L.C — графики работ и плановое обслуживание" />
+  <style>
+    /* __BOOT_NO_GANTT_FLASH_v1__ пока не выбран тип проекта — прячем статичную шапку графика,
+       чтобы при открытии листа обслуживания не мелькал Gantt. JS снимает класс booting. */
+    body.booting .hero, body.booting .project-analytics, body.booting .stages-ribbon,
+    body.booting .legend, body.booting .gantt-toolbar, body.booting .resource-heatmap,
+    body.booting .stages-bar-host, body.booting .gantt-wrap, body.booting .footer { display: none !important; }
+    .boot-loader { display: none; }
+    body.booting .boot-loader { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #94a3b8; font: 600 15px Inter, -apple-system, sans-serif; }
+  </style>
   <link rel="icon" type="image/svg+xml" href="/assets/cyfr-logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,10 +31,14 @@
       var theme = saved || (prefersDark ? 'dark' : 'light');
       if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     } catch (_) {}
+    // Страховка: если JS не успел/упал — не держим лоадер вечно.
+    setTimeout(function () { try { document.body && document.body.classList.remove('booting'); } catch (_) {} }, 4000);
   </script>
 </head>
-<body>
+<body class="booting">
   <div class="page">
+    <!-- Нейтральный лоадер (показывается, пока JS не выбрал тип проекта) -->
+    <div class="boot-loader">Загрузка…</div>
     <!-- Top bar -->
     <header class="top-bar">
       <a class="brand" href="/" title="К списку проектов" aria-label="К списку проектов">

@@ -199,6 +199,7 @@ function hideMobileTasksFab() {
 function clearPageBelowTopbar() {
   const page = document.querySelector('.page');
   if (!page) return null;
+  document.body.classList.remove('booting'); // маршрут выбран (лист/главная) — статичный Gantt-каркас больше не нужен
   const topBar = page.querySelector('.top-bar');
   Array.from(page.children).forEach((c) => { if (c !== topBar) c.remove(); });
   return page;
@@ -430,6 +431,7 @@ async function init() {
     renderMaintenanceView(s);
     return;
   }
+  document.body.classList.remove('booting'); // это график — показываем статичный Gantt-каркас (он заполнится ниже)
   s.stages.forEach((st) => (state.stageById[st.id] = st));
   s.sections.forEach((se) => (state.sectionById[se.id] = se));
   UAE_HOLIDAYS.forEach((h) => state.holidayMap.set(h.date, h.name)); // госпраздники ОАЭ — всегда
@@ -11601,6 +11603,58 @@ const MAINTENANCE_TEMPLATE = {
 let mState = null;
 let _mSaveTimer = null;
 
+// __MAINTENANCE_VISIT_CALENDAR_v1__ Большой удобный календарь выбора даты следующего визита
+// (работает и на телефоне, и на компе — крупные клетки). Клик по дню = дата визита.
+let _mCalView = null; // {y, m} показываемый месяц
+const M_MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+function _isoLocal(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function maintenanceCalendarHtml() {
+  const sel = (mState && mState.nextDueDate && /^\d{4}-\d{2}-\d{2}$/.test(mState.nextDueDate)) ? mState.nextDueDate : '';
+  const todayIso = _isoLocal(new Date());
+  if (!_mCalView) { const base = sel ? new Date(sel + 'T00:00:00') : new Date(); _mCalView = { y: base.getFullYear(), m: base.getMonth() }; }
+  const { y, m } = _mCalView;
+  const wd = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const firstDow = (new Date(y, m, 1).getDay() + 6) % 7;
+  const lastDay = new Date(y, m + 1, 0).getDate();
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += '<div class="m-cal-cell m-cal-empty"></div>';
+  for (let d = 1; d <= lastDay; d++) {
+    const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const cls = (iso === sel ? ' is-sel' : '') + (iso === todayIso ? ' is-today' : '') + (iso < todayIso ? ' is-past' : '');
+    cells += `<button type="button" class="m-cal-cell m-cal-day${cls}" data-iso="${iso}">${d}</button>`;
+  }
+  const selLabel = sel ? (() => { const dd = new Date(sel + 'T00:00:00'); return `${dd.getDate()} ${M_MONTHS_RU[dd.getMonth()]} ${dd.getFullYear()}`; })() : 'не выбрана';
+  return `<div class="m-cal">
+    <div class="m-cal-head">
+      <button type="button" class="m-cal-nav" data-cal-nav="-1" aria-label="предыдущий месяц">‹</button>
+      <div class="m-cal-title">${M_MONTHS_RU[m]} ${y}</div>
+      <button type="button" class="m-cal-nav" data-cal-nav="1" aria-label="следующий месяц">›</button>
+    </div>
+    <div class="m-cal-grid m-cal-wd">${wd.map((w) => `<div class="m-cal-wdname">${w}</div>`).join('')}</div>
+    <div class="m-cal-grid m-cal-days">${cells}</div>
+    <div class="m-cal-sel">📅 Визит: <b>${selLabel}</b>${sel ? ` <button type="button" class="m-cal-clear">убрать</button>` : ''}</div>
+  </div>`;
+}
+function rerenderMaintCalendar() {
+  const z = document.getElementById('m-cal-zone');
+  if (!z) return;
+  z.innerHTML = maintenanceCalendarHtml();
+  attachMaintCalendarHandlers(z);
+}
+function attachMaintCalendarHandlers(zone) {
+  if (!zone) return;
+  zone.querySelectorAll('[data-cal-nav]').forEach((b) => b.addEventListener('click', () => {
+    let m = _mCalView.m + Number(b.getAttribute('data-cal-nav')), y = _mCalView.y;
+    if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+    _mCalView = { y, m }; rerenderMaintCalendar();
+  }));
+  zone.querySelectorAll('.m-cal-day').forEach((d) => d.addEventListener('click', () => {
+    mState.nextDueDate = d.getAttribute('data-iso'); maintenanceScheduleSave(); rerenderMaintCalendar();
+  }));
+  const clr = zone.querySelector('.m-cal-clear');
+  if (clr) clr.addEventListener('click', () => { mState.nextDueDate = ''; maintenanceScheduleSave(); rerenderMaintCalendar(); });
+}
+
 // __MAINTENANCE_CHECKLIST_v1__ Свой чек-лист у каждого листа (можно добавлять/удалять пункты).
 // Источник по умолчанию — глобальный шаблон; при создании листа делается копия в mState.checklist.
 function maintenanceDefaultChecklist() {
@@ -11781,6 +11835,7 @@ function renderMaintenanceView(s) {
   // подхватывают копию шаблона (мигрируют при первом автосохранении).
   mState.checklist = (Array.isArray(m.checklist) && m.checklist.length) ? m.checklist : maintenanceDefaultChecklist();
   mState.editItems = false;
+  _mCalView = null; // календарь визита заново считает месяц от выбранной даты этого листа
 
   const page = clearPageBelowTopbar();
   if (!page) return;
@@ -11816,7 +11871,10 @@ function renderMaintenanceView(s) {
           <input type="text" id="m-date-year" inputmode="numeric" maxlength="4" value="${escapeHtml(meta.date && meta.date.year || '')}" placeholder="ГГГГ">
         </div>
       </div>
-      <label class="m-field"><span>Следующий визит (напомнит бот)</span><input type="date" id="m-next-due" value="${escapeHtml(mState.nextDueDate || '')}">${mState.lastVisitDate ? `<em class="m-hint">последний визит: ${escapeHtml(mState.lastVisitDate)}</em>` : ''}</label>
+      <div class="m-field"><span>Следующий визит — отметь день (бот напомнит)</span>
+        <div id="m-cal-zone">${maintenanceCalendarHtml()}</div>
+        ${mState.lastVisitDate ? `<em class="m-hint">последний визит: ${escapeHtml(mState.lastVisitDate)}</em>` : ''}
+      </div>
     </div>
 
     <details class="m-settings" ${mState.engineerChatId || mState.mapsUrl ? '' : 'open'}>
@@ -11843,7 +11901,7 @@ function renderMaintenanceView(s) {
 
     <div class="m-section m-sign">
       <div class="m-section-head"><span class="m-section-name">Подпись инженера</span></div>
-      <div class="m-sign-name">${escapeHtml(MAINTENANCE_TEMPLATE.engineer.name)} · ${escapeHtml(MAINTENANCE_TEMPLATE.engineer.title)}</div>
+      <div class="m-sign-name">${mState.engineerName ? escapeHtml(mState.engineerName) + ' · Project Engineer' : '<span class="m-sign-noeng">Имя инженера не указано — впиши в «⚙️ Настройки и напоминания»</span>'}</div>
       <div class="m-sign-box" id="m-sign-box">
         ${mState.signature.png ? `<img src="${mState.signature.png}" alt="подпись" class="m-sign-img">` : '<div class="m-sign-empty">подпись не поставлена</div>'}
       </div>
@@ -11851,11 +11909,14 @@ function renderMaintenanceView(s) {
     </div>
 
     <div class="m-actions">
-      <button type="button" class="m-pdf-btn" id="m-pdf-btn">📄 Скачать PDF</button>
-      <button type="button" class="m-send-btn" id="m-send-btn">📤 Отправить отчёт</button>
       <button type="button" class="m-complete-btn" id="m-complete-btn">✅ Завершить осмотр</button>
+      <div class="m-share-row">
+        <button type="button" class="m-share-btn" id="m-share-btn">📲 Поделиться (WhatsApp / Telegram)</button>
+        <button type="button" class="m-pdf-btn" id="m-pdf-btn">📄 Скачать PDF</button>
+        <button type="button" class="m-send-btn" id="m-send-btn">📤 Отправить клиенту</button>
+      </div>
     </div>
-    <div class="m-foot-note">«Завершить осмотр» сохранит копию отчёта в историю и поставит следующий визит. Всё остальное сохраняется автоматически.</div>
+    <div class="m-foot-note">Порядок: заполни лист → подпись пальцем → «Завершить осмотр». После завершения сохранится копия в историю, поставится следующий визит, и готовый PDF (офиц./неофиц.) уйдёт руководителю в Telegram. Поделиться или скачать можно в любой момент.</div>
 
     <div class="m-section m-history" id="m-history">${maintenanceHistoryHtml()}</div>
   `;
@@ -11948,15 +12009,14 @@ function attachMaintenanceHandlers(wrap, s) {
   if (signBtn) signBtn.addEventListener('click', () => openSignatureModal((png) => {
     mState.signature.png = png;
     mState.signature.signedAt = new Date().toISOString();
-    mState.signature.engineerName = MAINTENANCE_TEMPLATE.engineer.name;
+    mState.signature.engineerName = mState.engineerName || '';
     const box = wrap.querySelector('#m-sign-box');
     if (box) box.innerHTML = `<img src="${png}" alt="подпись" class="m-sign-img">`;
     maintenanceScheduleSave();
   }));
 
   // Следующий визит + настройки проекта (инженер / карта / частота)
-  const ndEl = wrap.querySelector('#m-next-due');
-  if (ndEl) ndEl.addEventListener('change', () => { mState.nextDueDate = ndEl.value; maintenanceScheduleSave(); });
+  attachMaintCalendarHandlers(wrap.querySelector('#m-cal-zone'));
   bindMeta('#m-eng-id', (v) => { mState.engineerChatId = v.replace(/[^0-9-]/g, ''); });
   bindMeta('#m-eng-name', (v) => { mState.engineerName = v; });
   bindMeta('#m-maps', (v) => { mState.mapsUrl = v; });
@@ -11967,6 +12027,8 @@ function attachMaintenanceHandlers(wrap, s) {
   if (pdfBtn) pdfBtn.addEventListener('click', () => buildMaintenancePdf(s, pdfBtn));
   const sendBtn = wrap.querySelector('#m-send-btn');
   if (sendBtn) sendBtn.addEventListener('click', () => maintenanceSendPdf(s, sendBtn));
+  const shareBtn = wrap.querySelector('#m-share-btn');
+  if (shareBtn) shareBtn.addEventListener('click', () => maintenanceSharePdf(s, shareBtn));
   const complBtn = wrap.querySelector('#m-complete-btn');
   if (complBtn) complBtn.addEventListener('click', () => maintenanceComplete(s, complBtn));
 
@@ -11988,12 +12050,30 @@ async function maintenanceComplete(s, btn) {
   try {
     const r = await postDataAction('maintenance:complete', { slug: state.projectSlug, by: 'web' });
     if (r && r.maintenance) {
+      // __MAINTENANCE_COMPLETE_PDF_v1__ Готовый PDF (офиц/неофиц, с подписью) → руководителю в Telegram,
+      // ПОКА mState ещё содержит завершённый отчёт (до очистки/перерисовки). Не уведомление — сам файл.
+      const engChat = mState.engineerChatId;
+      let sentToManager = false;
+      if (engChat) {
+        try {
+          btn && (btn.textContent = 'Отправляю отчёт руководителю…');
+          const pdf = await maintenanceBuildPdfDoc();
+          const blob = pdf.output('blob');
+          const b64 = await new Promise((res2, rej2) => { const fr = new FileReader(); fr.onload = () => res2(String(fr.result)); fr.onerror = rej2; fr.readAsDataURL(blob); });
+          const sr = await fetch('/api/maintenance-send', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: state.projectSlug, pdfBase64: b64, filename: maintenancePdfFilename(), target: engChat,
+              caption: `✅ Осмотр завершён — ${(s.project && s.project.name) || ''}\n${mState.official ? '📄 Официальный отчёт (с печатью и логотипом)' : '📄 Неофициальный отчёт'}` }) });
+          const sj = await sr.json().catch(() => ({}));
+          sentToManager = !!(sj && sj.ok);
+        } catch (e) { console.warn('send pdf to manager failed', e); }
+      }
       const res = await fetch(scheduleJsonUrl(state.projectSlug), { cache: 'no-store' });
       const j = await res.json();
       const sched = j && j.schedule && j.ok ? j.schedule : j;
       state.schedule = sched;
       renderMaintenanceView(sched);
-      alert('✅ Осмотр завершён. Отчёт сохранён в историю, следующий визит запланирован.');
+      alert('✅ Осмотр завершён. Отчёт сохранён в историю, следующий визит запланирован.' +
+        (engChat ? (sentToManager ? '\n📤 Готовый PDF отправлен руководителю в Telegram.' : '\n⚠️ Не удалось отправить PDF руководителю (проверь Telegram ID в настройках — он должен раз написать боту).') : '\nℹ️ Чтобы готовый PDF уходил руководителю автоматически — впиши его Telegram ID в «⚙️ Настройки и напоминания».'));
     } else { throw new Error('сервер не вернул данные'); }
   } catch (e) {
     alert('Не удалось завершить: ' + (e.message || e));
@@ -12140,6 +12220,29 @@ async function maintenanceBuildPdfDoc(src) {
   }
 }
 
+// __MAINTENANCE_SHARE_v1__ Поделиться готовым PDF куда угодно (WhatsApp/Telegram/почта) — системное «Поделиться».
+async function maintenanceSharePdf(s, btn) {
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Готовлю PDF…'; }
+  try {
+    const pdf = await maintenanceBuildPdfDoc();
+    const blob = pdf.output('blob');
+    const file = new File([blob], maintenancePdfFilename(), { type: 'application/pdf' });
+    const title = 'Отчёт о плановом обслуживании — ' + ((s.project && s.project.name) || '');
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title, text: title });
+    } else {
+      // Браузер не умеет делиться файлом (часто десктоп) — скачиваем, чтобы отправить вручную.
+      pdf.save(maintenancePdfFilename());
+      alert('Прямое «Поделиться» тут не поддерживается — PDF скачан, отправь его в WhatsApp/Telegram вручную. (На телефоне «Поделиться» работает напрямую.)');
+    }
+  } catch (e) {
+    if (e && e.name !== 'AbortError') { alert('Не удалось поделиться: ' + (e.message || e)); console.error(e); }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = orig || '📲 Поделиться (WhatsApp / Telegram)'; }
+  }
+}
+
 async function buildMaintenancePdf(s, btn) {
   if (btn) { btn.disabled = true; btn.textContent = 'Готовлю PDF…'; }
   try {
@@ -12255,7 +12358,7 @@ function maintenancePdfPagesHtml(src) {
       <div class="pdef-notes">${escapeHtml(def.notes || '')}</div>
     </div>
     <div class="psign">
-      <div class="psign-name"><b>${escapeHtml(MAINTENANCE_TEMPLATE.engineer.name)}</b><br>${escapeHtml(MAINTENANCE_TEMPLATE.engineer.title)}</div>
+      <div class="psign-name"><b>${escapeHtml((src.signature && src.signature.engineerName) || src.engineerName || '')}</b><br>Project Engineer</div>
       <div class="psign-area">
         ${sig.png ? `<img class="psign-img" src="${sig.png}" alt="">` : ''}
         <div class="pstamp-ph">М.П.<br><span>печать</span></div>
@@ -12476,12 +12579,32 @@ function injectMaintenanceStyles() {
   .m-sign-box{border:1.5px dashed var(--line,#cbd5e1);border-radius:12px;min-height:96px;display:flex;align-items:center;justify-content:center;background:#fff;margin-bottom:10px;}
   .m-sign-empty{color:var(--muted,#94a3b8);font-size:13px;}
   .m-sign-img{max-height:120px;max-width:100%;}
-  .m-sign-btn,.m-pdf-btn,.m-send-btn{font:inherit;font-size:16px;font-weight:700;padding:14px 18px;border-radius:12px;border:none;cursor:pointer;width:100%;min-height:52px;}
+  .m-sign-btn,.m-pdf-btn,.m-send-btn,.m-share-btn,.m-complete-btn{font:inherit;font-size:16px;font-weight:700;padding:14px 18px;border-radius:12px;border:none;cursor:pointer;width:100%;min-height:52px;}
   .m-sign-btn{background:#0b2a5b;color:#fff;}
   .m-actions{margin-top:18px;display:flex;flex-direction:column;gap:10px;}
+  .m-share-row{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line,#e2e8f0);padding-top:10px;margin-top:2px;}
   .m-pdf-btn{background:#fff;color:#2563eb;border:1.5px solid #2563eb;}
   .m-send-btn{background:#fff;color:#16a34a;border:1.5px solid #16a34a;}
-  .m-complete-btn{background:#BD773E;color:#fff;}
+  .m-share-btn{background:#25D366;color:#fff;}
+  .m-complete-btn{background:#BD773E;color:#fff;font-size:17px;min-height:56px;}
+  .m-sign-noeng{color:var(--muted,#94a3b8);font-weight:600;font-style:italic;font-size:13px;}
+  /* __MAINTENANCE_VISIT_CALENDAR_v1__ большой календарь визита */
+  .m-cal{border:1px solid var(--line,#e2e8f0);border-radius:14px;padding:12px;background:var(--surface,#fff);}
+  .m-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .m-cal-title{font-size:16px;font-weight:800;color:var(--ink,#0f172a);}
+  .m-cal-nav{font:inherit;font-size:22px;font-weight:700;line-height:1;width:44px;height:44px;border-radius:10px;border:1.5px solid var(--line,#e2e8f0);background:var(--surface,#fff);color:var(--accent,#2563eb);cursor:pointer;}
+  .m-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .m-cal-wd{margin-bottom:4px;}
+  .m-cal-wdname{text-align:center;font-size:11px;font-weight:700;color:var(--muted,#94a3b8);padding:2px 0;}
+  .m-cal-cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font:inherit;font-size:15px;font-weight:600;border-radius:10px;}
+  .m-cal-empty{visibility:hidden;}
+  .m-cal-day{border:1.5px solid var(--line,#e2e8f0);background:var(--surface,#fff);color:var(--ink,#0f172a);cursor:pointer;min-height:40px;}
+  .m-cal-day:hover{border-color:var(--accent,#2563eb);}
+  .m-cal-day.is-past{color:var(--muted,#cbd5e1);background:var(--surface-2,#f8fafc);}
+  .m-cal-day.is-today{border-color:#BD773E;font-weight:800;}
+  .m-cal-day.is-sel{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;box-shadow:0 2px 8px rgba(37,99,235,.4);}
+  .m-cal-sel{margin-top:10px;font-size:14px;color:var(--ink,#0f172a);text-align:center;}
+  .m-cal-clear{font:inherit;font-size:12px;font-weight:600;color:#dc2626;background:none;border:none;cursor:pointer;text-decoration:underline;margin-left:6px;}
   .m-hint{display:block;font-style:normal;font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;}
   .m-settings{margin:0 0 18px;border:1px solid var(--line,#e2e8f0);border-radius:14px;background:var(--surface,#fff);overflow:hidden;}
   .m-settings>summary{cursor:pointer;padding:13px 14px;font-weight:700;font-size:15px;list-style:none;user-select:none;}
