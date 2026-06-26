@@ -1,0 +1,269 @@
+{
+  "project": {
+    "slug": "office-1023-marina-plaza",
+    "code": "OFFICE-102",
+    "name": "Office 1023, Marina Plaza",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "Альфа Групп",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2026-06-26",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 301000,
+    "totalIncVat": 316050,
+    "startDate": "2026-06-12",
+    "endDate": "2026-10-23",
+    "durationDays": 134,
+    "contractEndDate": "2026-10-23",
+    "lastUpdated": "2026-06-26T13:42:48.677Z",
+    "lastUpdatedBy": "Platform (estimate)",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "hvac",
+      "name": "ОВиК (вентиляция)",
+      "color": "#06b6d4",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "finishing",
+      "name": "Штукатурно-малярные",
+      "color": "#a855f7"
+    },
+    {
+      "id": "glass",
+      "name": "Стеклянные перегородки",
+      "color": "#14b8a6",
+      "sub": true
+    },
+    {
+      "id": "furniture",
+      "name": "Мебель и декор",
+      "color": "#475569"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтировка перегородок и строй отків",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 18000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-06-26",
+      "planEnd": "2026-07-05",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "electrical",
+      "stage": "ST1",
+      "name": "Электромонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 45000,
+      "durationDaysPlanned": 20,
+      "planStart": "2026-07-06",
+      "planEnd": "2026-07-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "hvac",
+      "stage": "ST1",
+      "name": "Монтаж систем вентиляции и кондиционирования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 62000,
+      "durationDaysPlanned": 30,
+      "planStart": "2026-07-26",
+      "planEnd": "2026-08-24",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "plumbing",
+      "stage": "ST1",
+      "name": "Сантехнические работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 28000,
+      "durationDaysPlanned": 15,
+      "planStart": "2026-08-25",
+      "planEnd": "2026-09-08",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Устройство полов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 35000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-09-09",
+      "planEnd": "2026-09-18",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Штукатурно-малярные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 26000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-09-19",
+      "planEnd": "2026-09-28",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "finishing",
+      "stage": "ST2",
+      "name": "Монтаж натяжных потолков",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 15000,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-09-29",
+      "planEnd": "2026-10-05",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "glass",
+      "stage": "ST2",
+      "name": "Монтаж стеклянных перегородок",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 38000,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-10-06",
+      "planEnd": "2026-10-15",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Установка дверей и мебели",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 30000,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-10-16",
+      "planEnd": "2026-10-20",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Финальная уборка",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 4000,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-10-21",
+      "planEnd": "2026-10-23",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
