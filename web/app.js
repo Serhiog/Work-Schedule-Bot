@@ -217,7 +217,26 @@ function injectLandingStyles() {
     .landing-card { display: block; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
     .landing-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: var(--navy); }
     .landing-card-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; letter-spacing: -0.2px; line-height: 1.3; }
-    .landing-card-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0; }
+    .landing-card-meta { font-size: 11px; color: var(--muted); letter-spacing: 0; }
+    .landing-card--maint { border-left: 3px solid #BD773E; }
+    .landing-card--maint:hover { border-color: #BD773E; }
+    /* __LANDING_SPLIT_v2__ две колонки-области */
+    .landing-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    .landing-group { margin-bottom: 0; border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 20px; background: var(--card); }
+    .landing-group--fitout { border-top: 4px solid #2563eb; }
+    .landing-group--maint { border-top: 4px solid #BD773E; }
+    .landing-group-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; flex-wrap: wrap; }
+    .landing-group-titles { display: flex; align-items: center; gap: 9px; }
+    .landing-group-title { font-size: 18px; font-weight: 800; color: var(--ink); margin: 0; letter-spacing: -0.3px; }
+    .landing-group-count { font-size: 12px; font-weight: 700; color: var(--muted); background: var(--surface-2, #f1f5f9); border-radius: 999px; padding: 1px 9px; }
+    .landing-group-hint { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+    .landing-group-empty { color: var(--muted); font-size: 13px; padding: 14px 0; opacity: .75; }
+    .landing-grid { grid-template-columns: 1fr; }
+    .landing-add-btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 14px; border-radius: 10px; border: none; color: #fff; cursor: pointer; white-space: nowrap; }
+    .landing-group--fitout .landing-add-btn { background: #2563eb; }
+    .landing-group--maint .landing-add-btn { background: #BD773E; }
+    .landing-create-btn { margin-top: 14px; font: inherit; font-size: 15px; font-weight: 700; padding: 12px 18px; border-radius: 11px; border: none; background: #BD773E; color: #fff; cursor: pointer; }
+    .fc-note { font-size: 12.5px; color: var(--muted, #64748b); line-height: 1.45; background: var(--surface-2, #f1f5f9); border-radius: 10px; padding: 10px 12px; }
     .landing-empty { background: var(--card); border: 1px dashed var(--line); border-radius: 14px; padding: 56px 24px; text-align: center; }
     .landing-empty-ico { font-size: 44px; margin-bottom: 10px; }
     .landing-empty-title { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
@@ -226,10 +245,11 @@ function injectLandingStyles() {
     .landing-loading { color: var(--muted); font-size: 14px; padding: 40px 0; }
     .landing-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
     [data-theme="dark"] .landing-error { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
-    @media (max-width: 720px) {
+    @media (max-width: 760px) {
       .landing-wrap { padding: 32px 16px 60px; }
       .landing-title { font-size: 24px; }
       .landing-grid { grid-template-columns: 1fr; }
+      .landing-columns { grid-template-columns: 1fr; }
     }
   `;
   document.head.appendChild(s);
@@ -264,28 +284,111 @@ async function renderLandingView() {
     return String(a.slug || '').localeCompare(String(b.slug || ''));
   });
 
-  const cards = projects.map((p) => {
+  const cardHtml = (p, isMaint) => {
     const subtitle = p.clientName ? `${p.clientName}` : `/p/${p.slug}`;
-    return `<a class="landing-card" href="/p/${escapeHtml(p.slug)}">
-      <div class="landing-card-name">${escapeHtml(p.name || p.slug)}</div>
+    return `<a class="landing-card${isMaint ? ' landing-card--maint' : ''}" href="/p/${escapeHtml(p.slug)}">
+      <div class="landing-card-name">${isMaint ? '🔧 ' : '🏗 '}${escapeHtml(p.name || p.slug)}</div>
       <div class="landing-card-meta">${escapeHtml(subtitle)}</div>
     </a>`;
-  }).join('');
+  };
+  // __LANDING_SPLIT_v2__ Две раздельные области: ФитАут (графики) и Обслуживание (чек-листы).
+  // В каждой — своя кнопка «добавить новый».
+  const fitout = projects.filter((p) => p.kind !== 'maintenance');
+  const maint = projects.filter((p) => p.kind === 'maintenance');
+  const group = (title, hint, list, isMaint, addId, addLabel) => `
+    <div class="landing-group ${isMaint ? 'landing-group--maint' : 'landing-group--fitout'}">
+      <div class="landing-group-head">
+        <div class="landing-group-titles"><h2 class="landing-group-title">${title}</h2><span class="landing-group-count">${list.length}</span></div>
+        <button type="button" class="landing-add-btn" id="${addId}">＋ ${addLabel}</button>
+      </div>
+      <div class="landing-group-hint">${hint}</div>
+      ${list.length ? `<div class="landing-grid">${list.map((p) => cardHtml(p, isMaint)).join('')}</div>`
+        : `<div class="landing-group-empty">Пока пусто — нажми «＋ ${addLabel}»</div>`}
+    </div>`;
 
   wrap.innerHTML = `
     <div class="landing-head">
-      <h1 class="landing-title">Проекты в работе</h1>
-      <div class="landing-sub">Открой проект, чтобы посмотреть график. Для управления голосом — пиши боту в Telegram, он умеет переключаться между проектами и обновлять данные.</div>
+      <h1 class="landing-title">Проекты CYFR</h1>
+      <div class="landing-sub">Отделочные работы — графики ремонтов. Плановое обслуживание — чек-листы. В каждой области можно добавить новый проект.</div>
     </div>
     ${error ? `<div class="landing-error">⚠ ${escapeHtml(error)}</div>` : ''}
-    ${projects.length
-      ? `<div class="landing-grid">${cards}</div>`
-      : `<div class="landing-empty">
-           <div class="landing-empty-ico">📭</div>
-           <div class="landing-empty-title">Активных проектов нет</div>
-           <div class="landing-empty-sub">Отправь смету боту в Telegram — он создаст первый проект и пришлёт ссылку.</div>
-         </div>`}
+    <div class="landing-columns">
+      ${group('🏗 ФитАут', 'Графики ремонтных проектов', fitout, false, 'btn-create-fitout', 'Новый проект')}
+      ${group('🔧 Обслуживание', 'Листы планового обслуживания (PPM)', maint, true, 'btn-create-maintenance', 'Новый лист')}
+    </div>
   `;
+  const cm = wrap.querySelector('#btn-create-maintenance');
+  if (cm) cm.addEventListener('click', openCreateMaintenanceModal);
+  const cf = wrap.querySelector('#btn-create-fitout');
+  if (cf) cf.addEventListener('click', openCreateFitoutModal);
+}
+
+// __FITOUT_CREATE_v2__ Создание ФитАут-проекта: пустой (вручную) ИЛИ из файла сметы
+// (Excel/PDF/Word/фото → ИИ читает работы и строит график, порт логики бота).
+function openCreateFitoutModal() {
+  injectMaintenanceStyles(); // переиспользуем стили окна (.m-create-*, .mc-tabs, .mc-photo, .fc-note)
+  document.querySelectorAll('.m-create-overlay').forEach((e) => e.remove()); // не плодим окна
+  const ov = document.createElement('div');
+  ov.className = 'm-create-overlay';
+  ov.innerHTML = `
+    <div class="m-create-card">
+      <div class="m-create-title">Новый проект ФитАут</div>
+      <div class="mc-tabs">
+        <button type="button" class="mc-tab is-on" data-tab="blank">✍️ Пустой</button>
+        <button type="button" class="mc-tab" data-tab="file">📄 Из файла сметы</button>
+      </div>
+      <div id="fc-blank">
+        <label class="m-field"><span>Название проекта</span><input type="text" id="fc-name" placeholder="напр. Office C1801, Ontario Tower"></label>
+        <div class="fc-note">Пустой проект — работы добавишь вручную в графике (＋ задача / раздел).</div>
+      </div>
+      <div id="fc-file" hidden>
+        <div class="mc-photo-hint">Загрузи файл сметы — Excel, PDF, Word или фото. ИИ прочитает список работ, разнесёт по этапам и построит график со сроками. Потом всё можно поправить.</div>
+        <label class="mc-file"><span id="fc-fname">📄 Выбрать файл сметы</span><input type="file" id="fc-f" accept=".xlsx,.xls,.pdf,.doc,.docx,.csv,.txt,image/*"></label>
+      </div>
+      <div class="m-create-actions">
+        <button type="button" class="m-create-cancel" id="fc-cancel">Отмена</button>
+        <button type="button" class="m-create-go" id="fc-go">Создать пустой проект</button>
+      </div>
+      <div class="m-create-err" id="fc-err"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  const $ = (s) => ov.querySelector(s);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  $('#fc-cancel').addEventListener('click', close);
+  let mode = 'blank';
+  ov.querySelectorAll('.mc-tab').forEach((t) => t.addEventListener('click', () => {
+    mode = t.getAttribute('data-tab');
+    ov.querySelectorAll('.mc-tab').forEach((x) => x.classList.toggle('is-on', x === t));
+    $('#fc-blank').hidden = mode !== 'blank';
+    $('#fc-file').hidden = mode !== 'file';
+    $('#fc-go').textContent = mode === 'file' ? 'Построить график из сметы' : 'Создать пустой проект';
+  }));
+  $('#fc-f').addEventListener('change', () => { const f = $('#fc-f').files[0]; if (f) $('#fc-fname').textContent = '✓ ' + f.name.slice(0, 36); });
+
+  $('#fc-go').addEventListener('click', async () => {
+    const err = $('#fc-err'); err.textContent = '';
+    const btn = $('#fc-go'); const orig = btn.textContent;
+    if (mode === 'blank') {
+      const name = $('#fc-name').value.trim();
+      if (!name) { err.textContent = 'Впиши название проекта.'; return; }
+      btn.disabled = true; btn.textContent = 'Создаю…';
+      try {
+        const r = await postDataAction('project:create-blank', { name });
+        if (r && r.slug) window.location.href = '/p/' + r.slug; else throw new Error('сервер не вернул slug');
+      } catch (e) { err.textContent = 'Ошибка: ' + (e.message || e); btn.disabled = false; btn.textContent = orig; }
+    } else {
+      const file = $('#fc-f').files[0];
+      if (!file) { err.textContent = 'Выбери файл сметы.'; return; }
+      btn.disabled = true; btn.textContent = 'Читаю файл…';
+      try {
+        const dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.onerror = () => rej(new Error('не удалось прочитать файл')); fr.readAsDataURL(file); });
+        btn.textContent = '🤖 ИИ читает смету и строит график со связями… (до минуты)';
+        const r = await postDataAction('fitout:from-estimate', { fileBase64: dataUrl, fileName: file.name, fileType: file.type }, 180000);
+        if (r && r.slug) window.location.href = '/p/' + r.slug; else throw new Error('сервер не вернул slug');
+      } catch (e) { err.textContent = 'Ошибка: ' + (e.message || e); btn.disabled = false; btn.textContent = orig; }
+    }
+  });
 }
 
 function showProjectNotFound(slug) {
@@ -322,6 +425,11 @@ async function init() {
   // Поддержка двух форматов: либо чистый schedule (старый GitHub raw), либо обёртка { ok, slug, schedule }
   const s = j && j.schedule && j.ok ? j.schedule : j;
   state.schedule = s;
+  // __MAINTENANCE_v1__ Лист планового обслуживания — отдельный экран вместо графика.
+  if (s.project && s.project.kind === 'maintenance') {
+    renderMaintenanceView(s);
+    return;
+  }
   s.stages.forEach((st) => (state.stageById[st.id] = st));
   s.sections.forEach((se) => (state.sectionById[se.id] = se));
   UAE_HOLIDAYS.forEach((h) => state.holidayMap.set(h.date, h.name)); // госпраздники ОАЭ — всегда
@@ -368,6 +476,9 @@ async function init() {
       // (изначально CPM считался по stage-chain без deps → давал ложные критические).
       try { renderProjectAnalytics(); } catch (_) {}
       try { renderGantt(); } catch (_) {}
+      // Мобильный «Список работ» тоже перерисовываем — иначе он держит дефолтные
+      // материалы/ресурсы, отрендеренные ДО прихода shared-данных. __SHEET_REHYDRATE_v1__
+      try { renderTasksSheet(); } catch (_) {}
     });
   attachGanttGestures();
   attachPrintHandlers();
@@ -745,14 +856,23 @@ const MATERIAL_UNITS = [
   { id: 'пог.м',label: 'пог.м' },
 ];
 
-// Алерт по материалам: срабатывает для ЛЮБОЙ незакрытой работы.
-//   • Работа в будущем — риск если lead-time > дней до старта.
-//   • Работа уже идёт / просрочена — риск ВСЕГДА если материал не заказан (нужен срочно).
+// Алерт по материалам: срабатывает для ЛЮБОЙ незакрытой работы. __MAT_DEADLINE_v2__
+// Дедлайн закупки = (актуальная дата старта) − срок поставки. «Актуальная дата старта» =
+// фактический старт, если работа уже началась, иначе плановый (он двигается при переносах —
+// значит и дедлайн закупки едет вместе с работой вперёд/назад).
+// Уровни (level):
+//   • 'overdue' (🔴) — работа УЖЕ идёт или по плану должна была начаться, а материал не заказан.
+//                      Это настоящая просрочка: работа стоит/рискует встать без материала.
+//   • 'rush'    (🟠) — работа ещё в будущем, но по сроку поставки заказывать уже впритык/поздно.
+//                      Это «поторопись» (срочно заказать или сдвинуть старт), НЕ «просрочено».
+//   • 'soon'    (🟡) — заказывать в ближайшие дни.
 //   • Работа закрыта (actualEnd) — пропускаем.
 function computeMaterialRisk(task) {
   if (task.actualEnd) return null;
   const today = effectiveToday();
-  const start = parseISO(task.planStart);
+  const startISO = task.actualStart || task.planStart;
+  const start = parseISO(startISO);
+  if (!isFinite(start.getTime())) return null;
   const daysToStart = Math.round((start - today) / DAY_MS);
   const effectiveDaysToStart = Math.max(0, daysToStart);
   const mats = getTaskMaterials(task.id);
@@ -760,7 +880,13 @@ function computeMaterialRisk(task) {
   if (!risky.length) return null;
   const maxLead = Math.max(...risky.map(m => Number(m.leadTime) || 0));
   const orderBy = new Date(start.getTime() - maxLead * DAY_MS);
-  return { daysToStart, maxLead, orderBy, riskyCount: risky.length, totalCount: mats.length, alreadyStarted: daysToStart < 0 };
+  const started = !!task.actualStart && !task.actualEnd;
+  const startInPast = daysToStart < 0;
+  const level = (started || startInPast) ? 'overdue'
+              : (orderBy < today) ? 'rush'
+              : 'soon';
+  return { daysToStart, maxLead, orderBy, riskyCount: risky.length, totalCount: mats.length,
+           alreadyStarted: startInPast, started, level };
 }
 
 async function postDataAction(action, payload, timeoutMs) {
@@ -1850,6 +1976,10 @@ function renderHero() {
   if (tasks.length > 0) {
     let totalWeight = 0, doneWeight = 0, planWeight = 0;
     for (const t of tasks) {
+      // Разрешения (NOC / Gate Pass / Work Permit) — не работы, а админ-документы на
+      // весь срок проекта (~310 дн каждый). Они раздували знаменатель в 3 раза и
+      // держали прогресс на 0%, даже когда реальная работа (Демонтаж) завершена.
+      if (t.isPermit || t.permitType) continue;
       const ts = parseISO(t.planStart || t.start);
       const te = parseISO(t.planEnd || t.end);
       // Битые/отсутствующие даты пропускаем — иначе NaN-веса каскадно отравляют
@@ -2701,7 +2831,11 @@ function renderGantt() {
     // Пустые секции тоже показываем (пользователь только что создал, работ ещё нет —
     // важно видеть что секция существует, чтобы добавить в неё задачу).
 
-    const isSub = !!sec.sub;
+    // Раздел показываем как СУБ только если хотя бы одна его работа реально на субе
+    // (effectiveSub). Если все работы переключены на ЦИФР — бейдж раздела убираем,
+    // даже когда sec.sub === true (это лишь дефолт для новых работ раздела).
+    const secHasSub = secTasks.some((t) => effectiveSub(t, sec));
+    const isSub = secTasks.length > 0 ? secHasSub : !!sec.sub;
     const collapsed = state.collapsedSections.has(sec.id);
     const secId = escapeHtml(sec.id);
     body += `<div class="section-label${isSub ? ' is-sub' : ''}${collapsed ? ' section-label--collapsed' : ''}" data-section-id="${secId}" style="--sec-color:${sec.color}" role="button" tabindex="0" aria-expanded="${collapsed ? 'false' : 'true'}" title="${collapsed ? 'Развернуть' : 'Свернуть'} группу">
@@ -3211,23 +3345,33 @@ function attachGanttGestures() {
   });
   gantt.addEventListener('gestureend', () => { gestureStartCellW = null; });
 
-  // Touch pinch: two-finger zoom on mobile / touchscreens
+  // Touch pinch: two-finger zoom on mobile / touchscreens.
+  // __SCROLL_JANK_FIX__ Раньше touchmove-слушатель висел постоянно как passive:false —
+  // это заставляло браузер ждать main-thread на КАЖДЫЙ кадр прокрутки одним пальцем
+  // (compositor scroll блокировался) → график «подвисал». Теперь:
+  //  • touchstart — passive (не блокирует скролл; нативный pinch-zoom и так отключён
+  //    через touch-action: pan-x, поэтому preventDefault на старте не нужен);
+  //  • non-passive touchmove навешивается ТОЛЬКО на время 2-пальцевого жеста и снимается
+  //    по его окончании. Прокрутка одним пальцем никогда не встречает non-passive touchmove.
   let pinch = null;
   const dist = (ts) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
   const mid = (ts) => (ts[0].clientX + ts[1].clientX) / 2;
-  gantt.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 2) return;
-    e.preventDefault();
-    pinch = { d0: dist(e.touches), w0: state.cellW };
-  }, { passive: false });
-  gantt.addEventListener('touchmove', (e) => {
+  const pinchMove = (e) => {
     if (!pinch || e.touches.length !== 2) return;
-    e.preventDefault();
+    e.preventDefault(); // блокируем нативный скролл, пока двигаем масштаб
     const d = dist(e.touches);
     if (pinch.d0 < 1) return;
     queueAbs(pinch.w0 * (d / pinch.d0), mid(e.touches));
-  }, { passive: false });
-  const endPinch = (e) => { if (!e.touches || e.touches.length < 2) pinch = null; };
+  };
+  let pinchMoveOn = false;
+  const armPinchMove = () => { if (!pinchMoveOn) { gantt.addEventListener('touchmove', pinchMove, { passive: false }); pinchMoveOn = true; } };
+  const disarmPinchMove = () => { if (pinchMoveOn) { gantt.removeEventListener('touchmove', pinchMove, { passive: false }); pinchMoveOn = false; } };
+  gantt.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 2) return;
+    pinch = { d0: dist(e.touches), w0: state.cellW };
+    armPinchMove();
+  }, { passive: true });
+  const endPinch = (e) => { if (!e.touches || e.touches.length < 2) { pinch = null; disarmPinchMove(); } };
   gantt.addEventListener('touchend', endPinch);
   gantt.addEventListener('touchcancel', endPinch);
 
@@ -4157,28 +4301,39 @@ function buildDrawerMaterialsHtml(taskId) {
   const t = (state.schedule?.tasks || []).find(x => String(x.id) === tid);
   const materials = getTaskMaterials(tid);
   const risk = t ? computeMaterialRisk(t) : null;
-  const planStart = t ? parseISO(t.planStart) : null;
   const today = effectiveToday();
+  // __MAT_DEADLINE_v2__ Дедлайн закупки идёт за актуальной датой старта (факт → план).
+  const startISO = t ? (t.actualStart || t.planStart) : null;
+  const startDate = startISO ? parseISO(startISO) : null;
+  const startValid = startDate && isFinite(startDate.getTime());
+  const startedFlag = !!(t && t.actualStart && !t.actualEnd);
+  const startInPastFlag = startValid ? (Math.round((startDate - today) / DAY_MS) < 0) : false;
 
-  const riskBanner = risk
-    ? `<div class="materials-risk-banner">⚠️ Заказать до <strong>${escapeHtml(fmtDate(toISO(risk.orderBy)))}</strong> · ${risk.riskyCount} из ${risk.totalCount} ${plural(risk.totalCount, ['материала', 'материалов', 'материалов'])} ещё не оформлено</div>`
-    : '';
+  const riskBanner = !risk ? '' :
+    risk.level === 'overdue'
+      ? `<div class="materials-risk-banner materials-risk-banner--overdue">🔴 Материал нужен сейчас — работа ${risk.started ? 'уже идёт' : 'по плану должна была начаться'}. Не оформлено: ${risk.riskyCount} из ${risk.totalCount}.</div>`
+      : risk.level === 'rush'
+      ? `<div class="materials-risk-banner materials-risk-banner--rush">🟠 Заказать срочно — по сроку поставки уже впритык${startValid ? ` (старт ${escapeHtml(fmtDate(toISO(startDate)))})` : ''}. Не оформлено: ${risk.riskyCount} из ${risk.totalCount}.</div>`
+      : `<div class="materials-risk-banner">🟡 Заказать до <strong>${escapeHtml(fmtDate(toISO(risk.orderBy)))}</strong> · не оформлено ${risk.riskyCount} из ${risk.totalCount}.</div>`;
 
   const cards = materials.map((m, idx) => {
     const lead = Math.max(0, Math.min(120, Number(m.leadTime) || 0));
     let orderBy = null;
-    let urgency = 'normal'; // 'normal' | 'soon' | 'overdue' | 'ok'
-    if (planStart) {
-      orderBy = new Date(planStart.getTime() - lead * DAY_MS);
+    let urgency = 'normal'; // 'normal' | 'soon' | 'rush' | 'overdue' | 'ok'
+    let footText = '';
+    if (startValid) {
+      orderBy = new Date(startDate.getTime() - lead * DAY_MS);
       const daysToOrder = Math.round((orderBy - today) / DAY_MS);
-      if (m.ordered) urgency = 'ok';
-      else if (daysToOrder < 0) urgency = 'overdue';
-      else if (daysToOrder <= 3) urgency = 'soon';
+      if (m.ordered) { urgency = 'ok'; footText = '✓ заказано'; }
+      else if (startedFlag || startInPastFlag) { urgency = 'overdue'; footText = `🔴 нужен сейчас — работа ${startedFlag ? 'уже идёт' : 'должна была начаться'}`; }
+      else if (daysToOrder < 0) { urgency = 'rush'; footText = `🟠 заказать срочно · поставка ${lead} дн, старт ${escapeHtml(fmtDate(toISO(startDate)))}`; }
+      else if (daysToOrder <= 3) { urgency = 'soon'; footText = `🟡 заказать до ${escapeHtml(fmtDate(toISO(orderBy)))} (через ${daysToOrder} дн)`; }
+      else { footText = `заказать до ${escapeHtml(fmtDate(toISO(orderBy)))}`; }
     }
-    if (m.ordered) urgency = 'ok';
+    if (m.ordered) { urgency = 'ok'; footText = '✓ заказано'; }
     const aiBadge = m.isAi ? '<span class="mat-card-ai" title="Подсказано ИИ">AI</span>' : '';
-    const orderByStr = orderBy
-      ? `<span class="mat-card-orderby">заказать до <strong>${escapeHtml(fmtDate(toISO(orderBy)))}</strong></span>`
+    const orderByStr = footText
+      ? `<span class="mat-card-orderby">${footText}</span>`
       : '';
     const rationale = m.rationale ? `<div class="mat-card-rationale">${escapeHtml(m.rationale)}</div>` : '';
     const presets = [3, 7, 14, 21, 30];
@@ -10714,21 +10869,37 @@ function bindBarDrag() {
     }
   }, true);
 
+  // __SCROLL_JANK_FIX__ Эти два слушателя нужны ТОЛЬКО в режиме правки (drag баров).
+  // Раньше они висели постоянно как passive:false — non-passive touchmove заставлял
+  // браузер ждать main-thread на каждом кадре обычной прокрутки → график «подвисал».
+  // Теперь навешиваем их при входе в edit-mode и снимаем при выходе. В режиме просмотра
+  // (как у руководителя) non-passive touch-слушателей на графике нет → плавная прокрутка.
+
   // iOS Safari fix: non-passive touchstart prevents browser from committing to a pan-scroll
-  // gesture when finger lands on a bar in edit mode. Без этого iOS принимает решение
-  // «это скролл» на самом touchstart по touch-action: pan-x — и любой последующий
-  // preventDefault на pointerdown уже игнорируется.
-  gantt.addEventListener('touchstart', (e) => {
-    if (!state.editMode) return;
+  // gesture when finger lands on a bar in edit mode.
+  const editTouchStart = (e) => {
     if (e.target.closest('.bar-pause-del')) return;
     const bar = e.target.closest('.bar-plan, .bar-fact, .bar-pause');
     if (bar) e.preventDefault();
-  }, { passive: false });
-
+  };
   // iOS Safari fix: prevent gantt scroll while pointer drag is in progress.
-  gantt.addEventListener('touchmove', (e) => {
-    if (_dragState.active) e.preventDefault();
-  }, { passive: false });
+  const editTouchMove = (e) => { if (_dragState.active) e.preventDefault(); };
+  let editTouchOn = false;
+  const armEditTouch = () => {
+    if (editTouchOn) return;
+    gantt.addEventListener('touchstart', editTouchStart, { passive: false });
+    gantt.addEventListener('touchmove', editTouchMove, { passive: false });
+    editTouchOn = true;
+  };
+  const disarmEditTouch = () => {
+    if (!editTouchOn) return;
+    gantt.removeEventListener('touchstart', editTouchStart, { passive: false });
+    gantt.removeEventListener('touchmove', editTouchMove, { passive: false });
+    editTouchOn = false;
+  };
+  const syncEditTouch = () => { document.body.classList.contains('is-edit-mode') ? armEditTouch() : disarmEditTouch(); };
+  new MutationObserver(syncEditTouch).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  syncEditTouch();
 }
 
 function startBarDrag(downEv, bar) {
@@ -11381,4 +11552,1044 @@ function bindDrawerDependenciesHandlers(taskId) {
       }
     });
   });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   __MAINTENANCE_v1__ Лист планового обслуживания (PPM)
+   Второй тип проекта: инженер заполняет фиксированный чек-лист с телефона,
+   подписывает пальцем, выгружает PDF (официальный / неофициальный).
+   ═══════════════════════════════════════════════════════════════════ */
+const MAINTENANCE_TEMPLATE = {
+  sections: [
+    { id: 1, en: 'AIR CONDITIONING', ru: 'Кондиционирование воздуха', items: [
+      { id: '1.1', en: 'Check units for abnormal noise and vibration', ru: 'Проверка блоков на наличие аномального шума и вибрации', status: 'pass' },
+      { id: '1.2', en: 'Check wall thermostats and control panels operation', ru: 'Проверка работы настенных термостатов и ПУ', status: 'pass' },
+      { id: '1.3', en: 'Measure and record supply air temperature', ru: 'Измерение и фиксация температуры приточного воздуха', status: 'pass', extra: [{ key: 'airTemp', label: 'Air Temp', unit: '°C' }] },
+      { id: '1.4', en: 'Dismantle, wash and clean air filters', ru: 'Снятие, промывка и очистка воздушных фильтров', status: 'done' },
+      { id: '1.5', en: 'Check, clean and align condensate drain tray', ru: 'Проверка, очистка и выравнивание поддона для конденсата', status: 'done' },
+      { id: '1.6', en: 'Clean supply and return air grilles from dust', ru: 'Очистка приточных и вытяжных вентиляционных решёток', status: 'done' },
+    ] },
+    { id: 2, en: 'ELECTRICAL', ru: 'Электроснабжение', items: [
+      { id: '2.1', en: 'Inspect DB for overheating cables/breakers', ru: 'Осмотр распред. щитов на перегрев кабелей/автоматов', status: 'pass' },
+      { id: '2.2', en: 'Measure Amps and Volts in the main panel', ru: 'Измерение напряжения и силы тока в главном щите', status: 'pass', extra: [{ key: 'volts', label: 'V', unit: '' }, { key: 'amps', label: 'A', unit: '' }] },
+      { id: '2.3', en: 'Check all switches, sockets and light fittings', ru: 'Проверка выключателей, розеток и осветительных приборов', status: 'pass' },
+      { id: '2.4', en: 'Check exhaust fans correct operation', ru: 'Проверка исправности вытяжных вентиляторов', status: 'pass' },
+    ] },
+    { id: 3, en: 'PLUMBING', ru: 'Водопровод и канализация', items: [
+      { id: '3.1', en: 'Visual inspection of exposed pipelines for leaks', ru: 'Осмотр открытых участков трубопроводов на наличие утечек', status: 'pass' },
+      { id: '3.2', en: 'Check water heaters and thermostat settings', ru: 'Проверка водонагревателей и настроек термостата', status: 'pass' },
+      { id: '3.3', en: 'Dismantle and clean bottle traps under sinks', ru: 'Снятие и очистка сифонов под раковинами', status: 'done' },
+      { id: '3.4', en: 'Remove and clean aerators/filters on all taps', ru: 'Снятие и очистка аэраторов/фильтров на всех кранах', status: 'done' },
+    ] },
+    { id: 4, en: 'WATER SOFTENING SYSTEM', ru: 'Система умягчения воды', items: [
+      { id: '4.1', en: 'General inspection and maintenance of the system', ru: 'Общий осмотр и техническое обслуживание системы', status: 'pass' },
+      { id: '4.2', en: 'Replace filter cartridges', ru: 'Замена картриджей фильтров', status: 'done' },
+      { id: '4.3', en: 'Top up the brine tank with new tablet salt', ru: 'Пополнение бака новой таблетированной солью', status: 'done', extra: [{ key: 'addedKg', label: 'Added', unit: 'kg' }, { key: 'addedPcs', label: '', unit: 'pcs' }] },
+    ] },
+  ],
+  company: {
+    name: 'CYFR FITOUT L.L.C',
+    address: 'Office C1801-43, Ontario Tower, Business Bay, Dubai, UAE',
+    tel: '+971 52 150 7953', email: 'info@cyfr.ae',
+    licenseNo: '1499696', trn: '105018319100003',
+    logo: '/maintenance-logo.png', stamp: '/maintenance-stamp.png',
+  },
+  engineer: { name: 'Mr. Anton Makarenko', title: 'Project Engineer' },
+};
+
+// Рабочее состояние текущего листа (одно на экран).
+let mState = null;
+let _mSaveTimer = null;
+
+// __MAINTENANCE_CHECKLIST_v1__ Свой чек-лист у каждого листа (можно добавлять/удалять пункты).
+// Источник по умолчанию — глобальный шаблон; при создании листа делается копия в mState.checklist.
+function maintenanceDefaultChecklist() {
+  return JSON.parse(JSON.stringify(MAINTENANCE_TEMPLATE.sections));
+}
+function mSections() { return (mState && Array.isArray(mState.checklist)) ? mState.checklist : []; }
+function mSectionById(id) { return mSections().find((s) => String(s.id) === String(id)) || null; }
+function maintenanceItemById(id) {
+  for (const sec of mSections()) {
+    const it = (sec.items || []).find((x) => x.id === id);
+    if (it) return it;
+  }
+  return null;
+}
+function maintenanceNextItemId(sec) {
+  let max = 0;
+  for (const it of (sec.items || [])) { const t = Number(String(it.id).split('.').pop()); if (Number.isFinite(t) && t > max) max = t; }
+  return `${sec.id}.${max + 1}`;
+}
+function maintenanceNextSectionId() {
+  let max = 0;
+  for (const s of mSections()) { const n = Number(s.id); if (Number.isFinite(n) && n > max) max = n; }
+  return max + 1;
+}
+
+// Режим правки пунктов: одна строка-пункт с полями EN/RU + тип статуса + удалить.
+function maintenanceItemEditRowHtml(sec, it) {
+  const isDone = it.status === 'done';
+  return `<div class="m-item m-item-edit" data-item="${escapeHtml(it.id)}">
+    <div class="m-item-edit-top"><span class="m-item-no">${escapeHtml(it.id)}</span><button type="button" class="m-item-del" title="удалить пункт">✕ удалить</button></div>
+    <input class="m-it-edit m-it-en" data-itfield="en" value="${escapeHtml(it.en || '')}" placeholder="Item (English)">
+    <input class="m-it-edit m-it-ru" data-itfield="ru" value="${escapeHtml(it.ru || '')}" placeholder="Пункт (русский)">
+    <div class="m-it-type">
+      <button type="button" class="m-it-type-btn ${!isDone ? 'is-on' : ''}" data-type="pass">✓ Норма / ✗ Не норма</button>
+      <button type="button" class="m-it-type-btn ${isDone ? 'is-on' : ''}" data-type="done">✓ Сделано / ✗ Не сделано</button>
+    </div>
+  </div>`;
+}
+// Зона чек-листа = тулбар + секции + кнопки. Перерисовывается отдельно, не трогая остальной экран.
+function checklistZoneHtml() {
+  const editing = !!(mState && mState.editItems);
+  const secHtml = mSections().map((sec, si) => {
+    const rows = (sec.items || []).map((it) => editing ? maintenanceItemEditRowHtml(sec, it) : maintenanceItemRowHtml(it)).join('');
+    const head = editing
+      ? `<div class="m-section-head m-section-head--edit">
+           <span class="m-section-no">${si + 1}</span>
+           <input class="m-sec-edit m-sec-en" data-secfield="en" value="${escapeHtml(sec.en || '')}" placeholder="SECTION (EN)">
+           <input class="m-sec-edit m-sec-ru" data-secfield="ru" value="${escapeHtml(sec.ru || '')}" placeholder="Раздел (рус)">
+           <button type="button" class="m-sec-del" title="удалить раздел">✕</button>
+         </div>`
+      : `<div class="m-section-head"><span class="m-section-no">${si + 1}</span><span class="m-section-name">${escapeHtml(sec.en)}</span><span class="m-section-ru">${escapeHtml(sec.ru)}</span></div>`;
+    return `<div class="m-section" data-section="${escapeHtml(String(sec.id))}">
+      ${head}
+      ${rows}
+      ${editing ? `<button type="button" class="m-item-add" data-section="${escapeHtml(String(sec.id))}">＋ добавить пункт</button>` : ''}
+    </div>`;
+  }).join('');
+  const bar = `<div class="m-edit-bar">
+    <button type="button" class="m-edit-toggle ${editing ? 'is-on' : ''}" id="m-edit-toggle">${editing ? '✓ Готово' : '✏️ Править пункты'}</button>
+    ${editing ? '<span class="m-edit-hint">меняй текст пунктов, ＋ добавляй и ✕ удаляй</span>' : ''}
+  </div>`;
+  const addSec = editing ? `<button type="button" class="m-section-add" id="m-section-add">＋ Добавить раздел</button>` : '';
+  return bar + secHtml + addSec;
+}
+function rerenderChecklistZone(s) {
+  const zone = document.getElementById('m-checklist-zone');
+  if (!zone) return;
+  zone.innerHTML = checklistZoneHtml();
+  attachChecklistHandlers(zone, s);
+}
+function attachChecklistHandlers(zone, s) {
+  if (!zone) return;
+  const tg = zone.querySelector('#m-edit-toggle');
+  if (tg) tg.addEventListener('click', () => { mState.editItems = !mState.editItems; rerenderChecklistZone(s); });
+  const addS = zone.querySelector('#m-section-add');
+  if (addS) addS.addEventListener('click', () => {
+    mSections().push({ id: maintenanceNextSectionId(), en: '', ru: '', items: [] });
+    maintenanceScheduleSave(); rerenderChecklistZone(s);
+  });
+  zone.querySelectorAll('.m-section[data-section]').forEach((secEl) => {
+    const secId = secEl.getAttribute('data-section');
+    const sec = mSectionById(secId);
+    if (!sec) return;
+    secEl.querySelectorAll('[data-secfield]').forEach((inp) => {
+      inp.addEventListener('input', () => { sec[inp.getAttribute('data-secfield')] = inp.value; maintenanceScheduleSave(); });
+    });
+    const dS = secEl.querySelector('.m-sec-del');
+    if (dS) dS.addEventListener('click', () => {
+      if (!confirm('Удалить весь раздел и все его пункты?')) return;
+      mState.checklist = mSections().filter((x) => String(x.id) !== String(secId));
+      maintenanceScheduleSave(); rerenderChecklistZone(s);
+    });
+    const aI = secEl.querySelector('.m-item-add');
+    if (aI) aI.addEventListener('click', () => {
+      sec.items = sec.items || [];
+      sec.items.push({ id: maintenanceNextItemId(sec), en: '', ru: '', status: 'pass' });
+      maintenanceScheduleSave(); rerenderChecklistZone(s);
+    });
+    secEl.querySelectorAll('.m-item[data-item]').forEach((row) => {
+      const id = row.getAttribute('data-item');
+      if (mState.editItems) {
+        const it = (sec.items || []).find((x) => x.id === id);
+        if (!it) return;
+        row.querySelectorAll('[data-itfield]').forEach((inp) => {
+          inp.addEventListener('input', () => { it[inp.getAttribute('data-itfield')] = inp.value; maintenanceScheduleSave(); });
+        });
+        row.querySelectorAll('.m-it-type-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            it.status = btn.getAttribute('data-type');
+            row.querySelectorAll('.m-it-type-btn').forEach((b) => b.classList.toggle('is-on', b.getAttribute('data-type') === it.status));
+            maintenanceScheduleSave();
+          });
+        });
+        const dI = row.querySelector('.m-item-del');
+        if (dI) dI.addEventListener('click', () => {
+          sec.items = (sec.items || []).filter((x) => x.id !== id);
+          maintenanceScheduleSave(); rerenderChecklistZone(s);
+        });
+      } else {
+        if (!mState.answers[id]) mState.answers[id] = { value: '', notes: '', extra: {} };
+        row.querySelectorAll('.m-st').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const val = btn.getAttribute('data-val');
+            const a = mState.answers[id];
+            a.value = (a.value === val) ? '' : val;
+            row.querySelectorAll('.m-st').forEach((b) => b.classList.toggle('is-on', b.getAttribute('data-val') === a.value));
+            maintenanceScheduleSave();
+          });
+        });
+        const noteEl = row.querySelector('[data-note]');
+        if (noteEl) noteEl.addEventListener('input', () => { mState.answers[id].notes = noteEl.value; maintenanceScheduleSave(); });
+        row.querySelectorAll('[data-extra]').forEach((ex) => {
+          ex.addEventListener('input', () => { const a = mState.answers[id]; a.extra = a.extra || {}; a.extra[ex.getAttribute('data-extra')] = ex.value; maintenanceScheduleSave(); });
+        });
+      }
+    });
+  });
+}
+
+function maintenanceScheduleSave() {
+  clearTimeout(_mSaveTimer);
+  _mSaveTimer = setTimeout(() => {
+    const report = { meta: mState.meta, answers: mState.answers, defects: mState.defects, signature: mState.signature };
+    const payload = { slug: state.projectSlug, report, official: mState.official, contractNo: mState.contractNo,
+      checklist: mState.checklist,
+      engineerChatId: mState.engineerChatId, engineerName: mState.engineerName, mapsUrl: mState.mapsUrl, intervalMonths: mState.intervalMonths, by: 'web' };
+    if (mState.nextDueDate) payload.nextDueDate = mState.nextDueDate;
+    postDataAction('maintenance:save', payload)
+      .then(() => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '✓ сохранено'; el.classList.add('ok'); } })
+      .catch((e) => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '⚠ не сохранилось'; el.classList.remove('ok'); } console.warn('maintenance save', e); });
+  }, 700);
+  const el = document.getElementById('m-save-status'); if (el) { el.textContent = 'сохраняю…'; el.classList.remove('ok'); }
+}
+
+function renderMaintenanceView(s) {
+  injectMaintenanceStyles();
+  hideAdminMenu();
+  hideMobileTasksFab();
+  document.title = (s.project.name || 'Лист обслуживания') + ' · Обслуживание · CYFR';
+  const m = s.maintenance || {};
+  const r = m.report || {};
+  mState = {
+    official: m.official === true,
+    contractNo: m.contractNo || (r.meta && r.meta.contractNo) || '',
+    meta: Object.assign({ contractNo: m.contractNo || '', propertyAddress: s.project.location || '', customer: s.project.customer || '', date: { day: '', month: '', year: String(new Date().getFullYear()) } }, r.meta || {}),
+    answers: r.answers || {},
+    defects: r.defects || { selected: 'a', notes: '' },
+    signature: r.signature || { png: '', engineerName: '', engineerTitle: 'Project Engineer', signedAt: '' },
+    nextDueDate: m.nextDueDate || '',
+    lastVisitDate: m.lastVisitDate || '',
+    engineerChatId: m.engineerChatId || '',
+    engineerName: m.engineerName || '',
+    mapsUrl: m.mapsUrl || '',
+    intervalMonths: m.intervalMonths || 6,
+    archive: Array.isArray(m.archive) ? m.archive : [],
+  };
+  // __MAINTENANCE_CHECKLIST_v1__ Своя копия пунктов листа. Старые листы без checklist
+  // подхватывают копию шаблона (мигрируют при первом автосохранении).
+  mState.checklist = (Array.isArray(m.checklist) && m.checklist.length) ? m.checklist : maintenanceDefaultChecklist();
+  mState.editItems = false;
+
+  const page = clearPageBelowTopbar();
+  if (!page) return;
+  const wrap = document.createElement('section');
+  wrap.className = 'm-wrap';
+  page.appendChild(wrap);
+
+  const meta = mState.meta;
+  wrap.innerHTML = `
+    <div class="m-top">
+      <a class="m-back" href="/">‹ Все проекты</a>
+      <div class="m-save-status" id="m-save-status"></div>
+    </div>
+    <h1 class="m-title">Лист планового обслуживания</h1>
+    <div class="m-sub">${escapeHtml(s.project.name || '')}</div>
+
+    <div class="m-officialbar">
+      <label class="m-switch">
+        <input type="checkbox" id="m-official" ${mState.official ? 'checked' : ''}>
+        <span class="m-switch-track"><span class="m-switch-thumb"></span></span>
+        <span class="m-switch-label">${mState.official ? 'Официальный (с печатью и логотипом)' : 'Неофициальный (без печати)'}</span>
+      </label>
+    </div>
+
+    <div class="m-meta">
+      <label class="m-field"><span>Номер контракта</span><input type="text" id="m-contract" value="${escapeHtml(meta.contractNo || '')}" placeholder="напр. 9-M или 1-XM"></label>
+      <label class="m-field"><span>Адрес объекта</span><input type="text" id="m-address" value="${escapeHtml(meta.propertyAddress || '')}" placeholder="Apt. 902, Diamond, ..."></label>
+      <label class="m-field"><span>Заказчик</span><input type="text" id="m-customer" value="${escapeHtml(meta.customer || '')}" placeholder="Ms. ..."></label>
+      <div class="m-field m-field-date"><span>Дата осмотра (идёт в отчёт)</span>
+        <div class="m-date-row">
+          <input type="text" id="m-date-day" inputmode="numeric" maxlength="2" value="${escapeHtml(meta.date && meta.date.day || '')}" placeholder="ДД">
+          <input type="text" id="m-date-month" maxlength="12" value="${escapeHtml(meta.date && meta.date.month || '')}" placeholder="месяц">
+          <input type="text" id="m-date-year" inputmode="numeric" maxlength="4" value="${escapeHtml(meta.date && meta.date.year || '')}" placeholder="ГГГГ">
+        </div>
+      </div>
+      <label class="m-field"><span>Следующий визит (напомнит бот)</span><input type="date" id="m-next-due" value="${escapeHtml(mState.nextDueDate || '')}">${mState.lastVisitDate ? `<em class="m-hint">последний визит: ${escapeHtml(mState.lastVisitDate)}</em>` : ''}</label>
+    </div>
+
+    <details class="m-settings" ${mState.engineerChatId || mState.mapsUrl ? '' : 'open'}>
+      <summary>⚙️ Настройки и напоминания</summary>
+      <div class="m-meta">
+        <label class="m-field"><span>Telegram ID инженера (кому слать напоминание)</span><input type="text" id="m-eng-id" inputmode="numeric" value="${escapeHtml(mState.engineerChatId || '')}" placeholder="напр. 1861757950"><em class="m-hint">Инженер должен один раз написать боту @Cyfr_work_bot, иначе бот не сможет ему написать.</em></label>
+        <label class="m-field"><span>Имя инженера</span><input type="text" id="m-eng-name" value="${escapeHtml(mState.engineerName || '')}" placeholder="напр. Антон М."></label>
+        <label class="m-field"><span>Ссылка на карту (Google Maps)</span><input type="url" id="m-maps" value="${escapeHtml(mState.mapsUrl || '')}" placeholder="https://maps.google.com/?q=..."><em class="m-hint">В напоминании будет кнопка «Открыть маршрут» — откроет навигатор на телефоне.</em></label>
+        <label class="m-field"><span>Как часто визит (месяцев)</span><input type="number" id="m-interval" min="1" max="60" value="${escapeHtml(String(mState.intervalMonths || 6))}"><em class="m-hint">6 = два раза в год. После «Завершить осмотр» следующий визит ставится сам через это число месяцев.</em></label>
+      </div>
+    </details>
+
+    <div id="m-checklist-zone">${checklistZoneHtml()}</div>
+
+    <div class="m-section m-defects">
+      <div class="m-section-head"><span class="m-section-name">Выявленные дефекты и замечания</span></div>
+      <label class="m-defect-opt"><input type="radio" name="m-defect" value="a" ${mState.defects.selected === 'a' ? 'checked' : ''}><span>Дефектов нет — все системы исправны и работают нормально</span></label>
+      <label class="m-defect-opt"><input type="radio" name="m-defect" value="b" ${mState.defects.selected === 'b' ? 'checked' : ''}><span>Есть дефекты (укажите номер пункта, описание и что нужно сделать)</span></label>
+      <div class="m-defect-notes-wrap" ${mState.defects.selected === 'b' ? '' : 'hidden'}>
+        <textarea id="m-defect-notes" rows="4" placeholder="Опишите дефекты…">${escapeHtml(mState.defects.notes || '')}</textarea>
+        <button type="button" class="m-voice-btn" data-voice="defects">🎤 Надиктовать голосом</button>
+      </div>
+    </div>
+
+    <div class="m-section m-sign">
+      <div class="m-section-head"><span class="m-section-name">Подпись инженера</span></div>
+      <div class="m-sign-name">${escapeHtml(MAINTENANCE_TEMPLATE.engineer.name)} · ${escapeHtml(MAINTENANCE_TEMPLATE.engineer.title)}</div>
+      <div class="m-sign-box" id="m-sign-box">
+        ${mState.signature.png ? `<img src="${mState.signature.png}" alt="подпись" class="m-sign-img">` : '<div class="m-sign-empty">подпись не поставлена</div>'}
+      </div>
+      <button type="button" class="m-sign-btn" id="m-sign-btn">✍️ Расписаться пальцем</button>
+    </div>
+
+    <div class="m-actions">
+      <button type="button" class="m-pdf-btn" id="m-pdf-btn">📄 Скачать PDF</button>
+      <button type="button" class="m-send-btn" id="m-send-btn">📤 Отправить отчёт</button>
+      <button type="button" class="m-complete-btn" id="m-complete-btn">✅ Завершить осмотр</button>
+    </div>
+    <div class="m-foot-note">«Завершить осмотр» сохранит копию отчёта в историю и поставит следующий визит. Всё остальное сохраняется автоматически.</div>
+
+    <div class="m-section m-history" id="m-history">${maintenanceHistoryHtml()}</div>
+  `;
+
+  attachMaintenanceHandlers(wrap, s);
+}
+
+// История завершённых отчётов (из архива). Каждый можно перегенерировать в PDF.
+function maintenanceHistoryHtml() {
+  const arch = mState.archive || [];
+  const head = '<div class="m-section-head"><span class="m-section-name">📚 История отчётов</span><span class="m-section-ru">завершённые осмотры</span></div>';
+  if (!arch.length) return head + '<div class="m-hist-empty">Пока нет завершённых отчётов. Заполни лист, подпиши и нажми «Завершить осмотр».</div>';
+  const rows = arch.map((a) => {
+    const dft = a.defects && a.defects.selected === 'b';
+    return `<div class="m-hist-row" data-report="${escapeHtml(a.id)}">
+      <div class="m-hist-info">
+        <div class="m-hist-date">🗓 ${escapeHtml(a.visitDate || (a.completedAt || '').slice(0, 10))}</div>
+        <div class="m-hist-meta">${a.official ? '<span class="m-hist-badge">официальный</span>' : '<span class="m-hist-badge m-hist-badge--un">неоф.</span>'} ${dft ? '<span class="m-hist-badge m-hist-badge--warn">есть дефекты</span>' : '<span class="m-hist-badge m-hist-badge--ok">без дефектов</span>'}</div>
+      </div>
+      <button type="button" class="m-hist-pdf" data-report="${escapeHtml(a.id)}">📄 PDF</button>
+    </div>`;
+  }).join('');
+  return head + rows;
+}
+
+function maintenanceItemRowHtml(it) {
+  const ans = mState.answers[it.id] || {};
+  const posVal = it.status === 'pass' ? 'pass' : 'done';
+  const negVal = it.status === 'pass' ? 'notpass' : 'notdone';
+  const posLabel = it.status === 'pass' ? 'Норма' : 'Сделано';
+  const negLabel = it.status === 'pass' ? 'Не норма' : 'Не сделано';
+  const extraHtml = (it.extra || []).map((ex) => {
+    const v = (ans.extra && ans.extra[ex.key]) || '';
+    return `<label class="m-extra"><span>${escapeHtml(ex.label || '')}</span><input type="text" data-extra="${escapeHtml(ex.key)}" value="${escapeHtml(v)}" placeholder="—">${ex.unit ? `<i>${escapeHtml(ex.unit)}</i>` : ''}</label>`;
+  }).join('');
+  return `<div class="m-item" data-item="${it.id}">
+    <div class="m-item-head"><span class="m-item-no">${it.id}</span><span class="m-item-en">${escapeHtml(it.en)}</span></div>
+    <div class="m-item-ru">${escapeHtml(it.ru)}</div>
+    <div class="m-item-controls">
+      <div class="m-status">
+        <button type="button" class="m-st m-st-pos ${ans.value === posVal ? 'is-on' : ''}" data-val="${posVal}">✓ ${posLabel}</button>
+        <button type="button" class="m-st m-st-neg ${ans.value === negVal ? 'is-on' : ''}" data-val="${negVal}">✗ ${negLabel}</button>
+      </div>
+      ${extraHtml ? `<div class="m-extras">${extraHtml}</div>` : ''}
+    </div>
+    <input type="text" class="m-item-note" data-note="1" value="${escapeHtml(ans.notes || '')}" placeholder="Заметка / причина (если не норма)">
+  </div>`;
+}
+
+function attachMaintenanceHandlers(wrap, s) {
+  // Официальный / неофициальный
+  const off = wrap.querySelector('#m-official');
+  off.addEventListener('change', () => {
+    mState.official = off.checked;
+    const lbl = wrap.querySelector('.m-switch-label');
+    if (lbl) lbl.textContent = off.checked ? 'Официальный (с печатью и логотипом)' : 'Неофициальный (без печати)';
+    maintenanceScheduleSave();
+  });
+  // Мета-поля
+  const bindMeta = (id, set) => { const el = wrap.querySelector(id); if (el) el.addEventListener('input', () => { set(el.value); maintenanceScheduleSave(); }); };
+  bindMeta('#m-contract', (v) => { mState.meta.contractNo = v; mState.contractNo = v; });
+  bindMeta('#m-address', (v) => { mState.meta.propertyAddress = v; });
+  bindMeta('#m-customer', (v) => { mState.meta.customer = v; });
+  bindMeta('#m-date-day', (v) => { mState.meta.date.day = v; });
+  bindMeta('#m-date-month', (v) => { mState.meta.date.month = v; });
+  bindMeta('#m-date-year', (v) => { mState.meta.date.year = v; });
+
+  // Пункты чек-листа (статусы/заметки + режим правки) — вынесены в отдельную зону.
+  attachChecklistHandlers(wrap.querySelector('#m-checklist-zone'), s);
+
+  // Дефекты
+  wrap.querySelectorAll('input[name="m-defect"]').forEach((rb) => {
+    rb.addEventListener('change', () => {
+      mState.defects.selected = rb.value;
+      const nw = wrap.querySelector('.m-defect-notes-wrap');
+      if (nw) nw.hidden = rb.value !== 'b';
+      maintenanceScheduleSave();
+    });
+  });
+  const dn = wrap.querySelector('#m-defect-notes');
+  if (dn) dn.addEventListener('input', () => { mState.defects.notes = dn.value; maintenanceScheduleSave(); });
+
+  // Голосовая диктовка замечаний (использует тот же бэкенд транскрипции, что и отчёты)
+  wrap.querySelectorAll('[data-voice]').forEach((vb) => {
+    vb.addEventListener('click', () => maintenanceVoiceDictate(dn));
+  });
+
+  // Подпись
+  const signBtn = wrap.querySelector('#m-sign-btn');
+  if (signBtn) signBtn.addEventListener('click', () => openSignatureModal((png) => {
+    mState.signature.png = png;
+    mState.signature.signedAt = new Date().toISOString();
+    mState.signature.engineerName = MAINTENANCE_TEMPLATE.engineer.name;
+    const box = wrap.querySelector('#m-sign-box');
+    if (box) box.innerHTML = `<img src="${png}" alt="подпись" class="m-sign-img">`;
+    maintenanceScheduleSave();
+  }));
+
+  // Следующий визит + настройки проекта (инженер / карта / частота)
+  const ndEl = wrap.querySelector('#m-next-due');
+  if (ndEl) ndEl.addEventListener('change', () => { mState.nextDueDate = ndEl.value; maintenanceScheduleSave(); });
+  bindMeta('#m-eng-id', (v) => { mState.engineerChatId = v.replace(/[^0-9-]/g, ''); });
+  bindMeta('#m-eng-name', (v) => { mState.engineerName = v; });
+  bindMeta('#m-maps', (v) => { mState.mapsUrl = v; });
+  bindMeta('#m-interval', (v) => { mState.intervalMonths = Math.max(1, Math.min(60, Number(v) || 6)); });
+
+  // PDF + отправка + завершение
+  const pdfBtn = wrap.querySelector('#m-pdf-btn');
+  if (pdfBtn) pdfBtn.addEventListener('click', () => buildMaintenancePdf(s, pdfBtn));
+  const sendBtn = wrap.querySelector('#m-send-btn');
+  if (sendBtn) sendBtn.addEventListener('click', () => maintenanceSendPdf(s, sendBtn));
+  const complBtn = wrap.querySelector('#m-complete-btn');
+  if (complBtn) complBtn.addEventListener('click', () => maintenanceComplete(s, complBtn));
+
+  // История: перегенерировать PDF архивного отчёта
+  wrap.querySelectorAll('.m-hist-pdf').forEach((b) => {
+    b.addEventListener('click', () => {
+      const id = b.getAttribute('data-report');
+      const snap = (mState.archive || []).find((x) => String(x.id) === String(id));
+      if (snap) maintenanceDownloadArchived(snap, b);
+    });
+  });
+}
+
+// Завершить осмотр → сервер архивирует копию, ставит следующий визит, чистит лист. Перерисовываем.
+async function maintenanceComplete(s, btn) {
+  if (!mState.signature.png && !confirm('Отчёт ещё не подписан. Всё равно завершить и сохранить в историю?')) return;
+  if (!confirm('Завершить осмотр? Копия отчёта уйдёт в историю, лист очистится под следующий визит.')) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохраняю…'; }
+  try {
+    const r = await postDataAction('maintenance:complete', { slug: state.projectSlug, by: 'web' });
+    if (r && r.maintenance) {
+      const res = await fetch(scheduleJsonUrl(state.projectSlug), { cache: 'no-store' });
+      const j = await res.json();
+      const sched = j && j.schedule && j.ok ? j.schedule : j;
+      state.schedule = sched;
+      renderMaintenanceView(sched);
+      alert('✅ Осмотр завершён. Отчёт сохранён в историю, следующий визит запланирован.');
+    } else { throw new Error('сервер не вернул данные'); }
+  } catch (e) {
+    alert('Не удалось завершить: ' + (e.message || e));
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Завершить осмотр'; }
+  }
+}
+
+// Скачать PDF архивного (завершённого) отчёта из его снимка.
+async function maintenanceDownloadArchived(snap, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const src = { official: snap.official, meta: snap.meta || {}, answers: snap.answers || {}, defects: snap.defects || { selected: 'a', notes: '' }, signature: snap.signature || {} };
+    const pdf = await maintenanceBuildPdfDoc(src);
+    const safeSlug = (state.projectSlug || 'report').replace(/[^a-z0-9-]/gi, '');
+    pdf.save(`PPM-${safeSlug}-${snap.visitDate || (snap.completedAt || '').slice(0, 10)}.pdf`);
+  } catch (e) {
+    alert('Не удалось сделать PDF: ' + (e.message || e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📄 PDF'; }
+  }
+}
+
+// Голосовая диктовка в textarea замечаний — запись с микрофона → /api/transcribe.
+async function maintenanceVoiceDictate(textarea) {
+  if (!textarea) return;
+  if (!navigator.mediaDevices || !window.MediaRecorder) { alert('Голос не поддерживается на этом устройстве — впиши текстом.'); return; }
+  const btn = document.querySelector('[data-voice="defects"]');
+  if (btn && btn.dataset.recording === '1') { window._mStopRec && window._mStopRec(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const rec = new MediaRecorder(stream);
+    const chunks = [];
+    rec.ondataavailable = (e) => chunks.push(e.data);
+    rec.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      if (btn) { btn.dataset.recording = '0'; btn.textContent = '🎤 Надиктовать голосом'; }
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const fd = new FormData(); fd.append('file', blob, 'note.webm');
+      try {
+        const r = await fetch('/api/transcribe', { method: 'POST', body: fd });
+        const j = await r.json().catch(() => ({}));
+        const text = (j && (j.text || j.transcript)) || '';
+        if (text) { textarea.value = (textarea.value ? textarea.value + ' ' : '') + text; mState.defects.notes = textarea.value; maintenanceScheduleSave(); }
+        else alert('Не расслышал. Повтори или впиши текстом.');
+      } catch (e) { alert('Ошибка распознавания: ' + (e.message || e)); }
+    };
+    window._mStopRec = () => rec.state !== 'inactive' && rec.stop();
+    rec.start();
+    if (btn) { btn.dataset.recording = '1'; btn.textContent = '⏹ Остановить запись'; }
+  } catch (e) { alert('Нет доступа к микрофону.'); }
+}
+
+/* ── Подпись пальцем (signature_pad) ── */
+let _sigPadPromise = null;
+function loadSignaturePad() {
+  if (_sigPadPromise) return _sigPadPromise;
+  _sigPadPromise = new Promise((res, rej) => {
+    if (window.SignaturePad) return res();
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js';
+    sc.onload = res; sc.onerror = () => rej(new Error('Не удалось загрузить signature_pad'));
+    document.head.appendChild(sc);
+  });
+  return _sigPadPromise;
+}
+
+function openSignatureModal(onDone) {
+  loadSignaturePad().then(() => {
+    const ov = document.createElement('div');
+    ov.className = 'm-sig-overlay';
+    ov.innerHTML = `
+      <div class="m-sig-card">
+        <div class="m-sig-title">Распишитесь пальцем</div>
+        <canvas class="m-sig-canvas" id="m-sig-canvas"></canvas>
+        <div class="m-sig-line">— ведите пальцем по полю —</div>
+        <div class="m-sig-actions">
+          <button type="button" class="m-sig-clear" id="m-sig-clear">Стереть</button>
+          <button type="button" class="m-sig-cancel" id="m-sig-cancel">Отмена</button>
+          <button type="button" class="m-sig-done" id="m-sig-done">Готово</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    const canvas = ov.querySelector('#m-sig-canvas');
+    const pad = new window.SignaturePad(canvas, { minWidth: 1.2, maxWidth: 3.2, penColor: '#0b2a5b', backgroundColor: 'rgba(255,255,255,0)' });
+    const resize = () => {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.round(rect.width * ratio);
+      canvas.height = Math.round(rect.height * ratio);
+      canvas.getContext('2d').scale(ratio, ratio);
+      pad.clear();
+    };
+    setTimeout(resize, 30);
+    const onResize = () => resize();
+    window.addEventListener('resize', onResize);
+    const close = () => { window.removeEventListener('resize', onResize); ov.remove(); };
+    ov.querySelector('#m-sig-clear').addEventListener('click', () => pad.clear());
+    ov.querySelector('#m-sig-cancel').addEventListener('click', close);
+    ov.querySelector('#m-sig-done').addEventListener('click', () => {
+      if (pad.isEmpty()) { alert('Поставьте подпись или нажмите Отмена.'); return; }
+      const png = pad.toDataURL('image/png');
+      close();
+      onDone(png);
+    });
+  }).catch((e) => alert(e.message || 'Ошибка подписи'));
+}
+
+/* ── PDF, точно как бумажный бланк ── */
+function maintenancePdfFilename() {
+  const safeSlug = (state.projectSlug || 'report').replace(/[^a-z0-9-]/gi, '');
+  return `PPM-${safeSlug}-${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+// Собрать документ PDF (jsPDF) из состояния src (по умолчанию — текущий лист mState).
+// Для архивных отчётов передаётся снимок: { official, meta, answers, defects, signature }.
+async function maintenanceBuildPdfDoc(src) {
+  src = src || mState;
+  await loadPdfLibs();
+  maintenanceLoadBrandFont();
+  const host = document.createElement('div');
+  host.className = 'm-pdf-host' + (src.official ? ' is-official' : '');
+  host.innerHTML = maintenancePdfPagesHtml(src);
+  document.body.appendChild(host);
+  try {
+    if (document.fonts) {
+      try { await Promise.all(['400 14px Mulish', '600 14px Mulish', '700 16px Mulish', '800 18px Mulish', 'italic 400 12px Mulish'].map((f) => document.fonts.load(f))); } catch (_) {}
+      try { await document.fonts.ready; } catch (_) {}
+    }
+    // дождаться загрузки картинок (подпись/лого)
+    await Promise.all(Array.from(host.querySelectorAll('img')).map((img) => img.complete ? Promise.resolve() : new Promise((r) => { img.onload = r; img.onerror = r; })));
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pages = host.querySelectorAll('.m-pdf-page');
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await window.html2canvas(pages[i], { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+      // JPEG вместо PNG: страница-картинка весит ~0.3 МБ вместо ~14 МБ — важно для отправки клиенту.
+      const img = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(img, 'JPEG', 0, 0, 210, 297);
+    }
+    return pdf;
+  } finally {
+    host.remove();
+  }
+}
+
+async function buildMaintenancePdf(s, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Готовлю PDF…'; }
+  try {
+    const pdf = await maintenanceBuildPdfDoc();
+    pdf.save(maintenancePdfFilename());
+  } catch (e) {
+    alert('Не удалось сделать PDF: ' + (e.message || e));
+    console.error(e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📄 Скачать PDF'; }
+  }
+}
+
+// Отправить готовый PDF в Telegram (бот) — пока владельцу (демо), потом в чат клиента.
+async function maintenanceSendPdf(s, btn) {
+  if (!mState.signature.png && !confirm('Отчёт ещё не подписан. Всё равно отправить?')) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Отправляю…'; }
+  try {
+    const pdf = await maintenanceBuildPdfDoc();
+    const blob = pdf.output('blob');
+    const b64 = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.onerror = rej; fr.readAsDataURL(blob); });
+    const r = await fetch('/api/maintenance-send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: state.projectSlug, pdfBase64: b64, filename: maintenancePdfFilename(), caption: `Отчёт о плановом обслуживании — ${(s.project && s.project.name) || state.projectSlug}` })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (j && j.ok) alert(j.demo ? '✅ Отправлено тебе в Telegram (демо). Когда дашь чат клиента — будет уходить туда.' : '✅ Отчёт отправлен в чат клиента.');
+    else alert('⚠️ Не удалось отправить: ' + ((j && j.reason) || (j && j.results && j.results[0] && j.results[0].error) || 'ошибка'));
+  } catch (e) {
+    alert('Ошибка отправки: ' + (e.message || e));
+    console.error(e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📤 Отправить отчёт'; }
+  }
+}
+
+// Фирменный шрифт CYFR — Mulish (с кириллицей). Грузим один раз перед PDF.
+function maintenanceLoadBrandFont() {
+  if (document.getElementById('m-brand-font')) return;
+  const l = document.createElement('link');
+  l.id = 'm-brand-font'; l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap';
+  document.head.appendChild(l);
+}
+
+function _mChk(on) { return `<span class="pcbx">${on ? '✓' : ''}</span>`; }
+
+function maintenancePdfRowsHtml(sec, src) {
+  const answers = (src && src.answers) || {};
+  return sec.items.map((it) => {
+    const ans = answers[it.id] || {};
+    const isPass = it.status === 'pass';
+    const posVal = isPass ? 'pass' : 'done', negVal = isPass ? 'notpass' : 'notdone';
+    const posLabel = isPass ? 'Pass' : 'Done', negLabel = isPass ? 'Not Pass' : 'Not Done';
+    const extras = (it.extra || []).map((ex) => {
+      const v = (ans.extra && ans.extra[ex.key]) || '';
+      return `${ex.label ? ex.label + ': ' : ''}${v || '____'}${ex.unit ? ' ' + ex.unit : ''}`;
+    }).join('   ');
+    const notes = [extras, ans.notes || ''].filter(Boolean).join(' · ');
+    return `<tr>
+      <td class="pno">${it.id}</td>
+      <td class="ptask"><div class="pen">${escapeHtml(it.en)}</div><div class="pru">[${escapeHtml(it.ru)}]</div></td>
+      <td class="pstatus">
+        <div class="pstrow">${_mChk(ans.value === posVal)} ${posLabel}</div>
+        <div class="pstrow">${_mChk(ans.value === negVal)} ${negLabel}</div>
+      </td>
+      <td class="pnotes">${escapeHtml(notes)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function maintenancePdfSectionHtml(sec, src) {
+  return `<tr class="psec"><td></td><td colspan="3">${sec.id}. ${escapeHtml(sec.en)}</td></tr>` + maintenancePdfRowsHtml(sec, src);
+}
+
+function maintenancePdfHeaderHtml() {
+  const c = MAINTENANCE_TEMPLATE.company;
+  // Шапка/лого только в официальном режиме (CSS скрывает в неофициальном).
+  return `<div class="phead">
+    <img class="plogo" src="${c.logo}" alt="" onerror="this.style.display='none'">
+    <div class="pcompany">
+      <div class="pcname">${escapeHtml(c.name)}</div>
+      <div class="pcline">${escapeHtml(c.address)}</div>
+      <div class="pcline">tel: ${escapeHtml(c.tel)} | email: ${escapeHtml(c.email)}</div>
+      <div class="pcline">License No ${escapeHtml(c.licenseNo)} | TRN: ${escapeHtml(c.trn)}</div>
+    </div>
+  </div>`;
+}
+
+function maintenancePdfPagesHtml(src) {
+  src = src || mState;
+  const meta = src.meta || {};
+  const date = meta.date || {};
+  // __MAINTENANCE_CHECKLIST_v1__ Разделы — из самого листа (или снимка архива), не из общего шаблона.
+  const secs = (Array.isArray(src.checklist) && src.checklist.length) ? src.checklist
+             : (mSections().length ? mSections() : MAINTENANCE_TEMPLATE.sections);
+  const metaBlock = `
+    <div class="pmeta">
+      <div><b>Contract No:</b> ${escapeHtml(meta.contractNo || '')}</div>
+      <div><b>Property Address:</b> ${escapeHtml(meta.propertyAddress || '')}</div>
+      <div><b>Customer:</b> ${escapeHtml(meta.customer || '')}</div>
+      <div><b>Date:</b> «${escapeHtml(date.day || '__')}» ${escapeHtml(date.month || '________')} ${escapeHtml(date.year || '')}</div>
+    </div>`;
+  const tableHead = `<tr class="phrow"><th class="pno">No.</th><th>Task Description</th><th class="pstatus">Status</th><th class="pnotes">Notes (Reason if Not Pass / Not Done)</th></tr>`;
+
+  const def = src.defects || { selected: 'a', notes: '' };
+  const sig = src.signature || {};
+  const defectsSignHtml = `
+    <div class="pdefects">
+      <div class="pdef-title">Identified Defects and Observations</div>
+      <div class="pdef-opt">${_mChk(def.selected === 'a')} No defects found / All systems are fully operational and work normally.</div>
+      <div class="pdef-opt">${_mChk(def.selected === 'b')} Defects identified (specify item number, description of the fault, and required actions):</div>
+      <div class="pdef-notes">${escapeHtml(def.notes || '')}</div>
+    </div>
+    <div class="psign">
+      <div class="psign-name"><b>${escapeHtml(MAINTENANCE_TEMPLATE.engineer.name)}</b><br>${escapeHtml(MAINTENANCE_TEMPLATE.engineer.title)}</div>
+      <div class="psign-area">
+        ${sig.png ? `<img class="psign-img" src="${sig.png}" alt="">` : ''}
+        <div class="pstamp-ph">М.П.<br><span>печать</span></div>
+        <div class="psign-line">Signature</div>
+      </div>
+    </div>`;
+
+  // По 2 раздела на страницу (для 4 дефолтных — те же 2 страницы, что и раньше).
+  // Дефекты+подпись добавляются после последнего раздела.
+  const groups = [];
+  for (let i = 0; i < secs.length; i += 2) groups.push(secs.slice(i, i + 2));
+  if (!groups.length) groups.push([]);
+
+  return groups.map((g, gi) => {
+    const isFirst = gi === 0;
+    const isLast = gi === groups.length - 1;
+    return `<div class="m-pdf-page">
+      ${isFirst ? `${maintenancePdfHeaderHtml()}<div class="ptitle">PLANNED PREVENTATIVE MAINTENANCE REPORT</div>${metaBlock}` : ''}
+      <table class="ptable"><thead>${tableHead}</thead><tbody>
+        ${g.map((sec) => maintenancePdfSectionHtml(sec, src)).join('')}
+      </tbody></table>
+      ${isLast ? defectsSignHtml : ''}
+      <div class="ppagenum">${gi + 1}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Создание maintenance-проекта (модалка) ── */
+// __MAINTENANCE_FROM_PHOTO_v1__ Сжатие фото на клиенте перед отправкой (меньше трафик + дешевле OCR).
+function maintenanceCompressPhoto(file, max = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+      else if (h >= w && h > max) { w = Math.round(w * max / h); h = max; }
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      try { resolve(c.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('не удалось прочитать фото')); };
+    img.src = url;
+  });
+}
+
+function openCreateMaintenanceModal() {
+  injectMaintenanceStyles(); // стили окна (.m-create-*, .m-field, .mc-tabs…) — на главной они ещё не подключены
+  document.querySelectorAll('.m-create-overlay').forEach((e) => e.remove()); // не плодим окна
+  let recognized = null; // { checklist, answers, defects, meta } из распознавания фото
+  const ov = document.createElement('div');
+  ov.className = 'm-create-overlay';
+  ov.innerHTML = `
+    <div class="m-create-card">
+      <div class="m-create-title">Новый лист обслуживания</div>
+      <div class="mc-tabs">
+        <button type="button" class="mc-tab is-on" data-tab="manual">✍️ Вручную</button>
+        <button type="button" class="mc-tab" data-tab="photo">📷 С фото</button>
+      </div>
+      <div class="mc-photo" id="mc-photo" hidden>
+        <div class="mc-photo-hint">Сфоткай бумажный лист с двух сторон — ИИ сам прочитает пункты и галочки и заполнит лист. Потом всё можно поправить.</div>
+        <label class="mc-file"><span id="mc-f1-name">📷 Фото — сторона 1</span><input type="file" id="mc-f1" accept="image/*" capture="environment"></label>
+        <label class="mc-file"><span id="mc-f2-name">📷 Фото — сторона 2 (если есть)</span><input type="file" id="mc-f2" accept="image/*" capture="environment"></label>
+        <button type="button" class="mc-recognize" id="mc-recognize">🔍 Распознать фото</button>
+        <div class="mc-recog-status" id="mc-recog-status"></div>
+      </div>
+      <label class="m-field"><span>Название (объект)</span><input type="text" id="mc-name" placeholder="напр. Apt. 902, Diamond"></label>
+      <label class="m-field"><span>Адрес объекта</span><input type="text" id="mc-address" placeholder="Apt. 902, Diamond, Palm Jumeirah, Dubai, UAE"></label>
+      <label class="m-field"><span>Заказчик</span><input type="text" id="mc-customer" placeholder="Ms. ..."></label>
+      <label class="m-field"><span>Номер контракта</span><input type="text" id="mc-contract" placeholder="напр. 9-M или 1-XM"></label>
+      <label class="m-switch m-create-switch">
+        <input type="checkbox" id="mc-official">
+        <span class="m-switch-track"><span class="m-switch-thumb"></span></span>
+        <span class="m-switch-label">Официальный (с печатью и логотипом)</span>
+      </label>
+      <div class="m-create-actions">
+        <button type="button" class="m-create-cancel" id="mc-cancel">Отмена</button>
+        <button type="button" class="m-create-go" id="mc-go">Создать</button>
+      </div>
+      <div class="m-create-err" id="mc-err"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  ov.querySelector('#mc-cancel').addEventListener('click', close);
+  const $ = (s) => ov.querySelector(s);
+  const offEl = $('#mc-official');
+  offEl.addEventListener('change', () => { $('.m-create-switch .m-switch-label').textContent = offEl.checked ? 'Официальный (с печатью и логотипом)' : 'Неофициальный (без печати)'; });
+
+  // Переключение вкладок «Вручную» / «С фото»
+  ov.querySelectorAll('.mc-tab').forEach((t) => t.addEventListener('click', () => {
+    ov.querySelectorAll('.mc-tab').forEach((x) => x.classList.toggle('is-on', x === t));
+    $('#mc-photo').hidden = t.getAttribute('data-tab') !== 'photo';
+  }));
+  // Показать имя выбранного файла
+  ['mc-f1', 'mc-f2'].forEach((id, i) => {
+    const inp = $('#' + id);
+    inp.addEventListener('change', () => { const n = $('#' + (i ? 'mc-f2-name' : 'mc-f1-name')); if (inp.files[0]) n.textContent = '✓ ' + inp.files[0].name.slice(0, 32); });
+  });
+
+  // Распознать фото → заполнить поля + запомнить чек-лист
+  $('#mc-recognize').addEventListener('click', async () => {
+    const st = $('#mc-recog-status');
+    const f1 = $('#mc-f1').files[0], f2 = $('#mc-f2').files[0];
+    if (!f1 && !f2) { st.textContent = 'Выбери хотя бы одно фото.'; st.className = 'mc-recog-status err'; return; }
+    const rb = $('#mc-recognize'); rb.disabled = true;
+    try {
+      st.className = 'mc-recog-status'; st.textContent = 'Сжимаю фото…';
+      const photos = [];
+      if (f1) photos.push(await maintenanceCompressPhoto(f1));
+      if (f2) photos.push(await maintenanceCompressPhoto(f2));
+      st.textContent = '🤖 ИИ читает лист… (10-20 сек)';
+      const r = await fetch('/api/maintenance-from-photo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photos }) });
+      const j = await r.json().catch(() => ({ ok: false, error: 'кривой ответ сервера' }));
+      if (!j.ok) { st.className = 'mc-recog-status err'; st.textContent = 'Не вышло: ' + (j.error || 'ошибка'); rb.disabled = false; return; }
+      recognized = { checklist: j.checklist, answers: j.answers || {}, defects: j.defects, meta: j.meta || {} };
+      const m = j.meta || {};
+      if (!$('#mc-name').value.trim()) $('#mc-name').value = m.customer || m.propertyAddress || '';
+      if (m.propertyAddress) $('#mc-address').value = m.propertyAddress;
+      if (m.customer) $('#mc-customer').value = m.customer;
+      if (m.contractNo) $('#mc-contract').value = m.contractNo;
+      const items = (j.checklist || []).reduce((n, s) => n + ((s.items && s.items.length) || 0), 0);
+      const marked = Object.keys(j.answers || {}).length;
+      st.className = 'mc-recog-status ok';
+      st.textContent = `✓ Распознано: ${(j.checklist || []).length} разделов, ${items} пунктов, отмечено ${marked}. Проверь название и нажми «Создать».`;
+    } catch (e) {
+      st.className = 'mc-recog-status err'; st.textContent = 'Ошибка: ' + (e.message || e);
+    } finally { rb.disabled = false; }
+  });
+
+  $('#mc-go').addEventListener('click', async () => {
+    const name = $('#mc-name').value.trim();
+    const err = $('#mc-err');
+    if (!name) { err.textContent = 'Впиши название объекта (или распознай фото).'; return; }
+    const btn = $('#mc-go'); btn.disabled = true; btn.textContent = 'Создаю…';
+    try {
+      const propertyAddress = $('#mc-address').value.trim();
+      const customer = $('#mc-customer').value.trim();
+      const contractNo = $('#mc-contract').value.trim();
+      const r = await postDataAction('maintenance:create', { name, propertyAddress, customer, contractNo, official: offEl.checked });
+      if (!r || !r.slug) throw new Error('сервер не вернул slug');
+      // Если был распознан чек-лист с фото — сразу сохраняем его в новый лист.
+      if (recognized && Array.isArray(recognized.checklist) && recognized.checklist.length) {
+        btn.textContent = 'Сохраняю распознанное…';
+        const rm = recognized.meta || {};
+        await postDataAction('maintenance:save', {
+          slug: r.slug,
+          checklist: recognized.checklist,
+          official: offEl.checked,
+          contractNo,
+          report: {
+            meta: { contractNo, propertyAddress, customer, date: rm.date || { day: '', month: '', year: String(new Date().getFullYear()) } },
+            answers: recognized.answers || {},
+            defects: recognized.defects || { selected: 'a', notes: '' },
+            signature: { png: '', engineerName: '', engineerTitle: 'Project Engineer', signedAt: '' },
+          },
+          by: 'web-photo',
+        });
+      }
+      window.location.href = '/p/' + r.slug;
+    } catch (e) { err.textContent = 'Ошибка: ' + (e.message || e); btn.disabled = false; btn.textContent = 'Создать'; }
+  });
+}
+
+function injectMaintenanceStyles() {
+  if (document.getElementById('m-styles')) return;
+  const css = `
+  .m-wrap{max-width:760px;margin:0 auto;padding:14px 14px 64px;color:var(--ink,#0f172a);}
+  .m-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .m-back{font-size:14px;color:var(--accent,#2563eb);text-decoration:none;}
+  .m-save-status{font-size:12px;color:var(--muted,#64748b);}
+  .m-save-status.ok{color:#16a34a;}
+  .m-title{font-size:22px;font-weight:800;margin:6px 0 2px;}
+  .m-sub{font-size:14px;color:var(--muted,#64748b);margin-bottom:14px;}
+  .m-officialbar{margin:10px 0 16px;}
+  .m-switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+  .m-switch input{display:none;}
+  .m-switch-track{width:46px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;transition:.2s;flex:0 0 auto;}
+  .m-switch-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .m-switch input:checked + .m-switch-track{background:#2563eb;}
+  .m-switch input:checked + .m-switch-track .m-switch-thumb{left:23px;}
+  .m-switch-label{font-size:14px;font-weight:600;}
+  .m-meta{display:grid;gap:10px;margin-bottom:18px;}
+  .m-field{display:flex;flex-direction:column;gap:4px;}
+  .m-field>span{font-size:12px;color:var(--muted,#64748b);font-weight:600;}
+  .m-field input,.m-field textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line,#e2e8f0);border-radius:10px;background:var(--surface,#fff);color:var(--ink,#0f172a);}
+  .m-date-row{display:flex;gap:8px;}
+  .m-date-row input{width:100%;}
+  .m-date-row input:first-child{max-width:64px;}
+  .m-date-row input:last-child{max-width:80px;}
+  .m-section{background:var(--surface,#fff);border:1px solid var(--line,#e2e8f0);border-radius:14px;padding:12px;margin-bottom:14px;}
+  .m-section-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line-2,#eef2f6);}
+  .m-section-no{font-weight:800;color:#fff;background:#475569;border-radius:6px;padding:1px 8px;font-size:13px;}
+  .m-section-name{font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.3px;}
+  .m-section-ru{font-size:12px;color:var(--muted,#64748b);}
+  .m-item{padding:12px 0;border-bottom:1px solid var(--line-2,#f1f5f9);}
+  .m-item:last-child{border-bottom:none;}
+  .m-item-head{display:flex;gap:8px;align-items:baseline;}
+  .m-item-no{font-weight:700;color:var(--muted,#64748b);font-size:13px;flex:0 0 auto;}
+  .m-item-en{font-weight:600;font-size:15px;line-height:1.3;}
+  .m-item-ru{font-size:12.5px;color:var(--muted,#64748b);margin:2px 0 10px 24px;line-height:1.3;}
+  .m-item-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-left:24px;}
+  .m-status{display:flex;gap:8px;}
+  .m-st{font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:10px;border:1.5px solid var(--line,#e2e8f0);background:var(--surface,#fff);color:var(--ink,#0f172a);cursor:pointer;min-height:44px;}
+  .m-st-pos.is-on{background:#16a34a;border-color:#16a34a;color:#fff;}
+  .m-st-neg.is-on{background:#dc2626;border-color:#dc2626;color:#fff;}
+  .m-extras{display:flex;gap:10px;flex-wrap:wrap;}
+  .m-extra{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted,#64748b);}
+  .m-extra input{width:70px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line,#e2e8f0);border-radius:8px;text-align:center;background:var(--surface,#fff);color:var(--ink,#0f172a);}
+  .m-item-note{margin:10px 0 0 24px;width:calc(100% - 24px);font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line,#e2e8f0);border-radius:8px;background:var(--surface,#fff);color:var(--ink,#0f172a);}
+  .m-defect-opt{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px;cursor:pointer;}
+  .m-defect-opt input{margin-top:3px;width:20px;height:20px;flex:0 0 auto;}
+  .m-defect-notes-wrap{margin-top:8px;}
+  .m-defect-notes-wrap textarea{width:100%;}
+  .m-voice-btn{margin-top:8px;font:inherit;font-size:14px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--accent,#2563eb);background:transparent;color:var(--accent,#2563eb);cursor:pointer;}
+  .m-sign-name{font-size:14px;font-weight:600;margin-bottom:8px;}
+  .m-sign-box{border:1.5px dashed var(--line,#cbd5e1);border-radius:12px;min-height:96px;display:flex;align-items:center;justify-content:center;background:#fff;margin-bottom:10px;}
+  .m-sign-empty{color:var(--muted,#94a3b8);font-size:13px;}
+  .m-sign-img{max-height:120px;max-width:100%;}
+  .m-sign-btn,.m-pdf-btn,.m-send-btn{font:inherit;font-size:16px;font-weight:700;padding:14px 18px;border-radius:12px;border:none;cursor:pointer;width:100%;min-height:52px;}
+  .m-sign-btn{background:#0b2a5b;color:#fff;}
+  .m-actions{margin-top:18px;display:flex;flex-direction:column;gap:10px;}
+  .m-pdf-btn{background:#fff;color:#2563eb;border:1.5px solid #2563eb;}
+  .m-send-btn{background:#fff;color:#16a34a;border:1.5px solid #16a34a;}
+  .m-complete-btn{background:#BD773E;color:#fff;}
+  .m-hint{display:block;font-style:normal;font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;}
+  .m-settings{margin:0 0 18px;border:1px solid var(--line,#e2e8f0);border-radius:14px;background:var(--surface,#fff);overflow:hidden;}
+  .m-settings>summary{cursor:pointer;padding:13px 14px;font-weight:700;font-size:15px;list-style:none;user-select:none;}
+  .m-settings>summary::-webkit-details-marker{display:none;}
+  .m-settings .m-meta{padding:0 14px 14px;margin:0;}
+  .m-history{margin-top:16px;}
+  .m-hist-empty{color:var(--muted,#94a3b8);font-size:13px;padding:4px 0;}
+  .m-hist-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line-2,#f1f5f9);}
+  .m-hist-row:last-child{border-bottom:none;}
+  .m-hist-date{font-weight:700;font-size:14px;}
+  .m-hist-meta{margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;}
+  .m-hist-badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#eef2f6;color:#475569;}
+  .m-hist-badge--ok{background:rgba(34,197,94,.14);color:#15803d;}
+  .m-hist-badge--warn{background:rgba(245,158,11,.16);color:#b45309;}
+  .m-hist-badge--un{background:#f1f5f9;color:#64748b;}
+  .m-hist-pdf{font:inherit;font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;border:1.5px solid #2563eb;background:#fff;color:#2563eb;cursor:pointer;flex:0 0 auto;min-height:42px;}
+  .m-foot-note{text-align:center;font-size:12.5px;color:var(--muted,#94a3b8);margin-top:12px;}
+  /* signature modal */
+  .m-sig-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .m-sig-card{background:#fff;border-radius:16px;padding:16px;width:100%;max-width:520px;}
+  .m-sig-title{font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a;}
+  .m-sig-canvas{width:100%;height:220px;border:2px solid #cbd5e1;border-radius:12px;touch-action:none;background:#fff;display:block;}
+  .m-sig-line{text-align:center;font-size:12px;color:#94a3b8;margin:6px 0 12px;}
+  .m-sig-actions{display:flex;gap:8px;}
+  .m-sig-actions button{flex:1;font:inherit;font-size:15px;font-weight:600;padding:12px;border-radius:10px;cursor:pointer;min-height:48px;border:1.5px solid #cbd5e1;background:#fff;color:#0f172a;}
+  .m-sig-done{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important;}
+  /* create modal */
+  .m-create-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .m-create-card{background:var(--surface,#fff);border-radius:16px;padding:20px;width:100%;max-width:460px;display:grid;gap:12px;color:var(--ink,#0f172a);}
+  .m-create-title{font-size:18px;font-weight:800;}
+  .m-create-actions{display:flex;gap:10px;margin-top:6px;}
+  .m-create-actions button{flex:1;font:inherit;font-size:15px;font-weight:700;padding:13px;border-radius:11px;cursor:pointer;min-height:50px;border:none;}
+  .m-create-cancel{background:var(--line-2,#eef2f6);color:var(--ink,#0f172a);}
+  .m-create-go{background:#2563eb;color:#fff;}
+  .m-create-err{color:#dc2626;font-size:13px;min-height:16px;}
+  /* __MAINTENANCE_FROM_PHOTO_v1__ вкладки создания + блок фото */
+  .m-create-card [hidden]{display:none!important;} /* hidden должен прятать, даже если у блока display:grid */
+  .mc-tabs{display:flex;gap:8px;background:var(--line-2,#eef2f6);padding:4px;border-radius:11px;}
+  .mc-tab{flex:1;font:inherit;font-size:14px;font-weight:700;padding:10px;border-radius:9px;border:none;background:transparent;color:var(--muted,#64748b);cursor:pointer;min-height:44px;}
+  .mc-tab.is-on{background:var(--surface,#fff);color:var(--ink,#0f172a);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+  .mc-photo{display:grid;gap:10px;padding:12px;border:1.5px dashed var(--accent,#2563eb);border-radius:12px;background:rgba(37,99,235,.04);}
+  .mc-photo-hint{font-size:13px;color:var(--muted,#64748b);line-height:1.4;}
+  .mc-file{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:600;padding:11px 13px;border:1px solid var(--line,#e2e8f0);border-radius:10px;background:var(--surface,#fff);cursor:pointer;color:var(--ink,#0f172a);}
+  .mc-file input{display:none;}
+  .mc-recognize{font:inherit;font-size:15px;font-weight:700;padding:12px;border-radius:11px;border:none;background:#0b2a5b;color:#fff;cursor:pointer;min-height:48px;}
+  .mc-recognize:disabled{opacity:.6;}
+  .mc-recog-status{font-size:13px;color:var(--muted,#64748b);min-height:16px;line-height:1.4;}
+  .mc-recog-status.ok{color:#16a34a;font-weight:600;}
+  .mc-recog-status.err{color:#dc2626;font-weight:600;}
+  /* __MAINTENANCE_CHECKLIST_v1__ режим правки пунктов */
+  .m-edit-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 12px;}
+  .m-edit-toggle{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;border:1.5px solid var(--accent,#2563eb);background:transparent;color:var(--accent,#2563eb);cursor:pointer;min-height:42px;}
+  .m-edit-toggle.is-on{background:#16a34a;border-color:#16a34a;color:#fff;}
+  .m-edit-hint{font-size:12.5px;color:var(--muted,#64748b);}
+  .m-section-head--edit{flex-wrap:wrap;gap:6px;}
+  .m-sec-edit{font:inherit;font-size:14px;font-weight:700;padding:8px 10px;border:1px solid var(--line,#e2e8f0);border-radius:8px;background:var(--surface,#fff);color:var(--ink,#0f172a);}
+  .m-sec-en{flex:1 1 180px;text-transform:uppercase;}
+  .m-sec-ru{flex:1 1 160px;font-weight:600;}
+  .m-sec-del{font:inherit;font-size:15px;font-weight:700;width:38px;height:38px;border-radius:9px;border:1.5px solid #fecaca;background:#fff;color:#dc2626;cursor:pointer;flex:0 0 auto;}
+  .m-item-edit{display:flex;flex-direction:column;gap:8px;}
+  .m-item-edit-top{display:flex;align-items:center;justify-content:space-between;}
+  .m-item-del{font:inherit;font-size:13px;font-weight:700;padding:6px 12px;border-radius:8px;border:1.5px solid #fecaca;background:#fff;color:#dc2626;cursor:pointer;}
+  .m-it-edit{font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line,#e2e8f0);border-radius:9px;background:var(--surface,#fff);color:var(--ink,#0f172a);width:100%;box-sizing:border-box;}
+  .m-it-en{font-weight:600;}
+  .m-it-type{display:flex;gap:8px;flex-wrap:wrap;}
+  .m-it-type-btn{font:inherit;font-size:13px;font-weight:700;padding:8px 12px;border-radius:9px;border:1.5px solid var(--line,#e2e8f0);background:var(--surface,#fff);color:var(--muted,#64748b);cursor:pointer;min-height:40px;}
+  .m-it-type-btn.is-on{background:#0b2a5b;border-color:#0b2a5b;color:#fff;}
+  .m-item-add{font:inherit;font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;border:1.5px dashed var(--accent,#2563eb);background:transparent;color:var(--accent,#2563eb);cursor:pointer;margin-top:10px;min-height:42px;}
+  .m-section-add{font:inherit;font-size:15px;font-weight:700;padding:12px 16px;border-radius:11px;border:1.5px dashed #16a34a;background:transparent;color:#16a34a;cursor:pointer;width:100%;margin-bottom:14px;min-height:48px;}
+  .landing-create-btn{margin-top:14px;font:inherit;font-size:15px;font-weight:700;padding:12px 18px;border-radius:11px;border:none;background:#2563eb;color:#fff;cursor:pointer;}
+  /* PDF host (off-screen, A4) */
+  .m-pdf-host{position:fixed;left:-9999px;top:0;background:#fff;}
+  .m-pdf-page{width:794px;min-height:1123px;background:#fff;color:#000;padding:40px 44px;box-sizing:border-box;font-family:'Mulish',Arial,sans-serif;position:relative;}
+  .m-pdf-host .phead{display:none;align-items:center;gap:16px;border-bottom:2px solid #BD773E;padding-bottom:10px;margin-bottom:14px;}
+  .m-pdf-host.is-official .phead{display:flex;}
+  .phead .plogo{height:62px;width:auto;}
+  .pcname{font-weight:800;font-size:15px;color:#BD773E;}
+  .pcline{font-size:10.5px;color:#334155;line-height:1.45;}
+  .ptitle{text-align:center;font-weight:800;font-size:18px;letter-spacing:.4px;text-decoration:underline;margin:6px 0 16px;}
+  .pmeta{font-size:12.5px;line-height:1.9;margin-bottom:16px;}
+  .ptable{width:100%;border-collapse:collapse;font-size:11px;}
+  .ptable th,.ptable td{border:1px solid #475569;padding:5px 7px;vertical-align:top;text-align:left;}
+  .ptable .phrow th{background:#e8edf3;font-weight:700;font-size:11px;}
+  .ptable .pno{width:34px;text-align:center;}
+  .ptable .pstatus{width:96px;}
+  .ptable .pnotes{width:190px;}
+  .ptable .psec td{background:#cfd8e3;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.3px;}
+  .pen{font-weight:600;}
+  .pru{color:#475569;font-style:italic;font-size:10px;margin-top:2px;}
+  .pstrow{white-space:nowrap;line-height:1.7;}
+  .pcbx{display:inline-block;width:13px;height:13px;border:1px solid #334155;text-align:center;line-height:12px;font-size:11px;margin-right:4px;vertical-align:middle;}
+  .pdefects{margin-top:18px;font-size:12px;}
+  .pdef-title{font-weight:800;text-align:center;font-size:14px;margin-bottom:10px;}
+  .pdef-opt{line-height:1.9;}
+  .pdef-notes{min-height:48px;border-bottom:1px solid #cbd5e1;margin-top:6px;white-space:pre-wrap;}
+  .psign{margin-top:42px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .psign-name{font-size:12.5px;line-height:1.5;}
+  .psign-area{position:relative;text-align:center;min-width:240px;}
+  .psign-img{max-height:80px;position:absolute;bottom:18px;left:50%;transform:translateX(-50%);}
+  .pstamp-ph{display:none;}
+  .m-pdf-host.is-official .pstamp-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;bottom:-8px;right:4px;width:104px;height:104px;border:2px dashed #BD773E;border-radius:50%;color:#BD773E;font-size:15px;font-weight:800;line-height:1.2;opacity:.75;transform:rotate(-10deg);text-align:center;}
+  .pstamp-ph span{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+  .psign-line{border-top:1px solid #000;padding-top:4px;font-size:11px;color:#475569;margin-top:60px;}
+  .ppagenum{position:absolute;bottom:16px;right:24px;font-size:11px;color:#475569;}
+  @media (max-width:560px){.m-item-controls{margin-left:0;}.m-item-ru{margin-left:0;}.m-item-note{margin-left:0;width:100%;}.m-st{flex:1;}}
+  `;
+  const tag = document.createElement('style');
+  tag.id = 'm-styles';
+  tag.textContent = css;
+  document.head.appendChild(tag);
 }

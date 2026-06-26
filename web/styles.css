@@ -914,6 +914,11 @@ body.is-edit-mode .bar-fact > * { pointer-events: none; touch-action: none; }
 .task-label .sub-badge,
 .task-label .cyfr-badge { flex-shrink: 0; }
 .task-label .edit-only-actions { margin-left: auto; }
+/* В режиме правки показываем ВСЕ кнопки (✎ 📅 ⏸ 🗑) на любой строке, включая
+   permit-строки с бейджем срока. Без этого nowrap+overflow:hidden обрезали 📅 справа
+   (на Work Permit пропадал совсем, на Gate Pass виден наполовину). */
+body.is-edit-mode .task-label-meta { flex-wrap: wrap; overflow: visible; }
+body.is-edit-mode .task-label .edit-only-actions { flex-shrink: 0; }
 
 /* Task row: right grid (cells) */
 .task-grid {
@@ -2184,7 +2189,11 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
     height: auto;
     overflow-x: auto;
     overflow-y: clip;
-    touch-action: pan-x pan-y;
+    /* __MOBILE_VSCROLL_FIX__ Только pan-x: график берёт горизонтальный жест себе,
+       вертикальный сразу отдаёт странице (иначе на Android палец на графике не
+       прокручивал страницу вниз — pan-y «съедался», т.к. график overflow-y:clip).
+       2-пальцевый зум не зависит от touch-action — он на JS (attachGanttGestures). */
+    touch-action: pan-x;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
   }
@@ -4799,6 +4808,20 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
   color: #fcd34d;
   background: rgba(245, 158, 11, 0.16);
 }
+/* __MAT_DEADLINE_v2__ Срочно (работа в будущем, но по поставке впритык) — оранжевый. */
+.materials-risk-banner--rush {
+  color: #c2410c;
+  background: rgba(249, 115, 22, 0.12);
+  border-left-color: #f97316;
+}
+[data-theme="dark"] .materials-risk-banner--rush { color: #fdba74; background: rgba(249, 115, 22, 0.18); }
+/* Просрочка (работа идёт/должна была начаться, материала нет) — красный. */
+.materials-risk-banner--overdue {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.10);
+  border-left-color: #dc2626;
+}
+[data-theme="dark"] .materials-risk-banner--overdue { color: #fca5a5; background: rgba(220, 38, 38, 0.18); }
 
 /* Material cards (новый UI) */
 .materials-actions {
@@ -4841,6 +4864,7 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
 }
 .mat-card.is-ordered { background: rgba(34, 197, 94, .04); border-color: rgba(34, 197, 94, .25); }
 .mat-card.mat-card--soon { border-left: 3px solid #f59e0b; }
+.mat-card.mat-card--rush { border-left: 3px solid #f97316; background: rgba(249, 115, 22, .05); }
 .mat-card.mat-card--overdue { border-left: 3px solid #dc2626; background: rgba(220, 38, 38, .04); }
 .mat-card.mat-card--ok { border-left: 3px solid #22c55e; }
 

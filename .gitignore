@@ -23,3 +23,7 @@ photos/
 .vscode/
 *.swp
 Thumbs.db
+
+# секреты в архивных патчах и n8n-экспортах — не коммитить
+.archived_patches/
+scripts/.archived_patches/
