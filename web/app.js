@@ -11608,10 +11608,16 @@ let _mSaveTimer = null;
 let _mCalView = null; // {y, m} показываемый месяц
 const M_MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 function _isoLocal(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+// Несколько дат визитов: mState.visitDates = массив YYYY-MM-DD. Клик по дню — добавить/убрать.
+function maintenanceVisitDates() { return (mState && Array.isArray(mState.visitDates)) ? mState.visitDates : []; }
 function maintenanceCalendarHtml() {
-  const sel = (mState && mState.nextDueDate && /^\d{4}-\d{2}-\d{2}$/.test(mState.nextDueDate)) ? mState.nextDueDate : '';
+  const sel = new Set(maintenanceVisitDates());
   const todayIso = _isoLocal(new Date());
-  if (!_mCalView) { const base = sel ? new Date(sel + 'T00:00:00') : new Date(); _mCalView = { y: base.getFullYear(), m: base.getMonth() }; }
+  if (!_mCalView) {
+    const upcoming = [...sel].filter((d) => d >= todayIso).sort()[0] || [...sel].sort()[0];
+    const base = upcoming ? new Date(upcoming + 'T00:00:00') : new Date();
+    _mCalView = { y: base.getFullYear(), m: base.getMonth() };
+  }
   const { y, m } = _mCalView;
   const wd = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   const firstDow = (new Date(y, m, 1).getDay() + 6) % 7;
@@ -11620,10 +11626,13 @@ function maintenanceCalendarHtml() {
   for (let i = 0; i < firstDow; i++) cells += '<div class="m-cal-cell m-cal-empty"></div>';
   for (let d = 1; d <= lastDay; d++) {
     const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const cls = (iso === sel ? ' is-sel' : '') + (iso === todayIso ? ' is-today' : '') + (iso < todayIso ? ' is-past' : '');
+    const cls = (sel.has(iso) ? ' is-sel' : '') + (iso === todayIso ? ' is-today' : '') + (iso < todayIso ? ' is-past' : '');
     cells += `<button type="button" class="m-cal-cell m-cal-day${cls}" data-iso="${iso}">${d}</button>`;
   }
-  const selLabel = sel ? (() => { const dd = new Date(sel + 'T00:00:00'); return `${dd.getDate()} ${M_MONTHS_RU[dd.getMonth()]} ${dd.getFullYear()}`; })() : 'не выбрана';
+  const list = [...sel].sort();
+  const chips = list.length
+    ? list.map((iso) => { const dd = new Date(iso + 'T00:00:00'); const past = iso < todayIso; return `<span class="m-cal-chip${past ? ' is-past' : ''}">${dd.getDate()} ${M_MONTHS_RU[dd.getMonth()].slice(0, 3)} ${dd.getFullYear()}<button type="button" class="m-cal-chip-x" data-del-iso="${iso}" aria-label="убрать">✕</button></span>`; }).join('')
+    : '<span class="m-cal-none">пока не выбрано — тыкни нужные дни в календаре</span>';
   return `<div class="m-cal">
     <div class="m-cal-head">
       <button type="button" class="m-cal-nav" data-cal-nav="-1" aria-label="предыдущий месяц">‹</button>
@@ -11632,7 +11641,7 @@ function maintenanceCalendarHtml() {
     </div>
     <div class="m-cal-grid m-cal-wd">${wd.map((w) => `<div class="m-cal-wdname">${w}</div>`).join('')}</div>
     <div class="m-cal-grid m-cal-days">${cells}</div>
-    <div class="m-cal-sel">📅 Визит: <b>${selLabel}</b>${sel ? ` <button type="button" class="m-cal-clear">убрать</button>` : ''}</div>
+    <div class="m-cal-list"><div class="m-cal-list-h">📅 Запланированные визиты (${list.length}):</div><div class="m-cal-chips">${chips}</div></div>
   </div>`;
 }
 function rerenderMaintCalendar() {
@@ -11649,10 +11658,16 @@ function attachMaintCalendarHandlers(zone) {
     _mCalView = { y, m }; rerenderMaintCalendar();
   }));
   zone.querySelectorAll('.m-cal-day').forEach((d) => d.addEventListener('click', () => {
-    mState.nextDueDate = d.getAttribute('data-iso'); maintenanceScheduleSave(); rerenderMaintCalendar();
+    const iso = d.getAttribute('data-iso');
+    const arr = maintenanceVisitDates().slice();
+    const i = arr.indexOf(iso);
+    if (i >= 0) arr.splice(i, 1); else arr.push(iso);
+    mState.visitDates = arr; maintenanceScheduleSave(); rerenderMaintCalendar();
   }));
-  const clr = zone.querySelector('.m-cal-clear');
-  if (clr) clr.addEventListener('click', () => { mState.nextDueDate = ''; maintenanceScheduleSave(); rerenderMaintCalendar(); });
+  zone.querySelectorAll('[data-del-iso]').forEach((x) => x.addEventListener('click', () => {
+    mState.visitDates = maintenanceVisitDates().filter((d) => d !== x.getAttribute('data-del-iso'));
+    maintenanceScheduleSave(); rerenderMaintCalendar();
+  }));
 }
 
 // __MAINTENANCE_CHECKLIST_v1__ Свой чек-лист у каждого листа (можно добавлять/удалять пункты).
@@ -11799,9 +11814,13 @@ function maintenanceScheduleSave() {
   _mSaveTimer = setTimeout(() => {
     const report = { meta: mState.meta, answers: mState.answers, defects: mState.defects, signature: mState.signature };
     const payload = { slug: state.projectSlug, report, official: mState.official, contractNo: mState.contractNo,
-      checklist: mState.checklist,
+      checklist: mState.checklist, visitDates: maintenanceVisitDates(),
       engineerChatId: mState.engineerChatId, engineerName: mState.engineerName, mapsUrl: mState.mapsUrl, intervalMonths: mState.intervalMonths, by: 'web' };
-    if (mState.nextDueDate) payload.nextDueDate = mState.nextDueDate;
+    // nextDueDate (одиночное, для совместимости/отображения) = ближайший предстоящий из визитов.
+    const _today = _isoLocal(new Date());
+    const _up = payload.visitDates.filter((d) => d >= _today).sort()[0] || payload.visitDates.slice().sort().pop() || '';
+    mState.nextDueDate = _up;
+    payload.nextDueDate = _up;
     postDataAction('maintenance:save', payload)
       .then(() => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '✓ сохранено'; el.classList.add('ok'); } })
       .catch((e) => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '⚠ не сохранилось'; el.classList.remove('ok'); } console.warn('maintenance save', e); });
@@ -11836,6 +11855,8 @@ function renderMaintenanceView(s) {
   mState.checklist = (Array.isArray(m.checklist) && m.checklist.length) ? m.checklist : maintenanceDefaultChecklist();
   mState.editItems = false;
   _mCalView = null; // календарь визита заново считает месяц от выбранной даты этого листа
+  // Несколько дат визитов. Старые листы (одиночный nextDueDate) мигрируют в массив.
+  mState.visitDates = Array.isArray(m.visitDates) ? m.visitDates.slice() : (m.nextDueDate ? [m.nextDueDate] : []);
 
   const page = clearPageBelowTopbar();
   if (!page) return;
@@ -11871,7 +11892,7 @@ function renderMaintenanceView(s) {
           <input type="text" id="m-date-year" inputmode="numeric" maxlength="4" value="${escapeHtml(meta.date && meta.date.year || '')}" placeholder="ГГГГ">
         </div>
       </div>
-      <div class="m-field"><span>Следующий визит — отметь день (бот напомнит)</span>
+      <div class="m-field"><span>Визиты — отметь нужные дни (можно несколько, бот напомнит по каждому)</span>
         <div id="m-cal-zone">${maintenanceCalendarHtml()}</div>
         ${mState.lastVisitDate ? `<em class="m-hint">последний визит: ${escapeHtml(mState.lastVisitDate)}</em>` : ''}
       </div>
@@ -12603,8 +12624,13 @@ function injectMaintenanceStyles() {
   .m-cal-day.is-past{color:var(--muted,#cbd5e1);background:var(--surface-2,#f8fafc);}
   .m-cal-day.is-today{border-color:#BD773E;font-weight:800;}
   .m-cal-day.is-sel{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;box-shadow:0 2px 8px rgba(37,99,235,.4);}
-  .m-cal-sel{margin-top:10px;font-size:14px;color:var(--ink,#0f172a);text-align:center;}
-  .m-cal-clear{font:inherit;font-size:12px;font-weight:600;color:#dc2626;background:none;border:none;cursor:pointer;text-decoration:underline;margin-left:6px;}
+  .m-cal-list{margin-top:12px;border-top:1px solid var(--line-2,#eef2f6);padding-top:10px;}
+  .m-cal-list-h{font-size:13px;font-weight:700;color:var(--ink,#0f172a);margin-bottom:8px;}
+  .m-cal-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .m-cal-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;background:#eaf1ff;color:#1e40af;border-radius:999px;padding:6px 8px 6px 12px;}
+  .m-cal-chip.is-past{background:var(--surface-2,#f1f5f9);color:var(--muted,#94a3b8);}
+  .m-cal-chip-x{font:inherit;font-size:13px;font-weight:700;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.08);color:inherit;cursor:pointer;line-height:1;}
+  .m-cal-none{font-size:13px;color:var(--muted,#94a3b8);font-style:italic;}
   .m-hint{display:block;font-style:normal;font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;}
   .m-settings{margin:0 0 18px;border:1px solid var(--line,#e2e8f0);border-radius:14px;background:var(--surface,#fff);overflow:hidden;}
   .m-settings>summary{cursor:pointer;padding:13px 14px;font-weight:700;font-size:15px;list-style:none;user-select:none;}
