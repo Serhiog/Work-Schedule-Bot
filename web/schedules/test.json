@@ -1,0 +1,63 @@
+{
+  "project": {
+    "slug": "test",
+    "name": "Тест",
+    "kind": "maintenance",
+    "customer": "Иван",
+    "location": "Адрес",
+    "startDate": "2026-06-26",
+    "endDate": "2026-06-26",
+    "currency": "AED",
+    "lastUpdated": "2026-06-26T15:32:04.323Z",
+    "lastUpdatedBy": "Platform (create maintenance)"
+  },
+  "maintenance": {
+    "official": true,
+    "contractNo": "1",
+    "templateVersion": 1,
+    "engineerChatId": "",
+    "engineerName": "",
+    "mapsUrl": "",
+    "intervalMonths": 6,
+    "report": {
+      "meta": {
+        "contractNo": "1",
+        "propertyAddress": "Адрес",
+        "customer": "Иван",
+        "date": {
+          "day": "",
+          "month": "",
+          "year": "2026"
+        }
+      },
+      "answers": {},
+      "defects": {
+        "selected": "a",
+        "notes": ""
+      },
+      "signature": {
+        "png": "",
+        "engineerName": "",
+        "engineerTitle": "Project Engineer",
+        "signedAt": ""
+      }
+    },
+    "archive": [],
+    "visits": [],
+    "lastVisitDate": null,
+    "nextDueDate": "2026-12-26"
+  },
+  "sections": [],
+  "tasks": [],
+  "stages": [],
+  "milestones": [],
+  "holidays": [],
+  "history": [
+    {
+      "at": "2026-06-26T15:32:04.323Z",
+      "by": "Platform",
+      "type": "create_maintenance",
+      "summary": "Лист обслуживания «Тест» создан (официальный)"
+    }
+  ]
+}
