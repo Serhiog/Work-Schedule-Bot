@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T13:57:08.954Z",
+    "lastUpdated": "2026-06-26T13:57:11.915Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -109,7 +109,7 @@
         },
         "4.3": {
           "value": "done",
-          "notes": "",
+          "notes": "норм",
           "extra": {
             "addedPcs": "2"
           }
