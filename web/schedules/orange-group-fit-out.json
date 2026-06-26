@@ -741,7 +741,7 @@
       "planStart": "2026-06-24",
       "planEnd": "2026-07-13",
       "actualStart": "2026-05-03",
-      "actualEnd": null,
+      "actualEnd": "2026-05-05",
       "history": [
         {
           "type": "set_dates",
@@ -835,6 +835,37 @@
           "reason": null,
           "planning": false,
           "summary": "actualStart=2026-05-03"
+        },
+        {
+          "type": "set_dates",
+          "by": "web",
+          "at": "2026-06-26T13:58:16.828Z",
+          "before": {
+            "planStart": "2026-06-24",
+            "planEnd": "2026-07-13",
+            "actualStart": "2026-05-03",
+            "actualEnd": null,
+            "name": "Чертежи пожаротушения",
+            "section": "fire_safety",
+            "progress": 0.72,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-06-24",
+            "planEnd": "2026-07-13",
+            "actualStart": "2026-05-03",
+            "actualEnd": "2026-05-05",
+            "name": "Чертежи пожаротушения",
+            "section": "fire_safety",
+            "progress": 0.72,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "actualEnd"
+          ],
+          "reason": null,
+          "planning": false,
+          "summary": "actualEnd=2026-05-05"
         }
       ],
       "progress": 0.72
