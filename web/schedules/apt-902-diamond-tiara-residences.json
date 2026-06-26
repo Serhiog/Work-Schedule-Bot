@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-26T15:29:06.692Z",
+    "lastUpdated": "2026-06-26T15:29:08.483Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -28,12 +28,12 @@
       },
       "answers": {
         "1.1": {
-          "value": "pass",
+          "value": "notpass",
           "notes": "",
           "extra": {}
         },
         "1.2": {
-          "value": "notpass",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
@@ -133,7 +133,7 @@
         "reportId": "r1"
       }
     ],
-    "nextDueDate": "2026-12-25",
+    "nextDueDate": "2026-12-23",
     "engineerChatId": "584268213",
     "engineerName": "Антон М.",
     "mapsUrl": "https://maps.google.com/?q=Tiara+Residences+Palm+Jumeirah",
@@ -423,6 +423,12 @@
             ]
           }
         ]
+      },
+      {
+        "id": 5,
+        "en": "",
+        "ru": "",
+        "items": []
       }
     ],
     "visitDates": [
