@@ -1277,7 +1277,9 @@ function getCriticalChain(taskId) {
 // EVM: Schedule Performance Index (SPI), Earned Value (EV), Planned Value (PV),
 // прогноз сдачи (EAC). CPI/AC опускаем — actual cost у нас нет.
 // Per-task EVM contribution: cost-weighted PV, EV, SPI for one task. Same формула как в computeEVM.
-function computeTaskMetrics(t, asOfDate) {
+function computeTaskMetrics(t, asOfDate, weightMode = 'cost') {
+  // weightMode: 'cost' — взвешиваем по стоимости (классический EVM, если стоимости заполнены);
+  //             'dur'  — по длительности работ (когда стоимости неполные/нулевые, иначе EVM врёт).
   // Задача без дат не участвует в EVM (не портит общую картину).
   if (!t.planStart || !t.planEnd) return { cost: 0, pP: 0, aP: 0, PV: 0, EV: 0, spi: null };
   // __SPI_FIX_v2__ Permits + аномалии (actualEnd<planStart, actualStart в будущем с прогрессом)
@@ -1350,9 +1352,11 @@ function computeTaskMetrics(t, asOfDate) {
       : 1;
     aP = baseProgress * overdueDecay;
   }
-  const PV = cost * pP;
-  const EV = cost * aP;
-  return { cost, pP, aP, PV, EV, spi: PV > 0 ? EV / PV : null };
+  // Вес работы: стоимость (если режим cost) или длительность (режим dur).
+  const weight = (weightMode === 'cost') ? cost : dur;
+  const PV = weight * pP;
+  const EV = weight * aP;
+  return { cost, weight, pP, aP, PV, EV, spi: PV > 0 ? EV / PV : null };
 }
 
 function computeEVM(schedule, asOfDate) {
@@ -1375,18 +1379,22 @@ function computeEVM(schedule, asOfDate) {
   }
   const today = asOfDate.getTime();
 
-  // eligibleCost — сумма стоимостей ТОЛЬКО тех работ, что реально участвуют в EV/PV.
-  // Permits, аномалии и работы без дат отбрасываются в computeTaskMetrics (m.cost=0).
-  // Раньше completionRatio/plannedRatio делились на общий totalCost, в который входили
-  // permits → если permit-работы дорогие, "освоено%" / "план%" вырождались в 1-2%
-  // даже когда реально завершён существенный кусок графика. Теперь знаменатель
-  // согласован с числителем: проценты отражают долю SPI-зоны.
-  let PV = 0, EV = 0, eligibleCost = 0;
+  // __EVM_WEIGHT_FALLBACK_v1__ Режим взвешивания. Классический EVM — по деньгам, НО это работает
+  // только если стоимости заполнены у большинства работ. Если стоимости неполные (как часто бывает —
+  // у Shoreline заполнены 3 из 22) → SPI/прогноз опираются на 2-3 работы и дают абсурд. Тогда считаем
+  // по ДЛИТЕЛЬНОСТИ работ — это всегда есть и согласуется с прогрессом в шапке.
+  const workTasks = tasks.filter((t) => !t.isPermit && !t.permitType && t.planStart && t.planEnd);
+  const costedCount = workTasks.filter((t) => (Number(t.costIncVat) || 0) > 0).length;
+  const costComplete = workTasks.length > 0 && (costedCount / workTasks.length) >= 0.7;
+  const weightMode = costComplete ? 'cost' : 'dur';
+
+  let PV = 0, EV = 0, eligibleWeight = 0, eligibleCost = 0;
   for (const t of tasks) {
-    const m = computeTaskMetrics(t, asOfDate);
-    if (!m.cost) continue;
+    const m = computeTaskMetrics(t, asOfDate, weightMode);
+    if (!m.weight) continue;
     PV += m.PV;
     EV += m.EV;
+    eligibleWeight += m.weight;
     eligibleCost += m.cost;
   }
 
@@ -1394,16 +1402,25 @@ function computeEVM(schedule, asOfDate) {
   // начаться по плану) — SPI неопределён, не выдаём фантомные 100%.
   const SPI = PV > 0 ? EV / PV : null;
   const totalDays = Math.max(1, (projectEnd - projectStart) / 86400000 + 1);
-  const eacDays = (SPI && SPI > 0) ? totalDays / SPI : totalDays;
+  const plannedRatio = eligibleWeight > 0 ? PV / eligibleWeight : 0;
+  const completionRatio = eligibleWeight > 0 ? EV / eligibleWeight : 0;
+  // __EAC_SANITY_v1__ Прогноз ненадёжен, пока по плану прошло меньше ~8% — рано судить.
+  const eacReliable = SPI != null && plannedRatio >= 0.08;
+  // EAC = срок / SPI, НО с пределом: не раньше плана и не позже 2.5× плана
+  // (иначе при низком SPI дата улетает в абсурд — 2035).
+  let eacDays = (SPI && SPI > 0) ? totalDays / SPI : totalDays;
+  eacDays = Math.max(totalDays, Math.min(eacDays, totalDays * 2.5));
   const eacDate = new Date(projectStart.getTime() + Math.round(eacDays - 1) * 86400000);
-  const slipDays = SPI != null ? Math.round((eacDate - projectEnd) / 86400000) : 0;
+  const slipDays = (SPI != null && eacReliable) ? Math.round((eacDate - projectEnd) / 86400000) : 0;
   return {
     PV, EV, SPI,
     totalCost,
     eligibleCost,
-    hasCostData: eligibleCost > 0,
-    completionRatio: eligibleCost > 0 ? EV / eligibleCost : 0,
-    plannedRatio: eligibleCost > 0 ? PV / eligibleCost : 0,
+    weightMode, costComplete, costedCount, workCount: workTasks.length,
+    eacReliable,
+    hasCostData: eligibleWeight > 0,
+    completionRatio,
+    plannedRatio,
     eacDate, slipDays,
     paused: schedule.project?.isPaused === true,
     frozenAt: schedule.project?.isPaused === true ? schedule.project?.pausedAt : null,
@@ -1870,15 +1887,15 @@ function renderProjectAnalytics() {
         <span class="analytics-card-body">
           <span class="analytics-card-label">SPI · ${spiLbl}</span>
           <span class="analytics-card-value">${evm.hasCostData && evm.SPI != null ? spiPct : '—'}${evm.hasCostData && evm.SPI != null ? '<span class="analytics-card-unit">%</span>' : ''}</span>
-          <span class="analytics-card-meta">${!evm.hasCostData ? 'у работ не задана стоимость' : evm.SPI == null ? 'ни одна работа ещё не должна была начаться' : `освоено ${earnedPct}% · план ${planPct}%`}</span>
+          <span class="analytics-card-meta">${!evm.hasCostData ? 'нет работ с датами' : evm.SPI == null ? 'ни одна работа ещё не должна была начаться' : `освоено ${earnedPct}% · план ${planPct}%${!evm.costComplete ? ' · по объёму работ' : ''}`}</span>
         </span>
       </button>
       <button type="button" class="analytics-card analytics-card--eac" data-analytics="eac" title="Прогноз даты завершения по текущему темпу">
         <span class="analytics-card-ico" aria-hidden="true">📅</span>
         <span class="analytics-card-body">
           <span class="analytics-card-label">Прогноз сдачи</span>
-          <span class="analytics-card-value">${escapeHtml(fmtDate(toISO(evm.eacDate)))}</span>
-          <span class="analytics-card-meta">${slipLbl}</span>
+          <span class="analytics-card-value">${evm.eacReliable ? escapeHtml(fmtDate(toISO(evm.eacDate))) : '—'}</span>
+          <span class="analytics-card-meta">${evm.eacReliable ? slipLbl : '<span class="analytics-slip analytics-slip--ok">рано судить · мало данных</span>'}</span>
         </span>
       </button>
       <button type="button" class="analytics-card analytics-card--cpm${cpmActiveCls}" data-analytics="cpm" title="Задачи на критическом пути — задержка любой сдвигает срок проекта">
@@ -6323,13 +6340,26 @@ function openStatsDrawer(type) {
         </div>
         <div class="drawer-row-meta">${Math.round(ps.share * 100)}% · ${escapeHtml(ps.note || '')}</div>
       </div>`).join('');
+    // __COST_COMPLETENESS_v1__ Сумма заполненных стоимостей работ vs контракт.
+    const _wt = (state.schedule?.tasks || []).filter((t) => !t.isPermit && !t.permitType);
+    const _costed = _wt.filter((t) => (Number(t.costIncVat) || 0) > 0);
+    const _sumTasks = _wt.reduce((s, t) => s + (Number(t.costIncVat) || 0), 0);
+    const costNote = (_wt.length && _costed.length < _wt.length)
+      ? `<div class="drawer-section-title">⚠️ Стоимости работ заполнены не полностью</div>
+         <div class="drawer-grid">
+           ${kv('Сумма по работам', fmtAED(_sumTasks))}
+           ${kv('Заполнено', `${_costed.length} из ${_wt.length} работ`)}
+         </div>
+         <div class="drawer-note">Контракт — ${fmtAED(p.totalIncVat)}, но у ${_wt.length - _costed.length} из ${_wt.length} работ стоимость не задана. Поэтому SPI и прогноз сдачи считаются <b>по объёму работ</b> (по длительности), а не по деньгам. Впиши стоимости работ — и финансовые показатели станут точными.</div>`
+      : '';
     html = `<div class="drawer-grid">
       ${kv('Без НДС', fmtAED(p.totalExVat))}
       ${kv('НДС ' + Math.round(p.vatRate * 100) + '%', fmtAED(vat))}
       ${kv('С НДС', fmtAED(p.totalIncVat), { span: true, big: true })}
     </div>
     <div class="drawer-section-title">Этапы оплаты</div>
-    <div class="drawer-list">${stages || '—'}</div>`;
+    <div class="drawer-list">${stages || '—'}</div>
+    ${costNote}`;
   }
 
   else if (type === 'duration') {
