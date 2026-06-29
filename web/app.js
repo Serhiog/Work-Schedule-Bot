@@ -8063,11 +8063,8 @@ async function confirmDeleteProject() {
   const expected = (p.name || '').trim();
   const typed = prompt(
     `⚠️ Удалить ВЕСЬ проект «${expected}»?\n\n` +
-    `Будут удалены:\n` +
-    `  • schedule.json в GitHub\n` +
-    `  • запись в Airtable Projects\n` +
-    `  • все материалы / ресурсы / зависимости / заметки\n\n` +
-    `Это НЕЛЬЗЯ отменить.\n\n` +
+    `Будут удалены график, материалы, ресурсы, зависимости и заметки.\n` +
+    `Проект исчезнет с главной страницы. Это НЕЛЬЗЯ отменить.\n\n` +
     `Введи название проекта точно как «${expected}» для подтверждения:`
   );
   if (typed === null) return; // Cancel
@@ -8078,7 +8075,7 @@ async function confirmDeleteProject() {
   showToast('Удаляю проект…');
   try {
     const r = await postDataAction('project:delete', { slug: p.slug, confirmName: typed });
-    showToast(`✓ «${r.name || expected}» удалён. Airtable: ${r.airtableDeleted || 0} записей.`);
+    showToast(`✓ «${r.name || expected}» удалён`);
     setTimeout(() => { window.location.href = '/'; }, 1500);
   } catch (e) {
     showToast('Не удалось: ' + (e.message || e), 'error');
@@ -11936,6 +11933,11 @@ function renderMaintenanceView(s) {
         <label class="m-field"><span>Ссылка на карту (Google Maps)</span><input type="url" id="m-maps" value="${escapeHtml(mState.mapsUrl || '')}" placeholder="https://maps.google.com/?q=..."><em class="m-hint">В напоминании будет кнопка «Открыть маршрут» — откроет навигатор на телефоне.</em></label>
         <label class="m-field"><span>Как часто визит (месяцев)</span><input type="number" id="m-interval" min="1" max="60" value="${escapeHtml(String(mState.intervalMonths || 6))}"><em class="m-hint">6 = два раза в год. После «Завершить осмотр» следующий визит ставится сам через это число месяцев.</em></label>
       </div>
+      <div class="m-danger">
+        <div class="m-danger-head">⚠️ Удаление листа</div>
+        <div class="m-danger-sub">Удалит этот лист обслуживания со всей историей. Отменить нельзя.</div>
+        <button type="button" class="m-delete-btn" id="m-delete-btn">🗑 Удалить лист обслуживания</button>
+      </div>
     </details>
 
     <div id="m-checklist-zone">${checklistZoneHtml()}</div>
@@ -12082,6 +12084,8 @@ function attachMaintenanceHandlers(wrap, s) {
   if (shareBtn) shareBtn.addEventListener('click', () => maintenanceSharePdf(s, shareBtn));
   const complBtn = wrap.querySelector('#m-complete-btn');
   if (complBtn) complBtn.addEventListener('click', () => maintenanceComplete(s, complBtn));
+  const delBtn = wrap.querySelector('#m-delete-btn');
+  if (delBtn) delBtn.addEventListener('click', () => maintenanceDeleteProject(s, delBtn));
 
   // История: перегенерировать PDF архивного отчёта
   wrap.querySelectorAll('.m-hist-pdf').forEach((b) => {
@@ -12129,6 +12133,33 @@ async function maintenanceComplete(s, btn) {
   } catch (e) {
     alert('Не удалось завершить: ' + (e.message || e));
     if (btn) { btn.disabled = false; btn.textContent = '✅ Завершить осмотр'; }
+  }
+}
+
+// __MAINTENANCE_DELETE_v1__ Удалить лист обслуживания целиком (как у фит-аут проектов).
+// Бэкенд project:delete работает по slug одинаково для fit-out и maintenance.
+async function maintenanceDeleteProject(s, btn) {
+  const name = (s && s.project && s.project.name) || state.projectSlug || 'этот лист';
+  const expected = String(name).trim();
+  const typed = prompt(
+    `⚠️ Удалить лист обслуживания «${expected}»?\n\n` +
+    `Удалится сам лист, чек-лист, дефекты, подписи и вся история осмотров.\n` +
+    `Проект исчезнет с главной страницы. Отменить нельзя.\n\n` +
+    `Впиши название точно как «${expected}» для подтверждения:`
+  );
+  if (typed === null) return; // отмена
+  if (typed.trim().toLowerCase() !== expected.toLowerCase()) {
+    alert('Название не совпало. Удаление отменено.');
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'Удаляю…'; }
+  try {
+    await postDataAction('project:delete', { slug: state.projectSlug, confirmName: typed });
+    showToast('✓ Лист удалён');
+    setTimeout(() => { window.location.href = '/'; }, 900);
+  } catch (e) {
+    alert('Не удалось удалить: ' + (e.message || e));
+    if (btn) { btn.disabled = false; btn.textContent = '🗑 Удалить лист обслуживания'; }
   }
 }
 
@@ -12666,6 +12697,12 @@ function injectMaintenanceStyles() {
   .m-settings>summary{cursor:pointer;padding:13px 14px;font-weight:700;font-size:15px;list-style:none;user-select:none;}
   .m-settings>summary::-webkit-details-marker{display:none;}
   .m-settings .m-meta{padding:0 14px 14px;margin:0;}
+  .m-danger{margin:0 14px 14px;padding:13px 14px;border:1px solid rgba(220,38,38,.28);border-radius:12px;background:rgba(220,38,38,.05);}
+  .m-danger-head{font-weight:700;font-size:14px;color:#b91c1c;}
+  .m-danger-sub{font-size:12.5px;color:var(--muted,#94a3b8);margin:4px 0 10px;}
+  .m-delete-btn{font:inherit;font-size:15px;font-weight:700;width:100%;min-height:48px;padding:12px 16px;border-radius:11px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;cursor:pointer;}
+  .m-delete-btn:active{background:#dc2626;color:#fff;}
+  .m-delete-btn:disabled{opacity:.6;cursor:default;}
   .m-history{margin-top:16px;}
   .m-hist-empty{color:var(--muted,#94a3b8);font-size:13px;padding:4px 0;}
   .m-hist-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line-2,#f1f5f9);}
