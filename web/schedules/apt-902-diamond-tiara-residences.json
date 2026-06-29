@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-29T09:03:23.772Z",
+    "lastUpdated": "2026-06-29T09:03:43.875Z",
     "lastUpdatedBy": "web"
   },
   "maintenance": {
@@ -26,102 +26,16 @@
           "year": "2026"
         }
       },
-      "answers": {
-        "1.1": {
-          "value": "pass",
-          "notes": "Проверено, работает штатно",
-          "extra": {}
-        },
-        "1.2": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "1.3": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "1.4": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "1.5": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "1.6": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "2.1": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "2.2": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "2.3": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "2.4": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "3.1": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "3.2": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "3.3": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "3.4": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "4.1": {
-          "value": "pass",
-          "notes": "",
-          "extra": {}
-        },
-        "4.2": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        },
-        "4.3": {
-          "value": "done",
-          "notes": "",
-          "extra": {}
-        }
-      },
+      "answers": {},
       "defects": {
         "selected": "a",
         "notes": ""
       },
       "signature": {
-        "png": "data:image/png;base64,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",
-        "engineerName": "Антон М.",
+        "png": "",
+        "engineerName": "",
         "engineerTitle": "Project Engineer",
-        "signedAt": "2026-06-29T09:03:22.563Z"
+        "signedAt": ""
       }
     },
     "visits": [
@@ -134,14 +48,302 @@
         "date": "2026-06-26",
         "at": "2026-06-26T15:29:51.245Z",
         "reportId": "r2"
+      },
+      {
+        "date": "2026-06-29",
+        "at": "2026-06-29T09:03:43.875Z",
+        "reportId": "r3"
       }
     ],
-    "nextDueDate": "2026-12-25",
+    "nextDueDate": "2026-12-29",
     "engineerChatId": "584268213",
     "engineerName": "Антон М.",
     "mapsUrl": "https://maps.google.com/?q=Tiara+Residences+Palm+Jumeirah",
     "intervalMonths": 6,
     "archive": [
+      {
+        "id": "r3",
+        "completedAt": "2026-06-29T09:03:43.875Z",
+        "visitDate": "2026-06-29",
+        "official": true,
+        "contractNo": "AMC Offer No. 1-XM",
+        "meta": {
+          "contractNo": "AMC Offer No. 1-XM",
+          "propertyAddress": "Apt. 902, Diamond, Tiara Residences, Palm Jumeirah, Dubai, UAE",
+          "customer": "Ms. Volha Hruzdova",
+          "date": {
+            "day": "",
+            "month": "",
+            "year": "2026"
+          }
+        },
+        "answers": {
+          "1.1": {
+            "value": "pass",
+            "notes": "Проверено, работает штатно",
+            "extra": {}
+          },
+          "1.2": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "1.3": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "1.4": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "1.5": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "1.6": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "2.1": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "2.2": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "2.3": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "2.4": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "3.1": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "3.2": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "3.3": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "3.4": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "4.1": {
+            "value": "pass",
+            "notes": "",
+            "extra": {}
+          },
+          "4.2": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          },
+          "4.3": {
+            "value": "done",
+            "notes": "",
+            "extra": {}
+          }
+        },
+        "defects": {
+          "selected": "a",
+          "notes": ""
+        },
+        "signature": {
+          "png": "data:image/png;base64,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",
+          "engineerName": "Антон М.",
+          "engineerTitle": "Project Engineer",
+          "signedAt": "2026-06-29T09:03:22.563Z"
+        },
+        "checklist": [
+          {
+            "id": 1,
+            "en": "AIR CONDITIONING",
+            "ru": "Кондиционирование воздуха",
+            "items": [
+              {
+                "id": "1.1",
+                "en": "Check units for abnormal noise and vibration",
+                "ru": "Проверка блоков на наличие аномального шума и вибрации",
+                "status": "pass"
+              },
+              {
+                "id": "1.2",
+                "en": "Check wall thermostats and control panels operation",
+                "ru": "Проверка работы настенных термостатов и ПУ",
+                "status": "pass"
+              },
+              {
+                "id": "1.3",
+                "en": "Measure and record supply air temperature",
+                "ru": "Измерение и фиксация температуры приточного воздуха",
+                "status": "pass",
+                "extra": [
+                  {
+                    "key": "airTemp",
+                    "label": "Air Temp",
+                    "unit": "°C"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "en": "Dismantle, wash and clean air filters",
+                "ru": "Снятие, промывка и очистка воздушных фильтров",
+                "status": "done"
+              },
+              {
+                "id": "1.5",
+                "en": "Check, clean and align condensate drain tray",
+                "ru": "Проверка, очистка и выравнивание поддона для конденсата",
+                "status": "done"
+              },
+              {
+                "id": "1.6",
+                "en": "Clean supply and return air grilles from dust",
+                "ru": "Очистка приточных и вытяжных вентиляционных решёток",
+                "status": "done"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "en": "ELECTRICAL",
+            "ru": "Электроснабжение",
+            "items": [
+              {
+                "id": "2.1",
+                "en": "Inspect DB for overheating cables/breakers",
+                "ru": "Осмотр распред. щитов на перегрев кабелей/автоматов",
+                "status": "pass"
+              },
+              {
+                "id": "2.2",
+                "en": "Measure Amps and Volts in the main panel",
+                "ru": "Измерение напряжения и силы тока в главном щите",
+                "status": "pass",
+                "extra": [
+                  {
+                    "key": "volts",
+                    "label": "V",
+                    "unit": ""
+                  },
+                  {
+                    "key": "amps",
+                    "label": "A",
+                    "unit": ""
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "en": "Check all switches, sockets and light fittings",
+                "ru": "Проверка выключателей, розеток и осветительных приборов",
+                "status": "pass"
+              },
+              {
+                "id": "2.4",
+                "en": "Check exhaust fans correct operation",
+                "ru": "Проверка исправности вытяжных вентиляторов",
+                "status": "pass"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "en": "PLUMBING",
+            "ru": "Водопровод и канализация",
+            "items": [
+              {
+                "id": "3.1",
+                "en": "Visual inspection of exposed pipelines for leaks",
+                "ru": "Осмотр открытых участков трубопроводов на наличие утечек",
+                "status": "pass"
+              },
+              {
+                "id": "3.2",
+                "en": "Check water heaters and thermostat settings",
+                "ru": "Проверка водонагревателей и настроек термостата",
+                "status": "pass"
+              },
+              {
+                "id": "3.3",
+                "en": "Dismantle and clean bottle traps under sinks",
+                "ru": "Снятие и очистка сифонов под раковинами",
+                "status": "done"
+              },
+              {
+                "id": "3.4",
+                "en": "Remove and clean aerators/filters on all taps",
+                "ru": "Снятие и очистка аэраторов/фильтров на всех кранах",
+                "status": "done"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "en": "WATER SOFTENING SYSTEM",
+            "ru": "Система умягчения воды",
+            "items": [
+              {
+                "id": "4.1",
+                "en": "General inspection and maintenance of the system",
+                "ru": "Общий осмотр и техническое обслуживание системы",
+                "status": "pass"
+              },
+              {
+                "id": "4.2",
+                "en": "Replace filter cartridges",
+                "ru": "Замена картриджей фильтров",
+                "status": "done"
+              },
+              {
+                "id": "4.3",
+                "en": "Top up the brine tank with new tablet salt",
+                "ru": "Пополнение бака новой таблетированной солью",
+                "status": "done",
+                "extra": [
+                  {
+                    "key": "addedKg",
+                    "label": "Added",
+                    "unit": "kg"
+                  },
+                  {
+                    "key": "addedPcs",
+                    "label": "",
+                    "unit": "pcs"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "en": "",
+            "ru": "",
+            "items": []
+          }
+        ]
+      },
       {
         "id": "r2",
         "completedAt": "2026-06-26T15:29:51.245Z",
@@ -549,7 +751,7 @@
         }
       }
     ],
-    "lastVisitDate": "2026-06-26",
+    "lastVisitDate": "2026-06-29",
     "checklist": [
       {
         "id": 1,
@@ -721,7 +923,8 @@
     ],
     "visitDates": [
       "2026-12-25",
-      "2026-12-26"
+      "2026-12-26",
+      "2026-12-29"
     ]
   },
   "sections": [],
