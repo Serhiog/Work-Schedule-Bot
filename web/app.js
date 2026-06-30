@@ -11995,11 +11995,6 @@ function renderMaintenanceView(s) {
         <label class="m-field"><span>Ссылка на карту (Google Maps)</span><input type="url" id="m-maps" value="${escapeHtml(mState.mapsUrl || '')}" placeholder="https://maps.google.com/?q=..."><em class="m-hint">В напоминании будет кнопка «Открыть маршрут» — откроет навигатор на телефоне.</em></label>
         <label class="m-field"><span>Как часто визит (месяцев)</span><input type="number" id="m-interval" min="1" max="60" value="${escapeHtml(String(mState.intervalMonths || 6))}"><em class="m-hint">6 = два раза в год. После «Завершить осмотр» следующий визит ставится сам через это число месяцев.</em></label>
       </div>
-      <div class="m-danger">
-        <div class="m-danger-head">⚠️ Удаление листа</div>
-        <div class="m-danger-sub">Удалит этот лист обслуживания со всей историей. Отменить нельзя.</div>
-        <button type="button" class="m-delete-btn" id="m-delete-btn">🗑 Удалить лист обслуживания</button>
-      </div>
     </details>
 
     <div id="m-checklist-zone">${checklistZoneHtml()}</div>
@@ -12146,8 +12141,6 @@ function attachMaintenanceHandlers(wrap, s) {
   if (shareBtn) shareBtn.addEventListener('click', () => maintenanceSharePdf(s, shareBtn));
   const complBtn = wrap.querySelector('#m-complete-btn');
   if (complBtn) complBtn.addEventListener('click', () => maintenanceComplete(s, complBtn));
-  const delBtn = wrap.querySelector('#m-delete-btn');
-  if (delBtn) delBtn.addEventListener('click', () => maintenanceDeleteProject(s, delBtn));
 
   // История: перегенерировать PDF архивного отчёта
   wrap.querySelectorAll('.m-hist-pdf').forEach((b) => {
