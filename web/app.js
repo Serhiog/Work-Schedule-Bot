@@ -11761,7 +11761,14 @@ function checklistZoneHtml() {
     ${editing ? '<span class="m-edit-hint">меняй текст пунктов, ＋ добавляй и ✕ удаляй</span>' : ''}
   </div>`;
   const addSec = editing ? `<button type="button" class="m-section-add" id="m-section-add">＋ Добавить раздел</button>` : '';
-  return bar + secHtml + addSec;
+  // В режиме правки показываем и удаление всего листа — там, где его естественно искать.
+  const delProj = editing
+    ? `<div class="m-edit-danger">
+         <button type="button" class="m-delete-btn" id="m-edit-delete-proj">🗑 Удалить весь лист обслуживания</button>
+         <div class="m-edit-danger-sub">Удалит проект целиком со всей историей. Исчезнет с главной. Отменить нельзя.</div>
+       </div>`
+    : '';
+  return bar + secHtml + addSec + delProj;
 }
 function rerenderChecklistZone(s) {
   const zone = document.getElementById('m-checklist-zone');
@@ -11773,6 +11780,8 @@ function attachChecklistHandlers(zone, s) {
   if (!zone) return;
   const tg = zone.querySelector('#m-edit-toggle');
   if (tg) tg.addEventListener('click', () => { mState.editItems = !mState.editItems; rerenderChecklistZone(s); });
+  const delP = zone.querySelector('#m-edit-delete-proj');
+  if (delP) delP.addEventListener('click', () => maintenanceDeleteProject(s, delP));
   const addS = zone.querySelector('#m-section-add');
   if (addS) addS.addEventListener('click', () => {
     mSections().push({ id: maintenanceNextSectionId(), en: '', ru: '', items: [] });
@@ -12788,6 +12797,8 @@ function injectMaintenanceStyles() {
   .m-delete-btn{font:inherit;font-size:15px;font-weight:700;width:100%;min-height:48px;padding:12px 16px;border-radius:11px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;cursor:pointer;}
   .m-delete-btn:active{background:#dc2626;color:#fff;}
   .m-delete-btn:disabled{opacity:.6;cursor:default;}
+  .m-edit-danger{margin-top:18px;padding-top:16px;border-top:1px dashed rgba(220,38,38,.35);}
+  .m-edit-danger-sub{font-size:12.5px;color:var(--muted,#94a3b8);margin-top:7px;text-align:center;}
   .m-history{margin-top:16px;}
   .m-hist-empty{color:var(--muted,#94a3b8);font-size:13px;padding:4px 0;}
   .m-hist-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line-2,#f1f5f9);}
