@@ -11629,6 +11629,8 @@ const MAINTENANCE_TEMPLATE = {
 // Рабочее состояние текущего листа (одно на экран).
 let mState = null;
 let _mSaveTimer = null;
+let _mSaveRetryTimer = null;
+let _mOnlineBound = false;
 
 // __MAINTENANCE_VISIT_CALENDAR_v1__ Большой удобный календарь выбора даты следующего визита
 // (работает и на телефоне, и на компе — крупные клетки). Клик по дню = дата визита.
@@ -11836,23 +11838,74 @@ function attachChecklistHandlers(zone, s) {
   });
 }
 
+// __MAINTENANCE_AUTOSAVE_RESILIENT_v1__ Автосейв листа осмотра, устойчивый к обрыву сети в поле.
+// Каждое сохранение сперва кладётся в буфер браузера (localStorage) — переживает обрыв сети и
+// перезагрузку вкладки. При неудаче статус честно говорит «нет сети, сохраню позже» и сам
+// повторяет: по таймеру и при возврате сети (событие online). Данные инженера не теряются.
+function _mPendingKey(slug) { return 'mPendingSave:' + (slug || state.projectSlug || ''); }
+function _mSetSaveStatus(text, kind) { // kind: 'saving' | 'ok' | 'warn'
+  const el = document.getElementById('m-save-status'); if (!el) return;
+  el.textContent = text;
+  el.classList.toggle('ok', kind === 'ok');
+  el.classList.toggle('warn', kind === 'warn');
+}
+function _mWriteBuffer(payload) { try { localStorage.setItem(_mPendingKey(payload.slug), JSON.stringify({ at: Date.now(), payload })); } catch (_) {} }
+function _mClearBuffer(slug) { try { localStorage.removeItem(_mPendingKey(slug)); } catch (_) {} }
+function _mReadBuffer(slug) {
+  try { const raw = localStorage.getItem(_mPendingKey(slug)); if (!raw) return null; const o = JSON.parse(raw); return (o && o.payload) ? o : null; }
+  catch (_) { return null; }
+}
+
+function buildMaintenanceSavePayload() {
+  const report = { meta: mState.meta, answers: mState.answers, defects: mState.defects, signature: mState.signature };
+  const payload = { slug: state.projectSlug, report, official: mState.official, contractNo: mState.contractNo,
+    checklist: mState.checklist, visitDates: maintenanceVisitDates(),
+    engineerChatId: mState.engineerChatId, engineerName: mState.engineerName, mapsUrl: mState.mapsUrl, intervalMonths: mState.intervalMonths, by: 'web' };
+  // nextDueDate (одиночное, для совместимости/отображения) = ближайший предстоящий из визитов.
+  const _today = _isoLocal(new Date());
+  const _up = payload.visitDates.filter((d) => d >= _today).sort()[0] || payload.visitDates.slice().sort().pop() || '';
+  mState.nextDueDate = _up;
+  payload.nextDueDate = _up;
+  return payload;
+}
+
+function _mPushSave(payload, isRecovery) {
+  _mWriteBuffer(payload); // буфер до отправки — на случай обрыва прямо сейчас
+  return postDataAction('maintenance:save', payload)
+    .then(() => {
+      _mClearBuffer(payload.slug);
+      _mSetSaveStatus('✓ сохранено', 'ok');
+      if (isRecovery) showToast('✓ восстановил несохранённые правки');
+      return true;
+    })
+    .catch((e) => {
+      console.warn('maintenance save', e);
+      _mSetSaveStatus('⚠ нет сети — сохраню позже', 'warn');
+      clearTimeout(_mSaveRetryTimer);
+      _mSaveRetryTimer = setTimeout(() => maintenanceFlushPendingSave(payload.slug), 8000);
+      return false;
+    });
+}
+
+// Доотправить буфер (по таймеру, при возврате сети, или при открытии листа после обрыва).
+function maintenanceFlushPendingSave(slug, isRecovery) {
+  slug = slug || state.projectSlug;
+  const o = _mReadBuffer(slug);
+  if (!o) return;
+  if (Date.now() - (o.at || 0) > 24 * 3600 * 1000) { _mClearBuffer(slug); return; } // протух — не перетираем свежие данные
+  _mSetSaveStatus('сохраняю…', 'saving');
+  _mPushSave(o.payload, isRecovery);
+}
+
 function maintenanceScheduleSave() {
   clearTimeout(_mSaveTimer);
-  _mSaveTimer = setTimeout(() => {
-    const report = { meta: mState.meta, answers: mState.answers, defects: mState.defects, signature: mState.signature };
-    const payload = { slug: state.projectSlug, report, official: mState.official, contractNo: mState.contractNo,
-      checklist: mState.checklist, visitDates: maintenanceVisitDates(),
-      engineerChatId: mState.engineerChatId, engineerName: mState.engineerName, mapsUrl: mState.mapsUrl, intervalMonths: mState.intervalMonths, by: 'web' };
-    // nextDueDate (одиночное, для совместимости/отображения) = ближайший предстоящий из визитов.
-    const _today = _isoLocal(new Date());
-    const _up = payload.visitDates.filter((d) => d >= _today).sort()[0] || payload.visitDates.slice().sort().pop() || '';
-    mState.nextDueDate = _up;
-    payload.nextDueDate = _up;
-    postDataAction('maintenance:save', payload)
-      .then(() => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '✓ сохранено'; el.classList.add('ok'); } })
-      .catch((e) => { const el = document.getElementById('m-save-status'); if (el) { el.textContent = '⚠ не сохранилось'; el.classList.remove('ok'); } console.warn('maintenance save', e); });
-  }, 700);
-  const el = document.getElementById('m-save-status'); if (el) { el.textContent = 'сохраняю…'; el.classList.remove('ok'); }
+  _mSaveTimer = setTimeout(() => { _mPushSave(buildMaintenanceSavePayload()); }, 700);
+  _mSetSaveStatus('сохраняю…', 'saving');
+  // Один раз: при возврате сети — доотправляем буфер автоматически.
+  if (!_mOnlineBound) {
+    _mOnlineBound = true;
+    window.addEventListener('online', () => maintenanceFlushPendingSave());
+  }
 }
 
 function renderMaintenanceView(s) {
@@ -12095,43 +12148,74 @@ function attachMaintenanceHandlers(wrap, s) {
       if (snap) maintenanceDownloadArchived(snap, b);
     });
   });
+
+  // Если прошлый сеанс не успел сохранить (обрыв сети, закрыли вкладку) — доотправляем буфер.
+  maintenanceFlushPendingSave(state.projectSlug, true);
 }
 
 // Завершить осмотр → сервер архивирует копию, ставит следующий визит, чистит лист. Перерисовываем.
+// __MAINTENANCE_COMPLETE_PDF_v2__ Надёжный порядок завершения:
+// 1) собрать PDF из ТЕКУЩИХ (целых) данных листа, 2) заархивировать на сервере (источник правды),
+// 3) отправить заранее собранный PDF руководителю, 4) перерисовать. Если отправка упала —
+// данные не теряются (снимок в Истории), и инженеру явно сказано как переслать вручную.
 async function maintenanceComplete(s, btn) {
   if (!mState.signature.png && !confirm('Отчёт ещё не подписан. Всё равно завершить и сохранить в историю?')) return;
   if (!confirm('Завершить осмотр? Копия отчёта уйдёт в историю, лист очистится под следующий визит.')) return;
-  if (btn) { btn.disabled = true; btn.textContent = 'Сохраняю…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Готовлю отчёт…'; }
+  const engChat = mState.engineerChatId;
+
+  // 1. Собираем PDF ПОКА данные листа целы (до архивации/очистки).
+  let pdfB64 = null;
   try {
-    const r = await postDataAction('maintenance:complete', { slug: state.projectSlug, by: 'web' });
-    if (r && r.maintenance) {
-      // __MAINTENANCE_COMPLETE_PDF_v1__ Готовый PDF (офиц/неофиц, с подписью) → руководителю в Telegram,
-      // ПОКА mState ещё содержит завершённый отчёт (до очистки/перерисовки). Не уведомление — сам файл.
-      const engChat = mState.engineerChatId;
-      let sentToManager = false;
-      if (engChat) {
-        try {
-          btn && (btn.textContent = 'Отправляю отчёт руководителю…');
-          const pdf = await maintenanceBuildPdfDoc();
-          const blob = pdf.output('blob');
-          const b64 = await new Promise((res2, rej2) => { const fr = new FileReader(); fr.onload = () => res2(String(fr.result)); fr.onerror = rej2; fr.readAsDataURL(blob); });
-          const sr = await fetch('/api/maintenance-send', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug: state.projectSlug, pdfBase64: b64, filename: maintenancePdfFilename(), target: engChat,
-              caption: `✅ Осмотр завершён — ${(s.project && s.project.name) || ''}\n${mState.official ? '📄 Официальный отчёт (с печатью и логотипом)' : '📄 Неофициальный отчёт'}` }) });
-          const sj = await sr.json().catch(() => ({}));
-          sentToManager = !!(sj && sj.ok);
-        } catch (e) { console.warn('send pdf to manager failed', e); }
-      }
-      const res = await fetch(scheduleJsonUrl(state.projectSlug), { cache: 'no-store' });
-      const j = await res.json();
-      const sched = j && j.schedule && j.ok ? j.schedule : j;
-      state.schedule = sched;
-      renderMaintenanceView(sched);
-      alert('✅ Осмотр завершён. Отчёт сохранён в историю, следующий визит запланирован.' +
-        (engChat ? (sentToManager ? '\n📤 Готовый PDF отправлен руководителю в Telegram.' : '\n⚠️ Не удалось отправить PDF руководителю (проверь Telegram ID в настройках — он должен раз написать боту).') : '\nℹ️ Чтобы готовый PDF уходил руководителю автоматически — впиши его Telegram ID в «⚙️ Настройки и напоминания».'));
-    } else { throw new Error('сервер не вернул данные'); }
+    const pdf = await maintenanceBuildPdfDoc();
+    const blob = pdf.output('blob');
+    pdfB64 = await new Promise((res2, rej2) => { const fr = new FileReader(); fr.onload = () => res2(String(fr.result)); fr.onerror = rej2; fr.readAsDataURL(blob); });
   } catch (e) {
-    alert('Не удалось завершить: ' + (e.message || e));
+    console.warn('maintenance pdf build failed', e);
+    if (!confirm('Не получилось собрать PDF. Всё равно завершить осмотр и сохранить в Историю? (PDF можно пересобрать позже из Истории.)')) {
+      if (btn) { btn.disabled = false; btn.textContent = '✅ Завершить осмотр'; }
+      return;
+    }
+  }
+
+  try {
+    // 2. Архивируем: снимок в Историю + следующий визит + очистка листа.
+    btn && (btn.textContent = 'Сохраняю…');
+    const r = await postDataAction('maintenance:complete', { slug: state.projectSlug, by: 'web' });
+    if (!r || !r.maintenance) throw new Error('сервер не вернул данные');
+
+    // 3. Шлём заранее собранный PDF руководителю.
+    let sentToManager = false;
+    if (engChat && pdfB64) {
+      try {
+        btn && (btn.textContent = 'Отправляю отчёт руководителю…');
+        const sr = await fetch('/api/maintenance-send', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: state.projectSlug, pdfBase64: pdfB64, filename: maintenancePdfFilename(), target: engChat,
+            caption: `✅ Осмотр завершён — ${(s.project && s.project.name) || ''}\n${mState.official ? '📄 Официальный отчёт (с печатью и логотипом)' : '📄 Неофициальный отчёт'}` }) });
+        const sj = await sr.json().catch(() => ({}));
+        sentToManager = !!(sj && sj.ok);
+      } catch (e) { console.warn('send pdf to manager failed', e); }
+    }
+
+    // 4. Перерисовываем под следующий визит.
+    const res = await fetch(scheduleJsonUrl(state.projectSlug), { cache: 'no-store' });
+    const j = await res.json();
+    const sched = j && j.schedule && j.ok ? j.schedule : j;
+    state.schedule = sched;
+    renderMaintenanceView(sched);
+
+    // 5. Понятный итог + путь восстановления при провале отправки.
+    let msg = '✅ Осмотр завершён. Отчёт сохранён в Историю, следующий визит запланирован.';
+    if (engChat) {
+      msg += sentToManager
+        ? '\n📤 Готовый PDF отправлен руководителю в Telegram.'
+        : '\n⚠️ PDF не ушёл руководителю. Отчёт цел — открой «📚 История отчётов» внизу и нажми PDF, чтобы переслать вручную. (Проверь Telegram ID в ⚙️ Настройках — инженер должен один раз написать боту.)';
+    } else {
+      msg += '\nℹ️ Чтобы готовый PDF уходил руководителю сам — впиши его Telegram ID в «⚙️ Настройки и напоминания».';
+    }
+    alert(msg);
+  } catch (e) {
+    alert('Не удалось завершить: ' + (e.message || e) + '\nДанные осмотра не потеряны — попробуй ещё раз.');
     if (btn) { btn.disabled = false; btn.textContent = '✅ Завершить осмотр'; }
   }
 }
@@ -12614,6 +12698,7 @@ function injectMaintenanceStyles() {
   .m-back{font-size:14px;color:var(--accent,#2563eb);text-decoration:none;}
   .m-save-status{font-size:12px;color:var(--muted,#64748b);}
   .m-save-status.ok{color:#16a34a;}
+  .m-save-status.warn{color:#b45309;font-weight:700;}
   .m-title{font-size:22px;font-weight:800;margin:6px 0 2px;}
   .m-sub{font-size:14px;color:var(--muted,#64748b);margin-bottom:14px;}
   .m-officialbar{margin:10px 0 16px;}
