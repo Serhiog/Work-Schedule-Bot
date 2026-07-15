@@ -8,8 +8,9 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-06-29T09:03:43.875Z",
-    "lastUpdatedBy": "web"
+    "lastUpdated": "2026-07-15T14:58:49.778Z",
+    "lastUpdatedBy": "web",
+    "durationDays": 1
   },
   "maintenance": {
     "official": true,
@@ -26,7 +27,93 @@
           "year": "2026"
         }
       },
-      "answers": {},
+      "answers": {
+        "1.1": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "1.2": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "1.3": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "1.4": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "1.5": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "1.6": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "2.1": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "2.2": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "2.3": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "2.4": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "3.1": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "3.2": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "3.3": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "3.4": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "4.1": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "4.2": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        },
+        "4.3": {
+          "value": "",
+          "notes": "",
+          "extra": {}
+        }
+      },
       "defects": {
         "selected": "a",
         "notes": ""
@@ -55,7 +142,7 @@
         "reportId": "r3"
       }
     ],
-    "nextDueDate": "2026-12-29",
+    "nextDueDate": "2026-12-12",
     "engineerChatId": "584268213",
     "engineerName": "Антон М.",
     "mapsUrl": "https://maps.google.com/?q=Tiara+Residences+Palm+Jumeirah",
@@ -922,6 +1009,8 @@
       }
     ],
     "visitDates": [
+      "2026-12-12",
+      "2026-12-17",
       "2026-12-25",
       "2026-12-26",
       "2026-12-29"
