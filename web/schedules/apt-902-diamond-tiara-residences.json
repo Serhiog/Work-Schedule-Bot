@@ -8,7 +8,7 @@
     "startDate": "2026-06-24",
     "endDate": "2026-06-24",
     "currency": "AED",
-    "lastUpdated": "2026-07-15T14:58:49.778Z",
+    "lastUpdated": "2026-07-15T14:58:53.501Z",
     "lastUpdatedBy": "web",
     "durationDays": 1
   },
@@ -29,12 +29,12 @@
       },
       "answers": {
         "1.1": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
         "1.2": {
-          "value": "",
+          "value": "pass",
           "notes": "",
           "extra": {}
         },
