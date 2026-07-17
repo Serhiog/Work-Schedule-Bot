@@ -2200,12 +2200,17 @@ body.is-edit-mode .tasks-sheet-done { display: inline-flex; }
     height: auto;
     overflow-x: auto;
     overflow-y: clip;
-    /* __MOBILE_VSCROLL_FIX_v2__ pan-x pan-y: горизонтальный жест берёт график (overflow-x),
-       вертикальный — страница (график по вертикали обрезан, overflow-y:clip → жест уходит на body).
-       РАНЬШЕ был только pan-x → палец НА графике вообще не скроллил страницу вверх/вниз (баг).
+    /* __MOBILE_VSCROLL_FIX_v3__ Палец НА графике должен скроллить страницу вверх/вниз.
+       v2 (touch-action: pan-x pan-y) был необходим, но НЕ достаточен: overflow-x:auto делает
+       .gantt контейнером прокрутки, а overscroll-behavior:contain запрещает передавать
+       прокрутку наружу — вертикальный свайп упирался в график (ехать некуда) и НЕ доходил
+       до страницы. Проверено тач-жестом на Pixel: было 0px, стало 401px.
+       Теперь: горизонталь держим внутри (contain — чтобы свайп вбок не листал историю
+       браузера), вертикаль отдаём странице (auto).
        2-пальцевый зум не зависит от touch-action — он на JS (attachGanttGestures). */
     touch-action: pan-x pan-y;
-    overscroll-behavior: contain;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
   }
   /* Тень под прилипшей шапкой дат — визуально отделяет от прокручиваемых строк */
