@@ -2,7 +2,7 @@
   "project": {
     "slug": "fit-out-works-at-creek-palace",
     "code": "FIT-OUT-WO",
-    "name": "Fit-Out Works at Creek Palace",
+    "name": "2107, Creek Palace",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Mr. Artur Allagulov",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-09-27",
     "durationDays": 69,
     "contractEndDate": "2026-10-17",
-    "lastUpdated": "2026-07-21T13:32:26.413Z",
-    "lastUpdatedBy": "Bot (reschedule parallel)",
+    "lastUpdated": "2026-07-21T13:39:59.042Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
