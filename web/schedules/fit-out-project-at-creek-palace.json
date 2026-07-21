@@ -12,11 +12,11 @@
     "totalExVat": 685358,
     "totalIncVat": 719626,
     "startDate": "2026-07-21",
-    "endDate": "2026-10-19",
-    "durationDays": 91,
+    "endDate": "2026-09-21",
+    "durationDays": 63,
     "contractEndDate": "2026-10-19",
-    "lastUpdated": "2026-07-21T13:28:57.826Z",
-    "lastUpdatedBy": "Sergei (contracts import)",
+    "lastUpdated": "2026-07-21T13:29:05.058Z",
+    "lastUpdatedBy": "Bot (reschedule parallel)",
     "paymentStages": [
       {
         "id": "P1",
@@ -150,8 +150,8 @@
       "unit": "",
       "costIncVat": 38240,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-14",
-      "planEnd": "2026-08-23",
+      "planStart": "2026-07-31",
+      "planEnd": "2026-08-09",
       "actualStart": null,
       "actualEnd": null
     },
@@ -164,8 +164,8 @@
       "unit": "",
       "costIncVat": 195000,
       "durationDaysPlanned": 7,
-      "planStart": "2026-08-24",
-      "planEnd": "2026-08-30",
+      "planStart": "2026-08-14",
+      "planEnd": "2026-08-20",
       "actualStart": null,
       "actualEnd": null
     },
@@ -178,8 +178,8 @@
       "unit": "",
       "costIncVat": 93128,
       "durationDaysPlanned": 7,
-      "planStart": "2026-08-31",
-      "planEnd": "2026-09-06",
+      "planStart": "2026-08-21",
+      "planEnd": "2026-08-27",
       "actualStart": null,
       "actualEnd": null
     },
@@ -192,8 +192,8 @@
       "unit": "",
       "costIncVat": 104832,
       "durationDaysPlanned": 20,
-      "planStart": "2026-09-07",
-      "planEnd": "2026-09-26",
+      "planStart": "2026-08-28",
+      "planEnd": "2026-09-16",
       "actualStart": null,
       "actualEnd": null
     },
@@ -206,8 +206,8 @@
       "unit": "",
       "costIncVat": 81234,
       "durationDaysPlanned": 15,
-      "planStart": "2026-09-27",
-      "planEnd": "2026-10-11",
+      "planStart": "2026-08-28",
+      "planEnd": "2026-09-11",
       "actualStart": null,
       "actualEnd": null
     },
@@ -220,8 +220,8 @@
       "unit": "",
       "costIncVat": 18500,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-12",
-      "planEnd": "2026-10-16",
+      "planStart": "2026-09-17",
+      "planEnd": "2026-09-21",
       "actualStart": null,
       "actualEnd": null
     },
@@ -234,8 +234,8 @@
       "unit": "",
       "costIncVat": 22500,
       "durationDaysPlanned": 3,
-      "planStart": "2026-10-17",
-      "planEnd": "2026-10-19",
+      "planStart": "2026-09-17",
+      "planEnd": "2026-09-19",
       "actualStart": null,
       "actualEnd": null
     }
