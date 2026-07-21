@@ -12,11 +12,11 @@
     "totalExVat": 587951,
     "totalIncVat": 617348,
     "startDate": "2026-07-21",
-    "endDate": "2026-10-17",
-    "durationDays": 89,
+    "endDate": "2026-09-27",
+    "durationDays": 69,
     "contractEndDate": "2026-10-17",
-    "lastUpdated": "2026-07-21T13:32:20.574Z",
-    "lastUpdatedBy": "Sergei (contracts import)",
+    "lastUpdated": "2026-07-21T13:32:26.413Z",
+    "lastUpdatedBy": "Bot (reschedule parallel)",
     "paymentStages": [
       {
         "id": "P1",
@@ -151,6 +151,20 @@
       "actualEnd": null
     },
     {
+      "id": "6",
+      "section": "materials",
+      "stage": "ST3",
+      "name": "Прочие работы по контракту",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 108764.04,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-24",
+      "planEnd": "2026-08-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
       "id": "4",
       "section": "plumbing",
       "stage": "ST3",
@@ -159,8 +173,8 @@
       "unit": "",
       "costIncVat": 96974,
       "durationDaysPlanned": 20,
-      "planStart": "2026-08-24",
-      "planEnd": "2026-09-12",
+      "planStart": "2026-08-31",
+      "planEnd": "2026-09-19",
       "actualStart": null,
       "actualEnd": null
     },
@@ -173,22 +187,8 @@
       "unit": "",
       "costIncVat": 104832,
       "durationDaysPlanned": 25,
-      "planStart": "2026-09-13",
-      "planEnd": "2026-10-07",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
-      "id": "6",
-      "section": "materials",
-      "stage": "ST3",
-      "name": "Прочие работы по контракту",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 108764.04,
-      "durationDaysPlanned": 7,
-      "planStart": "2026-10-08",
-      "planEnd": "2026-10-14",
+      "planStart": "2026-08-31",
+      "planEnd": "2026-09-24",
       "actualStart": null,
       "actualEnd": null
     },
@@ -201,8 +201,8 @@
       "unit": "",
       "costIncVat": 5000,
       "durationDaysPlanned": 3,
-      "planStart": "2026-10-15",
-      "planEnd": "2026-10-17",
+      "planStart": "2026-09-25",
+      "planEnd": "2026-09-27",
       "actualStart": null,
       "actualEnd": null
     }
