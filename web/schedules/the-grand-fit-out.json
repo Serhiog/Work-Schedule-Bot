@@ -2,7 +2,7 @@
   "project": {
     "slug": "the-grand-fit-out",
     "code": "THE-GRAND-",
-    "name": "The Grand Fit-Out",
+    "name": "710, The Grand, Creek Harbour",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Ekaterina Velikanova",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-10-01",
     "durationDays": 73,
     "contractEndDate": "2026-12-10",
-    "lastUpdated": "2026-07-21T13:37:40.543Z",
-    "lastUpdatedBy": "Bot (reschedule parallel)",
+    "lastUpdated": "2026-07-21T13:40:09.097Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
