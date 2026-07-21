@@ -12,8 +12,8 @@
     "totalExVat": 373000,
     "totalIncVat": 391650,
     "startDate": "2026-07-21",
-    "endDate": "2026-09-17",
-    "durationDays": 59,
+    "endDate": "2026-09-15",
+    "durationDays": 57,
     "contractEndDate": "2026-11-05",
     "lastUpdated": "2026-07-21T13:40:01.599Z",
     "lastUpdatedBy": "Bot (voice rename)",
@@ -127,8 +127,8 @@
       "unit": "",
       "costIncVat": 16697.75,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-23",
-      "planEnd": "2026-07-30",
+      "planStart": "2026-07-21",
+      "planEnd": "2026-07-28",
       "actualStart": null,
       "actualEnd": null,
       "history": [
@@ -162,6 +162,38 @@
           "reason": null,
           "planning": true,
           "summary": "planStart=2026-07-23"
+        },
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.557Z",
+          "before": {
+            "planStart": "2026-07-23",
+            "planEnd": "2026-07-30",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-21",
+            "planEnd": "2026-07-28",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Демонтажные работы",
+            "section": "demolition",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "summary": "planStart=2026-07-21, planEnd=2026-07-28"
         }
       ]
     },
@@ -174,10 +206,46 @@
       "unit": "",
       "costIncVat": 30220.38,
       "durationDaysPlanned": 10,
-      "planStart": "2026-07-31",
-      "planEnd": "2026-08-09",
+      "planStart": "2026-07-29",
+      "planEnd": "2026-08-07",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-07-31",
+            "planEnd": "2026-08-09",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Установка потолков из ГКЛ",
+            "section": "drywall",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-07-29",
+            "planEnd": "2026-08-07",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Установка потолков из ГКЛ",
+            "section": "drywall",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "2",
@@ -188,10 +256,46 @@
       "unit": "",
       "costIncVat": 46652.66,
       "durationDaysPlanned": 14,
-      "planStart": "2026-08-10",
-      "planEnd": "2026-08-23",
+      "planStart": "2026-08-08",
+      "planEnd": "2026-08-21",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-08-10",
+            "planEnd": "2026-08-23",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Отделка и покраска стен",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-21",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Отделка и покраска стен",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "4",
@@ -202,10 +306,46 @@
       "unit": "",
       "costIncVat": 17073.22,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-10",
-      "planEnd": "2026-08-19",
+      "planStart": "2026-08-08",
+      "planEnd": "2026-08-17",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-08-10",
+            "planEnd": "2026-08-19",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Укладка плитки и отделка санузлов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Укладка плитки и отделка санузлов",
+            "section": "flooring",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "5",
@@ -216,10 +356,46 @@
       "unit": "",
       "costIncVat": 55180.87,
       "durationDaysPlanned": 20,
-      "planStart": "2026-08-10",
-      "planEnd": "2026-08-29",
+      "planStart": "2026-08-08",
+      "planEnd": "2026-08-27",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-08-10",
+            "planEnd": "2026-08-29",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электромонтажные работы",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-27",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Электромонтажные работы",
+            "section": "electrical",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "6",
@@ -230,10 +406,46 @@
       "unit": "",
       "costIncVat": 12229.82,
       "durationDaysPlanned": 15,
-      "planStart": "2026-08-10",
-      "planEnd": "2026-08-24",
+      "planStart": "2026-08-08",
+      "planEnd": "2026-08-22",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-08-10",
+            "planEnd": "2026-08-24",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехнические работы",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-08",
+            "planEnd": "2026-08-22",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Сантехнические работы",
+            "section": "plumbing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "7",
@@ -244,10 +456,46 @@
       "unit": "",
       "costIncVat": 57932.88,
       "durationDaysPlanned": 14,
-      "planStart": "2026-08-30",
-      "planEnd": "2026-09-12",
+      "planStart": "2026-08-28",
+      "planEnd": "2026-09-10",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-08-30",
+            "planEnd": "2026-09-12",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Чистовая отделка",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-08-28",
+            "planEnd": "2026-09-10",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Чистовая отделка",
+            "section": "finishing",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "8",
@@ -272,10 +520,46 @@
       "unit": "",
       "costIncVat": 11039.17,
       "durationDaysPlanned": 5,
-      "planStart": "2026-09-13",
-      "planEnd": "2026-09-17",
+      "planStart": "2026-09-11",
+      "planEnd": "2026-09-15",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-09-13",
+            "planEnd": "2026-09-17",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Установка дверей и мебели",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-11",
+            "planEnd": "2026-09-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Установка дверей и мебели",
+            "section": "furniture",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     },
     {
       "id": "10",
@@ -286,10 +570,46 @@
       "unit": "",
       "costIncVat": 4101.49,
       "durationDaysPlanned": 3,
-      "planStart": "2026-09-13",
-      "planEnd": "2026-09-15",
+      "planStart": "2026-09-11",
+      "planEnd": "2026-09-13",
       "actualStart": null,
-      "actualEnd": null
+      "actualEnd": null,
+      "history": [
+        {
+          "type": "set_dates",
+          "by": "parallel-test-revert",
+          "at": "2026-07-21T13:41:32.566Z",
+          "before": {
+            "planStart": "2026-09-13",
+            "planEnd": "2026-09-15",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Уборка после работ",
+            "section": "cleaning",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "after": {
+            "planStart": "2026-09-11",
+            "planEnd": "2026-09-13",
+            "actualStart": null,
+            "actualEnd": null,
+            "name": "Уборка после работ",
+            "section": "cleaning",
+            "progress": 0,
+            "subcontractorName": null
+          },
+          "changedFields": [
+            "planStart",
+            "planEnd"
+          ],
+          "reason": null,
+          "planning": true,
+          "cascadeFrom": "1",
+          "cascadeDeltaDays": -2,
+          "summary": "каскад -2 дн. от «Демонтажные работы» (#1)"
+        }
+      ]
     }
   ]
 }
