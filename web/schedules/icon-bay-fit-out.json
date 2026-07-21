@@ -12,11 +12,11 @@
     "totalExVat": 373000,
     "totalIncVat": 391650,
     "startDate": "2026-07-21",
-    "endDate": "2026-11-05",
-    "durationDays": 108,
+    "endDate": "2026-09-17",
+    "durationDays": 59,
     "contractEndDate": "2026-11-05",
-    "lastUpdated": "2026-07-21T13:33:56.231Z",
-    "lastUpdatedBy": "Sergei (contracts import)",
+    "lastUpdated": "2026-07-21T13:34:04.174Z",
+    "lastUpdatedBy": "Bot (reschedule parallel)",
     "paymentStages": [
       {
         "id": "P1",
@@ -133,20 +133,6 @@
       "actualEnd": null
     },
     {
-      "id": "2",
-      "section": "finishing",
-      "stage": "ST2",
-      "name": "Отделка и покраска стен",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 46652.66,
-      "durationDaysPlanned": 14,
-      "planStart": "2026-07-31",
-      "planEnd": "2026-08-13",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "3",
       "section": "drywall",
       "stage": "ST2",
@@ -155,7 +141,21 @@
       "unit": "",
       "costIncVat": 30220.38,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-14",
+      "planStart": "2026-07-31",
+      "planEnd": "2026-08-09",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "finishing",
+      "stage": "ST2",
+      "name": "Отделка и покраска стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 46652.66,
+      "durationDaysPlanned": 14,
+      "planStart": "2026-08-10",
       "planEnd": "2026-08-23",
       "actualStart": null,
       "actualEnd": null
@@ -169,8 +169,8 @@
       "unit": "",
       "costIncVat": 17073.22,
       "durationDaysPlanned": 10,
-      "planStart": "2026-08-24",
-      "planEnd": "2026-09-02",
+      "planStart": "2026-08-10",
+      "planEnd": "2026-08-19",
       "actualStart": null,
       "actualEnd": null
     },
@@ -183,8 +183,8 @@
       "unit": "",
       "costIncVat": 55180.87,
       "durationDaysPlanned": 20,
-      "planStart": "2026-09-03",
-      "planEnd": "2026-09-22",
+      "planStart": "2026-08-10",
+      "planEnd": "2026-08-29",
       "actualStart": null,
       "actualEnd": null
     },
@@ -197,8 +197,8 @@
       "unit": "",
       "costIncVat": 12229.82,
       "durationDaysPlanned": 15,
-      "planStart": "2026-09-23",
-      "planEnd": "2026-10-07",
+      "planStart": "2026-08-10",
+      "planEnd": "2026-08-24",
       "actualStart": null,
       "actualEnd": null
     },
@@ -211,8 +211,8 @@
       "unit": "",
       "costIncVat": 57932.88,
       "durationDaysPlanned": 14,
-      "planStart": "2026-10-08",
-      "planEnd": "2026-10-21",
+      "planStart": "2026-08-30",
+      "planEnd": "2026-09-12",
       "actualStart": null,
       "actualEnd": null
     },
@@ -225,8 +225,8 @@
       "unit": "",
       "costIncVat": 140521.76,
       "durationDaysPlanned": 7,
-      "planStart": "2026-10-22",
-      "planEnd": "2026-10-28",
+      "planStart": "2026-08-30",
+      "planEnd": "2026-09-05",
       "actualStart": null,
       "actualEnd": null
     },
@@ -239,8 +239,8 @@
       "unit": "",
       "costIncVat": 11039.17,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-29",
-      "planEnd": "2026-11-02",
+      "planStart": "2026-09-13",
+      "planEnd": "2026-09-17",
       "actualStart": null,
       "actualEnd": null
     },
@@ -253,8 +253,8 @@
       "unit": "",
       "costIncVat": 4101.49,
       "durationDaysPlanned": 3,
-      "planStart": "2026-11-03",
-      "planEnd": "2026-11-05",
+      "planStart": "2026-09-13",
+      "planEnd": "2026-09-15",
       "actualStart": null,
       "actualEnd": null
     }
