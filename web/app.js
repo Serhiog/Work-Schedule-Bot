@@ -358,35 +358,37 @@ function injectSupplyStyles() {
   .supply-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
   .supply-chip { font:inherit; font-size:12.5px; font-weight:600; padding:7px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
   .supply-chip.is-on { background:#2a78d6; border-color:#2a78d6; color:#fff; }
-  /* ── «Тетрис»-доска закупок: строка = материал, колонки = недели, блок = объём.
-        Повторы одного материала лежат В ОДНОЙ СТРОКЕ — их видно с одного взгляда. ── */
+  /* ── Календарь закупок: на колонке дня стоят ТОНКИЕ столбы, каждый = закупка материала.
+        Высота = объём (общий масштаб → видно перспективу: когда и сколько брать).
+        Тап по столбу подсвечивает этот материал во всех днях. ── */
   .supply-cal-card { background:var(--card); border:1px solid var(--line); border-radius:14px; margin:0 0 16px; padding:12px 0 6px; position:relative; }
   .supply-cal-head { display:flex; align-items:center; gap:10px; padding:0 14px 8px; }
   .supply-cal-title { font-size:13px; font-weight:700; color:var(--ink); flex:1; }
   .supply-cal-nav { font:inherit; font-size:16px; font-weight:800; width:34px; height:34px; border-radius:9px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
-  .supply-cal-scroll { overflow:auto; max-height:64vh; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; position:relative; }
-  .supply-ht-inner { position:relative; display:inline-block; min-width:100%; }
-  .supply-ht-headrow { display:flex; position:sticky; top:0; z-index:6; background:var(--card); border-bottom:2px solid var(--line); }
-  .supply-ht-corner { position:sticky; left:0; z-index:7; background:var(--card); flex:0 0 148px; width:148px; border-right:1px solid var(--line); font-size:10px; color:var(--muted); display:flex; align-items:flex-end; padding:4px 10px 6px; }
-  .supply-ht-wk { flex:0 0 92px; width:92px; text-align:center; padding:5px 4px 7px; border-left:1px solid var(--line-2,#f1f5f9); }
-  .supply-ht-wk-m { font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); min-height:12px; }
-  .supply-ht-wk-d { font-size:11.5px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .supply-ht-wk--overdue .supply-ht-wk-d { color:#d03b3b; }
-  .supply-ht-wk--now .supply-ht-wk-d { color:#2a78d6; }
-  .supply-htrow { display:flex; align-items:stretch; border-bottom:1px solid var(--line-2,#f1f5f9); }
-  .supply-htrow.is-sel { background:rgba(42,120,214,.07); }
-  .supply-htrow-label { position:sticky; left:0; z-index:5; background:var(--card); flex:0 0 148px; width:148px; border-right:1px solid var(--line); padding:7px 10px; cursor:pointer; }
-  .supply-htrow.is-sel .supply-htrow-label { background:#eef4fc; }
-  .supply-htrow-name { font-size:12px; font-weight:700; color:var(--ink); line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
-  .supply-htrow-meta { font-size:9.5px; color:var(--muted); margin-top:2px; white-space:nowrap; }
-  .supply-htrow-meta b { color:#2a78d6; }
-  .supply-ht-cellwrap { flex:0 0 92px; width:92px; display:flex; align-items:center; justify-content:center; padding:4px 4px; border-left:1px solid var(--line-2,#f1f5f9); }
-  .supply-ht-cell { font:inherit; border:none; cursor:pointer; width:100%; height:38px; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; padding:2px; }
-  .supply-ht-cell-v { font-size:12px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
-  .supply-ht-cell-s { font-size:8.5px; font-weight:700; opacity:.85; line-height:1.1; }
-  .supply-ht-cell.is-sel { outline:2.5px solid var(--ink); outline-offset:1px; }
+  .supply-cal-scroll { overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding:0 12px; }
+  .supply-bchart { display:flex; align-items:flex-end; gap:16px; min-height:288px; padding-top:8px; }
+  .supply-bday { display:flex; flex-direction:column; align-items:center; flex:0 0 auto; }
+  .supply-bday-total { font-size:10.5px; font-weight:800; color:var(--muted); margin-bottom:3px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .supply-bday-bars { display:flex; align-items:flex-end; gap:3px; }
+  .supply-bbar { border:none; cursor:pointer; padding:0; width:13px; border-radius:4px 4px 1px 1px; transition:opacity .15s ease; }
+  .supply-bchart.has-sel .supply-bbar { opacity:.22; }
+  .supply-bchart.has-sel .supply-bbar.is-same { opacity:1; outline:1.5px solid var(--ink); outline-offset:1px; }
+  .supply-bday-axis { border-top:2px solid var(--line); margin-top:5px; padding:5px 2px 7px; text-align:center; width:100%; }
+  .supply-bday--overdue .supply-bday-axis { border-top-color:#d03b3b; }
+  .supply-bday-d { font-size:12px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .supply-bday-d small { font-weight:600; color:var(--muted); margin-left:3px; font-size:9.5px; }
+  .supply-bday--today .supply-bday-d { color:#2a78d6; }
+  .supply-bday--overdue .supply-bday-d { color:#d03b3b; font-size:10.5px; }
+  .supply-bday-m { font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); min-height:12px; }
   .supply-legend { display:flex; gap:12px; font-size:11.5px; color:var(--muted); padding:8px 14px 6px; flex-wrap:wrap; }
   .supply-legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  /* 🔮 авто-прогноз системы */
+  .supply-forecast { background:var(--card); border:1px solid var(--line); border-left:4px solid #2a78d6; border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+  .supply-forecast-t { font-size:13.5px; font-weight:800; color:var(--ink); margin-bottom:6px; }
+  .supply-forecast ul { margin:0; padding-left:18px; }
+  .supply-forecast li { font-size:12.5px; color:var(--ink); line-height:1.55; margin-bottom:3px; }
+  .supply-forecast li b { color:#2a78d6; }
+  .supply-forecast li.warn b { color:#d03b3b; }
   /* Сводка «заказать разом» */
   .supply-consol { background:#eef4fc; border:1.5px solid #2a78d6; border-radius:12px; padding:12px 14px; margin-bottom:10px; }
   .supply-consol-t { font-size:14px; font-weight:800; color:var(--ink); margin-bottom:4px; }
@@ -457,128 +459,117 @@ function renderSupplyBody(ov) {
   const addDays = (iso, n) => { const t = new Date(iso + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
   const soonEdge = addDays(today, 7);
 
-  // «ТЕТРИС»-ДОСКА: строка = материал, колонки = недели, блок = объём в эту неделю.
-  // Повторы одного материала лежат в одной строке — видно с одного взгляда, что можно
-  // заказать одной партией. Материалы, повторяющиеся в нескольких неделях, подняты наверх.
-  const weekOf = (iso) => { const t = new Date(iso + 'T00:00:00Z'); const dw = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - dw); return t.toISOString().slice(0, 10); };
-  const byMat = {}; // matKey -> { name, cols: {colKey -> rows[]} }
-  const colSet = new Set();
+  // КАЛЕНДАРЬ С ТОНКИМИ СТОЛБАМИ: колонка = день, в ней кучка тонких столбов —
+  // каждый столб = закупка конкретного материала, высота = объём (ОБЩИЙ масштаб,
+  // чтобы перспектива читалась). Тап по столбу подсвечивает материал во всех днях.
+  const byDay = {}; // day -> { matKey -> {name, rows[]} }
+  const byMat = {}; // matKey -> { name, days:{day->rows[]} }
   for (const x of items) {
-    const ck = x.overdue ? 'overdue' : weekOf(x.orderBy);
-    colSet.add(ck);
+    const day = x.overdue ? 'overdue' : x.orderBy;
     const k = x.material.toLowerCase();
-    const m = (byMat[k] = byMat[k] || { name: x.material, cols: {} });
-    (m.cols[ck] = m.cols[ck] || []).push(x);
+    ((byDay[day] = byDay[day] || {})[k] = (byDay[day] || {})[k] || { name: x.material, rows: [] }).rows.push(x);
+    const m = (byMat[k] = byMat[k] || { name: x.material, days: {} });
+    (m.days[day] = m.days[day] || []).push(x);
   }
   const moneyMode = items.some((x) => Number(x.volAED) > 0);
   const volOf = (rows) => moneyMode ? rows.reduce((s, r) => s + (Number(r.volAED) || 0), 0) : rows.length;
   const fmtVol = (v) => moneyMode
     ? (v >= 1e6 ? (Math.round(v / 1e5) / 10) + ' млн' : Math.max(1, Math.round(v / 1000)) + ' тыс')
     : v + ' поз.';
-  const fmtVolShort = (v) => moneyMode
-    ? (v >= 1e6 ? (Math.round(v / 1e5) / 10) + 'М' : Math.max(1, Math.round(v / 1000)) + 'т')
-    : String(v);
 
-  const weekCols = [...colSet].filter((c) => c !== 'overdue').sort();
-  const cols = (colSet.has('overdue') ? ['overdue'] : []).concat(weekCols);
-  const thisWeek = weekOf(today);
-  const mats = Object.values(byMat).map((m) => {
-    m.totalV = Object.values(m.cols).reduce((s, rows) => s + volOf(rows), 0);
-    m.colCount = Object.keys(m.cols).length;
-    m.projCount = new Set([].concat(...Object.values(m.cols)).map((r) => r.slug)).size;
-    m.rowMax = Math.max(1, ...Object.values(m.cols).map((rows) => volOf(rows)));
-    return m;
-  }).sort((a, b) => b.colCount - a.colCount || b.totalV - a.totalV);
+  const dayKeys = Object.keys(byDay).filter((k) => k !== 'overdue').sort();
+  const orderedDays = (byDay.overdue ? ['overdue'] : []).concat(dayKeys);
+  // Глобальный максимум объёма одного столба (материал×день) — общий масштаб высот.
+  let maxV = 1;
+  for (const dk of orderedDays) for (const g of Object.values(byDay[dk])) maxV = Math.max(maxV, volOf(g.rows));
+  const H = 190;
+
+  for (const k of Object.keys(byMat)) {
+    const m = byMat[k];
+    m.totalV = Object.values(m.days).reduce((s, rows) => s + volOf(rows), 0);
+    m.dayCount = Object.keys(m.days).length;
+    m.projCount = new Set([].concat(...Object.values(m.days)).map((r) => r.slug)).size;
+  }
 
   const projChips = (d.projects || []).map((p) =>
     `<button type="button" class="supply-chip ${_supplyProj.has(p.slug) ? 'is-on' : ''}" data-proj="${escapeHtml(p.slug)}">${escapeHtml(p.name)}</button>`).join('');
 
-  // Заголовки колонок-недель.
-  const wkHead = (ck) => {
-    if (ck === 'overdue') return `<div class="supply-ht-wk supply-ht-wk--overdue"><div class="supply-ht-wk-m">&nbsp;</div><div class="supply-ht-wk-d">⚠️ уже пора</div></div>`;
-    const a = new Date(ck + 'T00:00:00Z'); const b = new Date(ck + 'T00:00:00Z'); b.setUTCDate(b.getUTCDate() + 6);
-    const label = a.getUTCMonth() === b.getUTCMonth()
-      ? `${a.getUTCDate()}–${b.getUTCDate()}`
-      : `${a.getUTCDate()}.${a.getUTCMonth() + 1}–${b.getUTCDate()}.${b.getUTCMonth() + 1}`;
-    return `<div class="supply-ht-wk ${ck === thisWeek ? 'supply-ht-wk--now' : ''}">
-      <div class="supply-ht-wk-m">${SUPPLY_MONTHS[a.getUTCMonth()]}</div>
-      <div class="supply-ht-wk-d">${label}</div>
-    </div>`;
-  };
+  // 🔮 Авто-прогноз системы: срочка, ближайшие 2 недели, пик, выгодные партии.
+  const twoWeeks = addDays(today, 14);
+  const urgent = items.filter((x) => x.overdue);
+  const soon = items.filter((x) => !x.overdue && x.orderBy <= twoWeeks);
+  let peakDay = null, peakV = 0;
+  for (const dk of dayKeys) { const v = Object.values(byDay[dk]).reduce((s, g) => s + volOf(g.rows), 0); if (v > peakV) { peakV = v; peakDay = dk; } }
+  const batches = Object.values(byMat).filter((m) => m.dayCount > 1).sort((a, b) => b.totalV - a.totalV).slice(0, 4);
+  const forecastHtml = `<div class="supply-forecast">
+    <div class="supply-forecast-t">🔮 Прогноз системы</div>
+    <ul>
+      ${urgent.length ? `<li class="warn">⚠️ Просрочено: <b>${fmtVol(volOf(urgent))}</b> (${urgent.length} поз.) — заказать немедленно.</li>` : ''}
+      <li>📅 Ближайшие 2 недели: <b>${fmtVol(volOf(soon))}</b> (${soon.length} поз.).</li>
+      ${peakDay ? `<li>📈 Пик закупок: <b>${supplyFmtDM(peakDay)}</b> — ${fmtVol(peakV)}.</li>` : ''}
+      ${batches.length ? `<li>💡 Выгодно партией: ${batches.map((m) => `<b>${escapeHtml(m.name)}</b> (${m.dayCount} дат, ${fmtVol(m.totalV)})`).join('; ')} — тапни столб, покажу раскладку.</li>` : ''}
+    </ul>
+  </div>`;
 
-  // Ячейка-блок: насыщенность цвета = объём относительно максимума строки.
-  const cellHtml = (m, ck) => {
-    const rows = m.cols[ck];
-    if (!rows) return `<div class="supply-ht-cellwrap"></div>`;
-    const v = volOf(rows);
-    const nProj = new Set(rows.map((r) => r.slug)).size;
-    const key = `${m.name.toLowerCase()}|${ck}`;
-    const selRow = _supplySel && _supplySel.split('|')[0] === m.name.toLowerCase();
-    let bg, fg;
-    if (ck === 'overdue') { bg = '#d03b3b'; fg = '#fff'; }
+  // Колонки дней с тонкими столбами.
+  const colsHtml = orderedDays.map((dk) => {
+    const groups = Object.values(byDay[dk]).map((g) => ({ ...g, v: volOf(g.rows) })).sort((a, b) => b.v - a.v);
+    const total = groups.reduce((s, g) => s + g.v, 0);
+    const bars = groups.map((g) => {
+      const mk = g.name.toLowerCase();
+      const [color] = supplyMatColor(g.name);
+      const bg = dk === 'overdue' ? '#d03b3b' : color;
+      const h = Math.max(7, Math.round(g.v / maxV * H));
+      const nProj = new Set(g.rows.map((r) => r.slug)).size;
+      return `<button type="button" class="supply-bbar ${_supplySel === mk ? 'is-same' : ''}" data-mkey="${escapeHtml(mk)}"
+        style="height:${h}px;background:${bg}" title="${escapeHtml(g.name)} · ${fmtVol(g.v)}${nProj > 1 ? ` · ${nProj} об.` : ''}"></button>`;
+    }).join('');
+    let axis;
+    if (dk === 'overdue') axis = `<div class="supply-bday-axis"><div class="supply-bday-d">⚠️ уже пора</div><div class="supply-bday-m">&nbsp;</div></div>`;
     else {
-      const [color, , darkText] = supplyMatColor(m.name);
-      const t = v / m.rowMax;
-      if (t >= 0.66) { bg = color; fg = darkText ? '#1a1a19' : '#fff'; }
-      else if (t >= 0.33) { bg = `color-mix(in srgb, ${color} 62%, #ffffff)`; fg = '#1a1a19'; }
-      else { bg = `color-mix(in srgb, ${color} 38%, #ffffff)`; fg = '#1a1a19'; }
+      const dt = new Date(dk + 'T00:00:00Z');
+      const dow = (dt.getUTCDay() + 6) % 7;
+      axis = `<div class="supply-bday-axis"><div class="supply-bday-d">${dt.getUTCDate()}<small>${SUPPLY_DOW[dow]}</small></div><div class="supply-bday-m">${SUPPLY_MONTHS[dt.getUTCMonth()]}</div></div>`;
     }
-    return `<div class="supply-ht-cellwrap"><button type="button" class="supply-ht-cell ${_supplySel === key ? 'is-sel' : ''}"
-      style="background:${bg};color:${fg}" data-cellkey="${escapeHtml(key)}"
-      title="${escapeHtml(m.name)} · ${fmtVol(v)}${nProj > 1 ? ` · ${nProj} об.` : ''}">
-      <span class="supply-ht-cell-v">${fmtVolShort(v)}</span>
-      ${nProj > 1 ? `<span class="supply-ht-cell-s">×${nProj} об.</span>` : ''}
-    </button></div>`;
-  };
-
-  const rowsHtml = mats.map((m) => {
-    const matKey = m.name.toLowerCase();
-    const selRow = _supplySel && _supplySel.split('|')[0] === matKey;
-    return `<div class="supply-htrow ${selRow ? 'is-sel' : ''}">
-      <div class="supply-htrow-label" data-rowkey="${escapeHtml(matKey)}">
-        <div class="supply-htrow-name">${escapeHtml(m.name)}</div>
-        <div class="supply-htrow-meta">${fmtVol(m.totalV)}${m.projCount > 1 ? ` · ${m.projCount} об.` : ''}${m.colCount > 1 ? ` · <b>🔁 ${m.colCount} даты</b>` : ''}</div>
-      </div>
-      ${cols.map((ck) => cellHtml(m, ck)).join('')}
+    return `<div class="supply-bday ${dk === 'overdue' ? 'supply-bday--overdue' : ''} ${dk === today ? 'supply-bday--today' : ''}">
+      <div class="supply-bday-total">${fmtVol(total)}</div>
+      <div class="supply-bday-bars">${bars}</div>
+      ${axis}
     </div>`;
   }).join('');
 
   // Легенда типов.
   const legendCats = [];
   const seenCat = new Set();
-  for (const m of mats) {
-    const [color, cat] = supplyMatColor(m.name);
+  for (const k of Object.keys(byMat)) {
+    const [color, cat] = supplyMatColor(byMat[k].name);
     if (!seenCat.has(cat)) { seenCat.add(cat); legendCats.push({ color, cat }); }
   }
 
-  // Сводка «заказать разом» по выбранной строке-материалу.
+  // Детализация выбранного материала: сводка «заказать разом» + раскладка по датам.
   let detailHtml = '';
-  if (_supplySel) {
-    const matKey = _supplySel.split('|')[0];
-    const m = byMat[matKey];
-    if (m) {
-      const entries = cols.filter((ck) => m.cols[ck]);
-      const entryLabel = (ck) => ck === 'overdue' ? '⚠️ уже пора' : `неделя ${wkHead(ck).match(/wk-d">([^<]+)</)[1]} ${SUPPLY_MONTHS[new Date(ck + 'T00:00:00Z').getUTCMonth()]}`;
-      const consol = m.colCount > 1
-        ? `<div class="supply-consol"><div class="supply-consol-t">💡 ${escapeHtml(m.name)} нужен ${m.colCount} раза (${m.projCount} об.)</div>
-           <div class="supply-consol-s">Выгодно заказать <b>одной партией: ${fmtVol(m.totalV)}</b> — по датам: ${entries.map((ck) => `<b>${ck === 'overdue' ? 'уже пора' : supplyFmtDM(ck)}</b> (${fmtVol(volOf(m.cols[ck]))})`).join(', ')}. Ориентируйся на самую раннюю дату.</div></div>`
-        : '';
-      const secHtml = entries.map((ck) => {
-        const rows = m.cols[ck].sort((a, b) => a.orderBy.localeCompare(b.orderBy)).map((r) => `
-          <div class="supply-row">
-            <span class="supply-row-proj">${escapeHtml(r.project)}</span>
-            <span class="supply-row-task">${escapeHtml(r.taskName)}</span>
-            ${r.qty != null ? `<span class="supply-mat-qty">${r.qty} ${escapeHtml(r.unit || '')}</span>` : ''}
-            <span class="supply-row-date ${r.overdue ? 'is-late' : ''}">заказ до ${supplyFmtDM(r.orderBy)}</span>
-            <span class="supply-badge ${r.source === 'manual' ? 'supply-badge--manual' : ''}">${r.source === 'manual' ? 'ручное' : 'авто'}</span>
-          </div>`).join('');
-        return `<div class="supply-mat is-open">
-          <div class="supply-mat-head" style="cursor:default"><span class="supply-mat-name">${ck === 'overdue' ? '⚠️ уже пора' : 'к ' + supplyFmtDM(ck) + ' (неделя)'}</span>
-          <span class="supply-mat-meta">${fmtVol(volOf(m.cols[ck]))}</span></div>
-          <div class="supply-mat-rows">${rows}</div></div>`;
-      }).join('');
-      detailHtml = `<h3 class="supply-detail-title">${escapeHtml(m.name)}</h3>${consol}${secHtml}`;
-    }
+  if (_supplySel && byMat[_supplySel]) {
+    const m = byMat[_supplySel];
+    const entries = orderedDays.filter((dk) => m.days[dk]);
+    const consol = m.dayCount > 1
+      ? `<div class="supply-consol"><div class="supply-consol-t">💡 ${escapeHtml(m.name)} нужен в ${m.dayCount} датах (${m.projCount} об.)</div>
+         <div class="supply-consol-s">Выгодно заказать <b>одной партией: ${fmtVol(m.totalV)}</b> — по датам: ${entries.map((dk) => `<b>${dk === 'overdue' ? 'уже пора' : supplyFmtDM(dk)}</b> (${fmtVol(volOf(m.days[dk]))})`).join(', ')}. Ориентируйся на самую раннюю.</div></div>`
+      : '';
+    const secHtml = entries.map((dk) => {
+      const rows = m.days[dk].sort((a, b) => a.orderBy.localeCompare(b.orderBy)).map((r) => `
+        <div class="supply-row">
+          <span class="supply-row-proj">${escapeHtml(r.project)}</span>
+          <span class="supply-row-task">${escapeHtml(r.taskName)}</span>
+          ${r.qty != null ? `<span class="supply-mat-qty">${r.qty} ${escapeHtml(r.unit || '')}</span>` : ''}
+          <span class="supply-row-date ${r.overdue ? 'is-late' : ''}">заказ до ${supplyFmtDM(r.orderBy)}</span>
+          <span class="supply-badge ${r.source === 'manual' ? 'supply-badge--manual' : ''}">${r.source === 'manual' ? 'ручное' : 'авто'}</span>
+        </div>`).join('');
+      return `<div class="supply-mat is-open">
+        <div class="supply-mat-head" style="cursor:default"><span class="supply-mat-name">${dk === 'overdue' ? '⚠️ уже пора' : 'заказать до ' + supplyFmtDM(dk)}</span>
+        <span class="supply-mat-meta">${fmtVol(volOf(m.days[dk]))}</span></div>
+        <div class="supply-mat-rows">${rows}</div></div>`;
+    }).join('');
+    detailHtml = `<h3 class="supply-detail-title">${escapeHtml(m.name)}</h3>${consol}${secHtml}`;
   }
 
   body.innerHTML = `
@@ -586,50 +577,42 @@ function renderSupplyBody(ov) {
       <button type="button" class="supply-chip ${_supplyProj.size ? '' : 'is-on'}" data-proj="__all__">Все проекты</button>
       ${projChips}
     </div>
+    ${forecastHtml}
     <div class="supply-cal-card">
       <div class="supply-cal-head">
-        <div class="supply-cal-title">Доска закупок: строка = материал, колонки = недели. Повторы в строке = заказать одной партией</div>
+        <div class="supply-cal-title">Каждый столб = закупка материала. Высота = объём. Тапни столб — подсвечу его во всех датах</div>
         <button type="button" class="supply-cal-nav" data-nav="-1">‹</button>
         <button type="button" class="supply-cal-nav" data-nav="1">›</button>
       </div>
-      <div class="supply-cal-scroll" id="supply-cal-scroll"><div class="supply-ht-inner">
-        <div class="supply-ht-headrow">
-          <div class="supply-ht-corner">материал · всего</div>
-          ${cols.map(wkHead).join('')}
-        </div>
-        ${rowsHtml}
-      </div></div>
+      <div class="supply-cal-scroll" id="supply-cal-scroll">
+        <div class="supply-bchart ${_supplySel ? 'has-sel' : ''}">${colsHtml}</div>
+      </div>
       <div class="supply-legend">
         ${legendCats.map((c) => `<span><i style="background:${c.color}"></i>${escapeHtml(c.cat)}</span>`).join('')}
-        <span>ярче блок = больше объём</span>
       </div>
     </div>
-    ${detailHtml || '<div class="supply-empty">Тапни блок или название материала — покажу объекты, работы и сводку «заказать разом».</div>'}
+    ${detailHtml || '<div class="supply-empty">Тапни столб — подсвечу этот материал во всех датах и покажу сводку «заказать разом».</div>'}
   `;
 
   const sc = body.querySelector('#supply-cal-scroll');
   const keepScroll = (fn) => {
-    const keep = sc ? { l: sc.scrollLeft, t: sc.scrollTop } : { l: 0, t: 0 };
+    const keep = sc ? sc.scrollLeft : 0;
     fn();
     requestAnimationFrame(() => {
       const sc2 = body.querySelector('#supply-cal-scroll');
       if (!sc2) return;
       const prev = sc2.style.scrollBehavior;
       sc2.style.scrollBehavior = 'auto';
-      sc2.scrollLeft = keep.l; sc2.scrollTop = keep.t;
+      sc2.scrollLeft = keep;
       sc2.style.scrollBehavior = prev;
     });
   };
-  body.querySelectorAll('[data-cellkey]').forEach((el) => el.addEventListener('click', () => {
-    const key = el.getAttribute('data-cellkey');
+  body.querySelectorAll('[data-mkey]').forEach((el) => el.addEventListener('click', () => {
+    const key = el.getAttribute('data-mkey');
     keepScroll(() => { _supplySel = (_supplySel === key) ? null : key; renderSupplyBody(ov); });
   }));
-  body.querySelectorAll('[data-rowkey]').forEach((el) => el.addEventListener('click', () => {
-    const key = el.getAttribute('data-rowkey') + '|';
-    keepScroll(() => { _supplySel = (_supplySel && _supplySel.split('|')[0] === el.getAttribute('data-rowkey')) ? null : key; renderSupplyBody(ov); });
-  }));
   body.querySelectorAll('[data-nav]').forEach((el) => el.addEventListener('click', () => {
-    if (sc) sc.scrollBy({ left: Number(el.getAttribute('data-nav')) * 92 * 3, behavior: 'smooth' });
+    if (sc) sc.scrollBy({ left: Number(el.getAttribute('data-nav')) * 300, behavior: 'smooth' });
   }));
   body.querySelectorAll('[data-proj]').forEach((el) => el.addEventListener('click', () => {
     const p = el.getAttribute('data-proj');
