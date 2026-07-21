@@ -2,7 +2,7 @@
   "project": {
     "slug": "icon-bay-fit-out",
     "code": "ICON-BAY-F",
-    "name": "ICON BAY Fit-Out",
+    "name": "4201, 17 Icon Bay, Creek",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Huseyn Gasimov",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-09-17",
     "durationDays": 59,
     "contractEndDate": "2026-11-05",
-    "lastUpdated": "2026-07-21T13:34:04.174Z",
-    "lastUpdatedBy": "Bot (reschedule parallel)",
+    "lastUpdated": "2026-07-21T13:40:01.599Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
