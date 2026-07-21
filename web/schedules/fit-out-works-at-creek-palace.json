@@ -12,11 +12,11 @@
     "totalExVat": 224761,
     "totalIncVat": 235999,
     "startDate": "2026-07-21",
-    "endDate": "2026-10-19",
-    "durationDays": 91,
+    "endDate": "2026-09-27",
+    "durationDays": 69,
     "contractEndDate": "2026-10-19",
-    "lastUpdated": "2026-07-21T13:26:40.695Z",
-    "lastUpdatedBy": "Sergei (contracts import)",
+    "lastUpdated": "2026-07-21T13:26:48.119Z",
+    "lastUpdatedBy": "Bot (reschedule parallel)",
     "paymentStages": [
       {
         "id": "P1",
@@ -150,6 +150,20 @@
       "unit": "",
       "costIncVat": 27130.94,
       "durationDaysPlanned": 10,
+      "planStart": "2026-07-31",
+      "planEnd": "2026-08-09",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "plumbing",
+      "stage": "ST2",
+      "name": "Установка плитки в ванной",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 7476.48,
+      "durationDaysPlanned": 10,
       "planStart": "2026-08-10",
       "planEnd": "2026-08-19",
       "actualStart": null,
@@ -170,20 +184,6 @@
       "actualEnd": null
     },
     {
-      "id": "5",
-      "section": "plumbing",
-      "stage": "ST2",
-      "name": "Установка плитки в ванной",
-      "qty": null,
-      "unit": "",
-      "costIncVat": 7476.48,
-      "durationDaysPlanned": 10,
-      "planStart": "2026-08-27",
-      "planEnd": "2026-09-05",
-      "actualStart": null,
-      "actualEnd": null
-    },
-    {
       "id": "6",
       "section": "paint",
       "stage": "ST3",
@@ -192,8 +192,8 @@
       "unit": "",
       "costIncVat": 22609.11,
       "durationDaysPlanned": 7,
-      "planStart": "2026-09-06",
-      "planEnd": "2026-09-12",
+      "planStart": "2026-08-27",
+      "planEnd": "2026-09-02",
       "actualStart": null,
       "actualEnd": null
     },
@@ -206,8 +206,8 @@
       "unit": "",
       "costIncVat": 60480,
       "durationDaysPlanned": 20,
-      "planStart": "2026-09-13",
-      "planEnd": "2026-10-02",
+      "planStart": "2026-09-03",
+      "planEnd": "2026-09-22",
       "actualStart": null,
       "actualEnd": null
     },
@@ -220,8 +220,8 @@
       "unit": "",
       "costIncVat": 28224,
       "durationDaysPlanned": 10,
-      "planStart": "2026-10-03",
-      "planEnd": "2026-10-12",
+      "planStart": "2026-09-03",
+      "planEnd": "2026-09-12",
       "actualStart": null,
       "actualEnd": null
     },
@@ -234,8 +234,8 @@
       "unit": "",
       "costIncVat": 12096,
       "durationDaysPlanned": 5,
-      "planStart": "2026-10-13",
-      "planEnd": "2026-10-17",
+      "planStart": "2026-09-23",
+      "planEnd": "2026-09-27",
       "actualStart": null,
       "actualEnd": null
     },
@@ -248,8 +248,8 @@
       "unit": "",
       "costIncVat": 23400,
       "durationDaysPlanned": 2,
-      "planStart": "2026-10-18",
-      "planEnd": "2026-10-19",
+      "planStart": "2026-09-23",
+      "planEnd": "2026-09-24",
       "actualStart": null,
       "actualEnd": null
     }
