@@ -1,0 +1,271 @@
+{
+  "project": {
+    "slug": "dubai-krik-rezidens",
+    "code": "DUBAI-KRIK",
+    "name": "Дубай Крик Резиденс",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "Наталия Ульянова",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2026-06-30",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 661905,
+    "totalIncVat": 695000,
+    "startDate": "2026-07-21",
+    "endDate": "2026-11-01",
+    "durationDays": 104,
+    "contractEndDate": "2026-11-01",
+    "lastUpdated": "2026-07-21T13:38:33.447Z",
+    "lastUpdatedBy": "Sergei (contracts import)",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "finishing",
+      "name": "Штукатурно-малярные",
+      "color": "#a855f7"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтаж",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 37777.14,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-07-21",
+      "planEnd": "2026-07-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "finishing",
+      "stage": "ST2",
+      "name": "Шпатлёвка стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 47288.6,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-07-26",
+      "planEnd": "2026-08-04",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Установка потолков из ГКЛ",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 22905.82,
+      "durationDaysPlanned": 14,
+      "planStart": "2026-08-05",
+      "planEnd": "2026-08-18",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "finishing",
+      "stage": "ST3",
+      "name": "Покраска стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 27709.92,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-19",
+      "planEnd": "2026-08-25",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "flooring",
+      "stage": "ST3",
+      "name": "Укладка плитки",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 43351.37,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-08-26",
+      "planEnd": "2026-09-04",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "plumbing",
+      "stage": "ST3",
+      "name": "Монтаж сантехники",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 71177.35,
+      "durationDaysPlanned": 15,
+      "planStart": "2026-09-05",
+      "planEnd": "2026-09-19",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "electrical",
+      "stage": "ST3",
+      "name": "Монтаж электрики",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 106466.03,
+      "durationDaysPlanned": 20,
+      "planStart": "2026-09-20",
+      "planEnd": "2026-10-09",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "flooring",
+      "stage": "ST3",
+      "name": "Укладка полов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 5291.72,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-10-10",
+      "planEnd": "2026-10-19",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "materials",
+      "stage": "ST3",
+      "name": "Прочие работы по контракту",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 293278.65,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-10-20",
+      "planEnd": "2026-10-26",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "section": "finishing",
+      "stage": "ST4",
+      "name": "Обработка поверхностей",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 19237.31,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-10-27",
+      "planEnd": "2026-10-29",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "11",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Удаление мусора",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 20516.09,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-10-30",
+      "planEnd": "2026-11-01",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
