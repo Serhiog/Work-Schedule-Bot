@@ -1,0 +1,243 @@
+{
+  "project": {
+    "slug": "fit-out-project-at-creek-palace",
+    "code": "FIT-OUT-PR",
+    "name": "Fit-out Project at Creek Palace",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "Mr. Artur Allagulov",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2026-01-18",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 685358,
+    "totalIncVat": 719626,
+    "startDate": "2026-07-21",
+    "endDate": "2026-10-19",
+    "durationDays": 91,
+    "contractEndDate": "2026-10-19",
+    "lastUpdated": "2026-07-21T13:28:57.826Z",
+    "lastUpdatedBy": "Sergei (contracts import)",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "paint",
+      "name": "Покраска",
+      "color": "#22c55e"
+    },
+    {
+      "id": "furniture",
+      "name": "Мебель и декор",
+      "color": "#475569"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтаж стен и полов",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 36980,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-07-21",
+      "planEnd": "2026-07-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Штукатурка и отделка стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 94944,
+      "durationDaysPlanned": 14,
+      "planStart": "2026-07-31",
+      "planEnd": "2026-08-13",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Установка потолков",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 38240,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-08-14",
+      "planEnd": "2026-08-23",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Укладка пола",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 195000,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-24",
+      "planEnd": "2026-08-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "paint",
+      "stage": "ST3",
+      "name": "Покраска и отделка",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 93128,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-31",
+      "planEnd": "2026-09-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "electrical",
+      "stage": "ST3",
+      "name": "Электромонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 104832,
+      "durationDaysPlanned": 20,
+      "planStart": "2026-09-07",
+      "planEnd": "2026-09-26",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "plumbing",
+      "stage": "ST3",
+      "name": "Работы по сантехнике",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 81234,
+      "durationDaysPlanned": 15,
+      "planStart": "2026-09-27",
+      "planEnd": "2026-10-11",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Монтаж дверей и мебели",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 18500,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-10-12",
+      "planEnd": "2026-10-16",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Уборка и вывоз мусора",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 22500,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-10-17",
+      "planEnd": "2026-10-19",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
