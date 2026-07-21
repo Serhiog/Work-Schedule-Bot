@@ -1,0 +1,295 @@
+{
+  "project": {
+    "slug": "burj-khalifa-fit-out",
+    "code": "BURJ-KHALI",
+    "name": "Burj Khalifa Fit-Out",
+    "contractor": "CYFR FITOUT L.L.C",
+    "customer": "Ms. Kristina Mavrina",
+    "location": "Дубай, ОАЭ",
+    "contractDate": "2026-06-11",
+    "currency": "AED",
+    "vatRate": 0.05,
+    "totalExVat": 103172,
+    "totalIncVat": 108330,
+    "startDate": "2026-07-21",
+    "endDate": "2026-11-29",
+    "durationDays": 132,
+    "contractEndDate": "2026-11-29",
+    "lastUpdated": "2026-07-21T13:34:36.754Z",
+    "lastUpdatedBy": "Sergei (contracts import)",
+    "paymentStages": [
+      {
+        "id": "P1",
+        "label": "Аванс",
+        "share": 0.15,
+        "note": "Мобилизация и проектная поддержка"
+      },
+      {
+        "id": "P2",
+        "label": "Этап 1",
+        "share": 0.4,
+        "note": "Черновые работы и first-fix"
+      },
+      {
+        "id": "P3",
+        "label": "Этап 2",
+        "share": 0.35,
+        "note": "Чистовая отделка и final-fix"
+      },
+      {
+        "id": "P4",
+        "label": "Этап 3",
+        "share": 0.1,
+        "note": "Устранение замечаний и сдача"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "demolition",
+      "name": "Демонтаж",
+      "color": "#64748b"
+    },
+    {
+      "id": "plumbing",
+      "name": "Сантехника",
+      "color": "#3b82f6",
+      "sub": true
+    },
+    {
+      "id": "electrical",
+      "name": "Электрика",
+      "color": "#eab308",
+      "sub": true
+    },
+    {
+      "id": "flooring",
+      "name": "Полы",
+      "color": "#f97316"
+    },
+    {
+      "id": "drywall",
+      "name": "Гипсокартонные работы",
+      "color": "#ec4899"
+    },
+    {
+      "id": "finishing",
+      "name": "Штукатурно-малярные",
+      "color": "#a855f7"
+    },
+    {
+      "id": "paint",
+      "name": "Покраска",
+      "color": "#22c55e"
+    },
+    {
+      "id": "furniture",
+      "name": "Мебель и декор",
+      "color": "#475569"
+    },
+    {
+      "id": "cleaning",
+      "name": "Уборка",
+      "color": "#84cc16"
+    },
+    {
+      "id": "materials",
+      "name": "Логистика и материалы",
+      "color": "#d4a017"
+    }
+  ],
+  "stages": [
+    {
+      "id": "ST1",
+      "name": "Этап 1 · Черновые (демонтаж, MEP)",
+      "color": "#1e3b60"
+    },
+    {
+      "id": "ST2",
+      "name": "Этап 2 · Конструкции (ГКЛ, полы)",
+      "color": "#2d6a8f"
+    },
+    {
+      "id": "ST3",
+      "name": "Этап 3 · Чистовые (отделка)",
+      "color": "#c9a96e"
+    },
+    {
+      "id": "ST4",
+      "name": "Этап 4 · Сдача (мебель, уборка)",
+      "color": "#8a5a44"
+    }
+  ],
+  "milestones": [],
+  "holidays": [],
+  "tasks": [
+    {
+      "id": "1",
+      "section": "demolition",
+      "stage": "ST1",
+      "name": "Демонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 8800,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-07-21",
+      "planEnd": "2026-07-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "2",
+      "section": "materials",
+      "stage": "ST1",
+      "name": "Транспортные и прочие расходы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 5775,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-07-31",
+      "planEnd": "2026-08-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "3",
+      "section": "drywall",
+      "stage": "ST2",
+      "name": "Установка гипсокартонных конструкций",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 6203.29,
+      "durationDaysPlanned": 14,
+      "planStart": "2026-08-07",
+      "planEnd": "2026-08-20",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "4",
+      "section": "finishing",
+      "stage": "ST2",
+      "name": "Шпаклевка и шлифовка стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 4007.1,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-08-21",
+      "planEnd": "2026-08-30",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "5",
+      "section": "paint",
+      "stage": "ST2",
+      "name": "Грунтовка и покраска стен",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 4081.89,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-08-31",
+      "planEnd": "2026-09-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "6",
+      "section": "flooring",
+      "stage": "ST2",
+      "name": "Установка плитки на пол",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 2375.07,
+      "durationDaysPlanned": 10,
+      "planStart": "2026-09-07",
+      "planEnd": "2026-09-16",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "7",
+      "section": "plumbing",
+      "stage": "ST3",
+      "name": "Установка сантехнического оборудования",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 6840,
+      "durationDaysPlanned": 20,
+      "planStart": "2026-09-17",
+      "planEnd": "2026-10-06",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "8",
+      "section": "electrical",
+      "stage": "ST3",
+      "name": "Электромонтажные работы",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 14850,
+      "durationDaysPlanned": 25,
+      "planStart": "2026-10-07",
+      "planEnd": "2026-10-31",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "9",
+      "section": "finishing",
+      "stage": "ST3",
+      "name": "Финишные работы и покраска",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 13942,
+      "durationDaysPlanned": 14,
+      "planStart": "2026-11-01",
+      "planEnd": "2026-11-14",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "10",
+      "section": "materials",
+      "stage": "ST3",
+      "name": "Прочие работы по контракту",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 26105.02,
+      "durationDaysPlanned": 7,
+      "planStart": "2026-11-15",
+      "planEnd": "2026-11-21",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "11",
+      "section": "furniture",
+      "stage": "ST4",
+      "name": "Монтаж мебели",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 11655,
+      "durationDaysPlanned": 5,
+      "planStart": "2026-11-22",
+      "planEnd": "2026-11-26",
+      "actualStart": null,
+      "actualEnd": null
+    },
+    {
+      "id": "12",
+      "section": "cleaning",
+      "stage": "ST4",
+      "name": "Уборка после ремонта",
+      "qty": null,
+      "unit": "",
+      "costIncVat": 3696,
+      "durationDaysPlanned": 3,
+      "planStart": "2026-11-27",
+      "planEnd": "2026-11-29",
+      "actualStart": null,
+      "actualEnd": null
+    }
+  ]
+}
