@@ -2,7 +2,7 @@
   "project": {
     "slug": "dubai-krik-rezidens",
     "code": "DUBAI-KRIK",
-    "name": "Дубай Крик Резиденс",
+    "name": "3801, North Tower 1, Creek Harbour",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Наталия Ульянова",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-09-20",
     "durationDays": 62,
     "contractEndDate": "2026-11-01",
-    "lastUpdated": "2026-07-21T13:38:41.372Z",
-    "lastUpdatedBy": "Bot (reschedule parallel)",
+    "lastUpdated": "2026-07-21T13:40:11.735Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
