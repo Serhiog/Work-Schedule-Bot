@@ -313,6 +313,11 @@ async function renderLandingView() {
       <div class="landing-sub">Отделочные работы — графики ремонтов. Плановое обслуживание — чек-листы. В каждой области можно добавить новый проект.</div>
     </div>
     ${error ? `<div class="landing-error">⚠ ${escapeHtml(error)}</div>` : ''}
+    <button type="button" class="landing-supply-btn" id="btn-open-supply">
+      <span class="landing-supply-ico">📦</span>
+      <span class="landing-supply-txt"><b>Снабжение — план закупок</b><small>Прогноз по всем проектам: что и к какой дате заказать</small></span>
+      <span class="landing-supply-arrow">›</span>
+    </button>
     <div class="landing-columns">
       ${group('🏗 ФитАут', 'Графики ремонтных проектов', fitout, false, 'btn-create-fitout', 'Новый проект')}
       ${group('🔧 Обслуживание', 'Листы планового обслуживания (PPM)', maint, true, 'btn-create-maintenance', 'Новый лист')}
@@ -322,6 +327,222 @@ async function renderLandingView() {
   if (cm) cm.addEventListener('click', openCreateMaintenanceModal);
   const cf = wrap.querySelector('#btn-create-fitout');
   if (cf) cf.addEventListener('click', openCreateFitoutModal);
+  const sb = wrap.querySelector('#btn-open-supply');
+  if (sb) sb.addEventListener('click', openSupplyView);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   __SUPPLY_VIEW_v1__ Снабжение — план закупок по всем проектам.
+   Данные: action procurement:forecast (бэкенд сводит работы×материалы: ручные
+   Антона или авто-дефолты; «заказать до» = старт работы − срок поставки).
+   Форма: колонки по неделям (число позиций к заказу), «Просрочено» — отдельный
+   красный столбик; тап по столбику → список недели, сгруппированный по материалу
+   (одинаковое на несколько объектов складывается). Фильтр-чипы по проектам.
+   ──────────────────────────────────────────────────────────────────────────── */
+function injectSupplyStyles() {
+  if (document.getElementById('supply-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'supply-styles';
+  s.textContent = `
+  .landing-supply-btn { display:flex; align-items:center; gap:14px; width:100%; margin:0 0 18px; padding:15px 18px;
+    background: var(--card); border:1px solid var(--line); border-left:4px solid #2a78d6; border-radius:14px;
+    font:inherit; text-align:left; cursor:pointer; transition: box-shadow .15s ease, transform .15s ease; }
+  .landing-supply-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .landing-supply-ico { font-size:26px; }
+  .landing-supply-txt { flex:1; display:flex; flex-direction:column; gap:2px; }
+  .landing-supply-txt b { font-size:16px; color:var(--ink); letter-spacing:-0.2px; }
+  .landing-supply-txt small { font-size:12.5px; color:var(--muted); }
+  .landing-supply-arrow { font-size:22px; color:var(--muted); }
+
+  .supply-overlay { position:fixed; inset:0; z-index:3000; background:var(--bg, #f6f7f9); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .supply-wrap { max-width:960px; margin:0 auto; padding:18px 16px 80px; font-family:'Inter',-apple-system,sans-serif; }
+  .supply-head { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+  .supply-title { font-size:22px; font-weight:800; letter-spacing:-0.4px; color:var(--ink); margin:0; flex:1; }
+  .supply-close { font:inherit; font-size:15px; font-weight:700; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:8px 14px; cursor:pointer; }
+  .supply-sub { font-size:12.5px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+  .supply-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
+  .supply-chip { font:inherit; font-size:12.5px; font-weight:600; padding:7px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  .supply-chip.is-on { background:#2a78d6; border-color:#2a78d6; color:#fff; }
+  .supply-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+  .supply-kpi { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .supply-kpi-v { font-size:26px; font-weight:800; letter-spacing:-0.5px; color:var(--ink); }
+  .supply-kpi--red .supply-kpi-v { color:#d03b3b; }
+  .supply-kpi-l { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
+  .supply-chart-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 14px 10px; margin-bottom:16px; }
+  .supply-chart-title { font-size:13px; font-weight:700; color:var(--ink); margin:0 0 12px; }
+  .supply-chart-scroll { overflow-x:auto; }
+  .supply-chart { display:flex; align-items:flex-end; gap:8px; min-height:170px; padding-bottom:6px; min-width:520px; }
+  .supply-col { flex:1; min-width:44px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; border-radius:8px; padding:4px 2px; }
+  .supply-col:active { background:var(--surface-2,#f1f5f9); }
+  .supply-col-val { font-size:12px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .supply-bar { width:100%; max-width:34px; border-radius:4px 4px 0 0; background:#2a78d6; min-height:3px; transition:height .2s ease; }
+  .supply-col--overdue .supply-bar { background:#d03b3b; }
+  .supply-col--empty .supply-bar { background:var(--line); }
+  .supply-col-lab { font-size:10.5px; color:var(--muted); white-space:nowrap; line-height:1.25; text-align:center; }
+  .supply-col.is-sel .supply-col-lab { color:var(--ink); font-weight:700; }
+  .supply-col.is-sel { background:var(--surface-2,#eef2f7); }
+  .supply-baseline { height:1px; background:var(--line); margin:0 2px 8px; }
+  .supply-legend { display:flex; gap:14px; font-size:11.5px; color:var(--muted); padding:2px 4px 6px; flex-wrap:wrap; }
+  .supply-legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .supply-detail-title { font-size:14px; font-weight:800; color:var(--ink); margin:0 0 10px; }
+  .supply-mat { background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden; }
+  .supply-mat-head { display:flex; align-items:center; gap:10px; padding:11px 13px; cursor:pointer; }
+  .supply-mat-name { flex:1; font-size:13.5px; font-weight:700; color:var(--ink); }
+  .supply-mat-meta { font-size:11.5px; color:var(--muted); white-space:nowrap; }
+  .supply-mat-qty { font-size:12px; font-weight:700; color:#2a78d6; white-space:nowrap; }
+  .supply-mat-rows { border-top:1px solid var(--line); display:none; }
+  .supply-mat.is-open .supply-mat-rows { display:block; }
+  .supply-row { display:flex; align-items:center; gap:8px; padding:9px 13px; border-bottom:1px solid var(--line-2,#f1f5f9); font-size:12.5px; }
+  .supply-row:last-child { border-bottom:none; }
+  .supply-row-proj { font-weight:700; color:var(--ink); }
+  .supply-row-task { color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .supply-row-date { font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600; white-space:nowrap; }
+  .supply-row-date.is-late { color:#d03b3b; }
+  .supply-badge { font-size:9.5px; font-weight:800; letter-spacing:.4px; padding:2px 7px; border-radius:999px; background:var(--surface-2,#eef2f6); color:var(--muted); text-transform:uppercase; }
+  .supply-badge--manual { background:rgba(12,163,12,.13); color:#0a7a0a; }
+  .supply-empty { color:var(--muted); font-size:13px; padding:18px 4px; }
+  @media (max-width:760px){ .supply-kpis{grid-template-columns:repeat(3,1fr);} .supply-kpi-v{font-size:21px;} }
+  `;
+  document.head.appendChild(s);
+}
+
+let _supplyData = null;      // кэш ответа procurement:forecast на время открытого окна
+let _supplySel = null;       // выбранный столбик: 'overdue' | ISO-понедельник недели
+let _supplyProj = new Set(); // выбранные slug'и (пусто = все)
+
+function supplyWeekMonday(iso) {
+  const d = new Date(iso + 'T00:00:00Z');
+  const dow = (d.getUTCDay() + 6) % 7; // Пн=0
+  d.setUTCDate(d.getUTCDate() - dow);
+  return d.toISOString().slice(0, 10);
+}
+function supplyFmtDM(iso) { const d = new Date(iso + 'T00:00:00Z'); return d.getUTCDate() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0'); }
+
+async function openSupplyView() {
+  injectSupplyStyles();
+  document.querySelectorAll('.supply-overlay').forEach((e) => e.remove());
+  const ov = document.createElement('div');
+  ov.className = 'supply-overlay';
+  ov.innerHTML = `<div class="supply-wrap">
+    <div class="supply-head"><h1 class="supply-title">📦 План закупок</h1><button type="button" class="supply-close">✕ Закрыть</button></div>
+    <div class="supply-sub">Считается из графиков всех проектов: <b>заказать до = старт работы − срок поставки</b>. Материалы — те, что руководитель поставил в работах; где не ставил — автоподбор по типу работ.</div>
+    <div class="supply-body"><div class="supply-empty">Загружаю прогноз…</div></div>
+  </div>`;
+  document.body.appendChild(ov);
+  document.body.style.overflow = 'hidden';
+  const close = () => { ov.remove(); document.body.style.overflow = ''; _supplyData = null; };
+  ov.querySelector('.supply-close').addEventListener('click', close);
+
+  try {
+    const r = await postDataAction('procurement:forecast', {});
+    _supplyData = r;
+    _supplySel = null;
+    _supplyProj = new Set();
+    renderSupplyBody(ov);
+  } catch (e) {
+    ov.querySelector('.supply-body').innerHTML = `<div class="supply-empty">⚠ Не удалось загрузить: ${escapeHtml(e.message || String(e))}</div>`;
+  }
+}
+
+function renderSupplyBody(ov) {
+  const d = _supplyData || {};
+  const body = ov.querySelector('.supply-body');
+  const all = Array.isArray(d.items) ? d.items : [];
+  const items = _supplyProj.size ? all.filter((x) => _supplyProj.has(x.slug)) : all;
+  const today = d.today || new Date().toISOString().slice(0, 10);
+  const thisMonday = supplyWeekMonday(today);
+
+  // Бакеты: «просрочено» + 12 недель вперёд.
+  const WEEKS = 12;
+  const weeks = [];
+  for (let i = 0; i < WEEKS; i++) {
+    const d0 = new Date(thisMonday + 'T00:00:00Z'); d0.setUTCDate(d0.getUTCDate() + i * 7);
+    weeks.push(d0.toISOString().slice(0, 10));
+  }
+  const buckets = { overdue: [] };
+  weeks.forEach((w) => { buckets[w] = []; });
+  let later = 0;
+  for (const x of items) {
+    if (x.overdue) { buckets.overdue.push(x); continue; }
+    const w = supplyWeekMonday(x.orderBy);
+    if (buckets[w]) buckets[w].push(x); else later++;
+  }
+  if (_supplySel == null) _supplySel = buckets.overdue.length ? 'overdue' : thisMonday;
+
+  const thisWeekCnt = (buckets[thisMonday] || []).length;
+  const maxCnt = Math.max(1, buckets.overdue.length, ...weeks.map((w) => buckets[w].length));
+  const H = 120;
+  const colHtml = (key, cnt, label, cls) => `
+    <div class="supply-col ${cls || ''} ${cnt ? '' : 'supply-col--empty'} ${_supplySel === key ? 'is-sel' : ''}" data-bucket="${key}">
+      <div class="supply-col-val">${cnt || ''}</div>
+      <div class="supply-bar" style="height:${Math.max(3, Math.round(cnt / maxCnt * H))}px"></div>
+      <div class="supply-col-lab">${label}</div>
+    </div>`;
+
+  const projChips = (d.projects || []).map((p) =>
+    `<button type="button" class="supply-chip ${_supplyProj.has(p.slug) ? 'is-on' : ''}" data-proj="${escapeHtml(p.slug)}">${escapeHtml(p.name)}</button>`).join('');
+
+  // Список выбранного бакета: группировка по материалу (одинаковое с разных объектов — вместе).
+  const sel = buckets[_supplySel] || [];
+  const groups = {};
+  for (const x of sel) {
+    const k = x.material.toLowerCase();
+    (groups[k] = groups[k] || { name: x.material, rows: [] }).rows.push(x);
+  }
+  const glist = Object.values(groups).sort((a, b) => b.rows.length - a.rows.length || a.name.localeCompare(b.name));
+  const detTitle = _supplySel === 'overdue' ? '⚠️ Просрочено — заказать немедленно' : `Неделя с ${supplyFmtDM(_supplySel)} — заказать до этих дат`;
+  const matHtml = (g) => {
+    const projSet = new Set(g.rows.map((r) => r.slug));
+    const qtyByUnit = {};
+    for (const r of g.rows) if (r.qty != null && r.unit) qtyByUnit[r.unit] = (qtyByUnit[r.unit] || 0) + r.qty;
+    const qtyStr = Object.entries(qtyByUnit).map(([u, q]) => `${Math.round(q * 100) / 100} ${u}`).join(' + ');
+    const rows = g.rows.sort((a, b) => a.orderBy.localeCompare(b.orderBy)).map((r) => `
+      <div class="supply-row">
+        <span class="supply-row-proj">${escapeHtml(r.project)}</span>
+        <span class="supply-row-task">${escapeHtml(r.taskName)}</span>
+        ${r.qty != null ? `<span class="supply-mat-qty">${r.qty} ${escapeHtml(r.unit || '')}</span>` : ''}
+        <span class="supply-row-date ${r.overdue ? 'is-late' : ''}">до ${supplyFmtDM(r.orderBy)}</span>
+        <span class="supply-badge ${r.source === 'manual' ? 'supply-badge--manual' : ''}">${r.source === 'manual' ? 'ручное' : 'авто'}</span>
+      </div>`).join('');
+    return `<div class="supply-mat"><div class="supply-mat-head">
+        <span class="supply-mat-name">${escapeHtml(g.name)}</span>
+        ${qtyStr ? `<span class="supply-mat-qty">${escapeHtml(qtyStr)}</span>` : ''}
+        <span class="supply-mat-meta">${projSet.size > 1 ? `${projSet.size} объекта · ` : ''}${g.rows.length} поз. ›</span>
+      </div><div class="supply-mat-rows">${rows}</div></div>`;
+  };
+
+  body.innerHTML = `
+    <div class="supply-chips">
+      <button type="button" class="supply-chip ${_supplyProj.size ? '' : 'is-on'}" data-proj="__all__">Все проекты</button>
+      ${projChips}
+    </div>
+    <div class="supply-kpis">
+      <div class="supply-kpi supply-kpi--red"><div class="supply-kpi-v">${buckets.overdue.length}</div><div class="supply-kpi-l">⚠️ просрочено — заказать сейчас</div></div>
+      <div class="supply-kpi"><div class="supply-kpi-v">${thisWeekCnt}</div><div class="supply-kpi-l">заказать на этой неделе</div></div>
+      <div class="supply-kpi"><div class="supply-kpi-v">${items.length}</div><div class="supply-kpi-l">всего позиций в горизонте${later ? ` (+${later} позже)` : ''}</div></div>
+    </div>
+    <div class="supply-chart-card">
+      <h3 class="supply-chart-title">Сколько позиций заказать по неделям — тапни столбик</h3>
+      <div class="supply-chart-scroll"><div class="supply-chart">
+        ${colHtml('overdue', buckets.overdue.length, '⚠️ уже<br>пора', 'supply-col--overdue')}
+        ${weeks.map((w, i) => colHtml(w, buckets[w].length, (i === 0 ? 'эта нед.<br>' : '') + supplyFmtDM(w), '')).join('')}
+      </div></div>
+      <div class="supply-baseline"></div>
+      <div class="supply-legend"><span><i style="background:#d03b3b"></i>просрочено — требует действия</span><span><i style="background:#2a78d6"></i>к заказу</span><span><i style="background:var(--line)"></i>пусто</span></div>
+    </div>
+    <h3 class="supply-detail-title">${detTitle}</h3>
+    ${glist.length ? glist.map(matHtml).join('') : '<div class="supply-empty">На эту неделю заказов нет.</div>'}
+  `;
+
+  body.querySelectorAll('[data-bucket]').forEach((el) => el.addEventListener('click', () => { _supplySel = el.getAttribute('data-bucket'); renderSupplyBody(ov); }));
+  body.querySelectorAll('[data-proj]').forEach((el) => el.addEventListener('click', () => {
+    const p = el.getAttribute('data-proj');
+    if (p === '__all__') _supplyProj.clear();
+    else { if (_supplyProj.has(p)) _supplyProj.delete(p); else _supplyProj.add(p); }
+    _supplySel = null; // пересчитать выбор под новый фильтр
+    renderSupplyBody(ov);
+  }));
+  body.querySelectorAll('.supply-mat-head').forEach((el) => el.addEventListener('click', () => el.parentElement.classList.toggle('is-open')));
 }
 
 // __FITOUT_CREATE_v2__ Создание ФитАут-проекта: пустой (вручную) ИЛИ из файла сметы
