@@ -2,7 +2,7 @@
   "project": {
     "slug": "burj-khalifa-fit-out-2",
     "code": "BURJ-KHALI",
-    "name": "Burj Khalifa Fit-Out",
+    "name": "411, BD Standpoint A",
     "contractor": "CYFR FITOUT L.L.C",
     "customer": "Rostislav Ageev",
     "location": "Дубай, ОАЭ",
@@ -15,8 +15,8 @@
     "endDate": "2026-10-08",
     "durationDays": 80,
     "contractEndDate": "2026-11-23",
-    "lastUpdated": "2026-07-21T13:36:02.760Z",
-    "lastUpdatedBy": "Bot (reschedule parallel)",
+    "lastUpdated": "2026-07-21T13:40:06.462Z",
+    "lastUpdatedBy": "Bot (voice rename)",
     "paymentStages": [
       {
         "id": "P1",
