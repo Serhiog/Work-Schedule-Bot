@@ -366,20 +366,26 @@ function injectSupplyStyles() {
   .supply-cal-title { font-size:13px; font-weight:700; color:var(--ink); flex:1; }
   .supply-cal-nav { font:inherit; font-size:16px; font-weight:800; width:34px; height:34px; border-radius:9px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
   .supply-cal-scroll { overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding:0 12px; }
-  .supply-bchart { display:flex; align-items:flex-end; gap:16px; min-height:288px; padding-top:8px; }
+  .supply-bchart { display:flex; align-items:flex-end; gap:18px; min-height:352px; padding-top:8px; }
   .supply-bday { display:flex; flex-direction:column; align-items:center; flex:0 0 auto; }
-  .supply-bday-total { font-size:10.5px; font-weight:800; color:var(--muted); margin-bottom:3px; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .supply-bday-bars { display:flex; align-items:flex-end; gap:3px; }
-  .supply-bbar { border:none; cursor:pointer; padding:0; width:13px; border-radius:4px 4px 1px 1px; transition:opacity .15s ease; }
-  .supply-bchart.has-sel .supply-bbar { opacity:.22; }
-  .supply-bchart.has-sel .supply-bbar.is-same { opacity:1; outline:1.5px solid var(--ink); outline-offset:1px; }
-  .supply-bday-axis { border-top:2px solid var(--line); margin-top:5px; padding:5px 2px 7px; text-align:center; width:100%; }
-  .supply-bday--overdue .supply-bday-axis { border-top-color:#d03b3b; }
-  .supply-bday-d { font-size:12px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .supply-bday-total { font-size:11.5px; font-weight:800; color:var(--muted); margin-bottom:4px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .supply-bday-bars { display:flex; align-items:flex-end; gap:5px; }
+  /* Крупные удобные столбы: легко навести и попасть пальцем */
+  .supply-bbar { border:none; cursor:pointer; padding:0; width:26px; min-width:26px; border-radius:6px 6px 2px 2px; transition:opacity .15s ease, filter .15s ease; }
+  .supply-bbar:hover { filter:brightness(1.12); }
+  .supply-bchart.has-sel .supply-bbar { opacity:.2; }
+  .supply-bchart.has-sel .supply-bbar.is-same { opacity:1; outline:2px solid var(--ink); outline-offset:1px; }
+  /* Ретроспектива: прошлое видно, но приглушено и не кричит */
+  .supply-bday--retro .supply-bbar { opacity:.3; }
+  .supply-bday--retro .supply-bday-total, .supply-bday--retro .supply-bday-d, .supply-bday--retro .supply-bday-m { opacity:.5; }
+  .supply-bchart.has-sel .supply-bday--retro .supply-bbar.is-same { opacity:.65; }
+  .supply-bday-axis { border-top:2px solid var(--line); margin-top:6px; padding:6px 2px 8px; text-align:center; width:100%; }
+  .supply-bday-d { font-size:12.5px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
   .supply-bday-d small { font-weight:600; color:var(--muted); margin-left:3px; font-size:9.5px; }
   .supply-bday--today .supply-bday-d { color:#2a78d6; }
-  .supply-bday--overdue .supply-bday-d { color:#d03b3b; font-size:10.5px; }
   .supply-bday-m { font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); min-height:12px; }
+  /* Ховер-подсказка */
+  .supply-tip { position:fixed; z-index:4000; background:var(--ink,#0f172a); color:#fff; font-size:12px; font-weight:600; line-height:1.45; padding:8px 11px; border-radius:9px; box-shadow:0 6px 20px rgba(0,0,0,.25); pointer-events:none; }
   .supply-legend { display:flex; gap:12px; font-size:11.5px; color:var(--muted); padding:8px 14px 6px; flex-wrap:wrap; }
   .supply-legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
   /* 🔮 авто-прогноз системы */
@@ -417,8 +423,9 @@ function injectSupplyStyles() {
 }
 
 let _supplyData = null;      // кэш ответа procurement:forecast на время открытого окна
-let _supplySel = null;       // выбранный столбик-материал: ключ 'day|material'
+let _supplySel = null;       // выбранный материал (matKey)
 let _supplyProj = new Set(); // выбранные slug'и (пусто = все)
+let _supplyScrolled = false; // авто-прокрутка к «сегодня» сделана (ретро остаётся слева)
 
 function supplyFmtDM(iso) { const d = new Date(iso + 'T00:00:00Z'); return d.getUTCDate() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0'); }
 const SUPPLY_MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
@@ -444,6 +451,7 @@ async function openSupplyView() {
     _supplyData = r;
     _supplySel = null;
     _supplyProj = new Set();
+    _supplyScrolled = false;
     renderSupplyBody(ov);
   } catch (e) {
     ov.querySelector('.supply-body').innerHTML = `<div class="supply-empty">⚠ Не удалось загрузить: ${escapeHtml(e.message || String(e))}</div>`;
@@ -459,84 +467,126 @@ function renderSupplyBody(ov) {
   const addDays = (iso, n) => { const t = new Date(iso + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
   const soonEdge = addDays(today, 7);
 
-  // КАЛЕНДАРЬ С ТОНКИМИ СТОЛБАМИ: колонка = день, в ней кучка тонких столбов —
-  // каждый столб = закупка конкретного материала, высота = объём (ОБЩИЙ масштаб,
-  // чтобы перспектива читалась). Тап по столбу подсвечивает материал во всех днях.
-  const byDay = {}; // day -> { matKey -> {name, rows[]} }
-  const byMat = {}; // matKey -> { name, days:{day->rows[]} }
-  for (const x of items) {
-    const day = x.overdue ? 'overdue' : x.orderBy;
-    const k = x.material.toLowerCase();
-    ((byDay[day] = byDay[day] || {})[k] = (byDay[day] || {})[k] || { name: x.material, rows: [] }).rows.push(x);
-    const m = (byMat[k] = byMat[k] || { name: x.material, days: {} });
-    (m.days[day] = m.days[day] || []).push(x);
-  }
+  // ПРОГНОЗ ЗАКУПОК ПАРТИЯМИ. Система сама группирует: по каждому материалу берём
+  // предстоящие работы (и уже идущие), близкие по датам потребности (окно 14 дней)
+  // сливаем в ОДНУ закупку и ставим её столбик за 7 дней до старта первой работы.
+  // Далёкие потребности — отдельная партия (не «всё на все проекты разом»).
+  // Прошлое (работы, что уже закончились по плану) — приглушённо, в ретроспективе.
   const moneyMode = items.some((x) => Number(x.volAED) > 0);
   const volOf = (rows) => moneyMode ? rows.reduce((s, r) => s + (Number(r.volAED) || 0), 0) : rows.length;
   const fmtVol = (v) => moneyMode
     ? (v >= 1e6 ? (Math.round(v / 1e5) / 10) + ' млн' : Math.max(1, Math.round(v / 1000)) + ' тыс')
     : v + ' поз.';
 
-  const dayKeys = Object.keys(byDay).filter((k) => k !== 'overdue').sort();
-  const orderedDays = (byDay.overdue ? ['overdue'] : []).concat(dayKeys);
-  // Глобальный максимум объёма одного столба (материал×день) — общий масштаб высот.
-  let maxV = 1;
-  for (const dk of orderedDays) for (const g of Object.values(byDay[dk])) maxV = Math.max(maxV, volOf(g.rows));
-  const H = 190;
+  const GROUP_WINDOW = 14; // дней: потребности ближе этого окна сливаются в одну партию
+  const ORDER_AHEAD = 7;   // заказ за неделю до старта первой работы партии
 
+  // Классификация позиции: retro (работа уже прошла по плану) | эффективная дата потребности.
+  const classify = (x) => {
+    const end = x.needEnd || x.needBy;
+    if (end < today) return { kind: 'retro' };
+    // Работа уже идёт (или должна была начаться, но продолжается) → материал нужен сейчас.
+    const eff = x.needBy < today ? today : x.needBy;
+    return { kind: 'future', eff };
+  };
+
+  // Партии по материалам.
+  const byMat = {}; // matKey -> { name, batches:[{orderDate,firstNeed,lastNeed,rows[]}], retroRows[] }
+  for (const x of items) {
+    const k = x.material.toLowerCase();
+    const m = (byMat[k] = byMat[k] || { name: x.material, list: [], retroRows: [] });
+    const c = classify(x);
+    if (c.kind === 'retro') m.retroRows.push(x);
+    else m.list.push({ ...x, _eff: c.eff });
+  }
   for (const k of Object.keys(byMat)) {
     const m = byMat[k];
-    m.totalV = Object.values(m.days).reduce((s, rows) => s + volOf(rows), 0);
-    m.dayCount = Object.keys(m.days).length;
-    m.projCount = new Set([].concat(...Object.values(m.days)).map((r) => r.slug)).size;
+    m.list.sort((a, b) => a._eff.localeCompare(b._eff));
+    m.batches = [];
+    for (const x of m.list) {
+      const b = m.batches[m.batches.length - 1];
+      if (b && x._eff <= addDays(b.firstNeed, GROUP_WINDOW)) {
+        b.rows.push(x);
+        if (x._eff > b.lastNeed) b.lastNeed = x._eff;
+      } else {
+        m.batches.push({ firstNeed: x._eff, lastNeed: x._eff, rows: [x] });
+      }
+    }
+    for (const b of m.batches) {
+      const raw = addDays(b.firstNeed, -ORDER_AHEAD);
+      b.orderDate = raw < today ? today : raw;
+      b.v = volOf(b.rows);
+      b.projCount = new Set(b.rows.map((r) => r.slug)).size;
+    }
+    m.totalV = m.batches.reduce((s, b) => s + b.v, 0);
+    m.batchCount = m.batches.length;
   }
+
+  // Колонки: даты закупок (партии) + приглушённая ретроспектива по её датам заказа.
+  const futureCols = {}; // date -> [{matKey, batch}]
+  const retroCols = {};  // date -> { matKey -> rows[] }
+  for (const k of Object.keys(byMat)) {
+    const m = byMat[k];
+    for (const b of m.batches) (futureCols[b.orderDate] = futureCols[b.orderDate] || []).push({ matKey: k, name: m.name, batch: b });
+    for (const r of m.retroRows) {
+      const dcol = (retroCols[r.orderBy] = retroCols[r.orderBy] || {});
+      (dcol[k] = dcol[k] || { name: m.name, rows: [] }).rows.push(r);
+    }
+  }
+  const retroDays = Object.keys(retroCols).sort();
+  const futureDays = Object.keys(futureCols).sort();
+  // Общий масштаб высот по будущим партиям (ретро не должно задирать шкалу).
+  let maxV = 1;
+  for (const dk of futureDays) for (const e of futureCols[dk]) maxV = Math.max(maxV, e.batch.v);
+  const H = 250;
 
   const projChips = (d.projects || []).map((p) =>
     `<button type="button" class="supply-chip ${_supplyProj.has(p.slug) ? 'is-on' : ''}" data-proj="${escapeHtml(p.slug)}">${escapeHtml(p.name)}</button>`).join('');
 
-  // 🔮 Авто-прогноз системы: срочка, ближайшие 2 недели, пик, выгодные партии.
+  // 🔮 Прогноз системы (только будущее, без просрочки).
   const twoWeeks = addDays(today, 14);
-  const urgent = items.filter((x) => x.overdue);
-  const soon = items.filter((x) => !x.overdue && x.orderBy <= twoWeeks);
+  const soonBatches = [];
+  for (const dk of futureDays) if (dk <= twoWeeks) for (const e of futureCols[dk]) soonBatches.push(e);
+  const soonV = soonBatches.reduce((s, e) => s + e.batch.v, 0);
   let peakDay = null, peakV = 0;
-  for (const dk of dayKeys) { const v = Object.values(byDay[dk]).reduce((s, g) => s + volOf(g.rows), 0); if (v > peakV) { peakV = v; peakDay = dk; } }
-  const batches = Object.values(byMat).filter((m) => m.dayCount > 1).sort((a, b) => b.totalV - a.totalV).slice(0, 4);
+  for (const dk of futureDays) { const v = futureCols[dk].reduce((s, e) => s + e.batch.v, 0); if (v > peakV) { peakV = v; peakDay = dk; } }
+  const nextDay = futureDays[0] || null;
+  const nextList = nextDay ? futureCols[nextDay].sort((a, b) => b.batch.v - a.batch.v).slice(0, 4) : [];
   const forecastHtml = `<div class="supply-forecast">
-    <div class="supply-forecast-t">🔮 Прогноз системы</div>
+    <div class="supply-forecast-t">🔮 Прогноз закупок</div>
     <ul>
-      ${urgent.length ? `<li class="warn">⚠️ Просрочено: <b>${fmtVol(volOf(urgent))}</b> (${urgent.length} поз.) — заказать немедленно.</li>` : ''}
-      <li>📅 Ближайшие 2 недели: <b>${fmtVol(volOf(soon))}</b> (${soon.length} поз.).</li>
-      ${peakDay ? `<li>📈 Пик закупок: <b>${supplyFmtDM(peakDay)}</b> — ${fmtVol(peakV)}.</li>` : ''}
-      ${batches.length ? `<li>💡 Выгодно партией: ${batches.map((m) => `<b>${escapeHtml(m.name)}</b> (${m.dayCount} дат, ${fmtVol(m.totalV)})`).join('; ')} — тапни столб, покажу раскладку.</li>` : ''}
+      ${nextDay ? `<li>📦 Ближайшая закупка — <b>${supplyFmtDM(nextDay)}</b>: ${nextList.map((e) => `<b>${escapeHtml(e.name)}</b> (${fmtVol(e.batch.v)}${e.batch.projCount > 1 ? `, ${e.batch.projCount} об.` : ''})`).join('; ')}${futureCols[nextDay].length > 4 ? ` и ещё ${futureCols[nextDay].length - 4}` : ''}.</li>` : ''}
+      <li>📅 Ближайшие 2 недели: <b>${fmtVol(soonV)}</b> (${soonBatches.length} закупок).</li>
+      ${peakDay && peakDay !== nextDay ? `<li>📈 Самый крупный закупочный день: <b>${supplyFmtDM(peakDay)}</b> — ${fmtVol(peakV)}.</li>` : ''}
+      <li>💡 Система уже сгруппировала партии: близкие по датам потребности разных объектов слиты в одну закупку, столбик стоит за ${ORDER_AHEAD} дней до старта первой работы.</li>
     </ul>
   </div>`;
 
-  // Колонки дней с тонкими столбами.
-  const colsHtml = orderedDays.map((dk) => {
-    const groups = Object.values(byDay[dk]).map((g) => ({ ...g, v: volOf(g.rows) })).sort((a, b) => b.v - a.v);
-    const total = groups.reduce((s, g) => s + g.v, 0);
-    const bars = groups.map((g) => {
-      const mk = g.name.toLowerCase();
-      const [color] = supplyMatColor(g.name);
-      const bg = dk === 'overdue' ? '#d03b3b' : color;
-      const h = Math.max(7, Math.round(g.v / maxV * H));
-      const nProj = new Set(g.rows.map((r) => r.slug)).size;
-      return `<button type="button" class="supply-bbar ${_supplySel === mk ? 'is-same' : ''}" data-mkey="${escapeHtml(mk)}"
-        style="height:${h}px;background:${bg}" title="${escapeHtml(g.name)} · ${fmtVol(g.v)}${nProj > 1 ? ` · ${nProj} об.` : ''}"></button>`;
+  // Колонки будущих закупок + ретроспектива (приглушённо).
+  const colHtml = (dk, entries, isRetro) => {
+    const list = entries.sort((a, b) => b.v - a.v);
+    const total = list.reduce((s, e) => s + e.v, 0);
+    const bars = list.map((e) => {
+      const [color] = supplyMatColor(e.name);
+      const h = Math.max(12, Math.round(e.v / maxV * H));
+      const tip = isRetro
+        ? `${e.name} · ${fmtVol(e.v)} · было в плане (ретроспектива)`
+        : `${e.name} · ${fmtVol(e.v)}${e.projCount > 1 ? ` · ${e.projCount} объекта` : ''} · заказ к ${supplyFmtDM(dk)} (работы с ${supplyFmtDM(e.firstNeed)}${e.lastNeed !== e.firstNeed ? ` по ${supplyFmtDM(e.lastNeed)}` : ''})`;
+      return `<button type="button" class="supply-bbar ${isRetro ? 'supply-bbar--retro' : ''} ${_supplySel === e.matKey ? 'is-same' : ''}"
+        data-mkey="${escapeHtml(e.matKey)}" data-tip="${escapeHtml(tip)}"
+        style="height:${h}px;background:${color}"></button>`;
     }).join('');
-    let axis;
-    if (dk === 'overdue') axis = `<div class="supply-bday-axis"><div class="supply-bday-d">⚠️ уже пора</div><div class="supply-bday-m">&nbsp;</div></div>`;
-    else {
-      const dt = new Date(dk + 'T00:00:00Z');
-      const dow = (dt.getUTCDay() + 6) % 7;
-      axis = `<div class="supply-bday-axis"><div class="supply-bday-d">${dt.getUTCDate()}<small>${SUPPLY_DOW[dow]}</small></div><div class="supply-bday-m">${SUPPLY_MONTHS[dt.getUTCMonth()]}</div></div>`;
-    }
-    return `<div class="supply-bday ${dk === 'overdue' ? 'supply-bday--overdue' : ''} ${dk === today ? 'supply-bday--today' : ''}">
+    const dt = new Date(dk + 'T00:00:00Z');
+    const dow = (dt.getUTCDay() + 6) % 7;
+    return `<div class="supply-bday ${isRetro ? 'supply-bday--retro' : ''} ${dk === today ? 'supply-bday--today' : ''}">
       <div class="supply-bday-total">${fmtVol(total)}</div>
       <div class="supply-bday-bars">${bars}</div>
-      ${axis}
+      <div class="supply-bday-axis"><div class="supply-bday-d">${dk === today ? 'сегодня' : dt.getUTCDate()}<small>${SUPPLY_DOW[dow]}</small></div><div class="supply-bday-m">${SUPPLY_MONTHS[dt.getUTCMonth()]}</div></div>
     </div>`;
-  }).join('');
+  };
+  const colsHtml =
+    retroDays.map((dk) => colHtml(dk, Object.values(retroCols[dk]).map((g) => ({ matKey: g.name.toLowerCase(), name: g.name, v: volOf(g.rows), rows: g.rows })), true)).join('') +
+    futureDays.map((dk) => colHtml(dk, futureCols[dk].map((e) => ({ matKey: e.matKey, name: e.name, v: e.batch.v, projCount: e.batch.projCount, firstNeed: e.batch.firstNeed, lastNeed: e.batch.lastNeed })), false)).join('');
 
   // Легенда типов.
   const legendCats = [];
@@ -546,27 +596,26 @@ function renderSupplyBody(ov) {
     if (!seenCat.has(cat)) { seenCat.add(cat); legendCats.push({ color, cat }); }
   }
 
-  // Детализация выбранного материала: сводка «заказать разом» + раскладка по датам.
+  // Детализация выбранного материала: его партии (что в какую закупку вошло).
   let detailHtml = '';
   if (_supplySel && byMat[_supplySel]) {
     const m = byMat[_supplySel];
-    const entries = orderedDays.filter((dk) => m.days[dk]);
-    const consol = m.dayCount > 1
-      ? `<div class="supply-consol"><div class="supply-consol-t">💡 ${escapeHtml(m.name)} нужен в ${m.dayCount} датах (${m.projCount} об.)</div>
-         <div class="supply-consol-s">Выгодно заказать <b>одной партией: ${fmtVol(m.totalV)}</b> — по датам: ${entries.map((dk) => `<b>${dk === 'overdue' ? 'уже пора' : supplyFmtDM(dk)}</b> (${fmtVol(volOf(m.days[dk]))})`).join(', ')}. Ориентируйся на самую раннюю.</div></div>`
+    const consol = m.batchCount > 0
+      ? `<div class="supply-consol"><div class="supply-consol-t">💡 ${escapeHtml(m.name)} — ${m.batchCount === 1 ? 'одна закупка' : m.batchCount + ' закупки'}, всего ${fmtVol(m.totalV)}</div>
+         <div class="supply-consol-s">${m.batches.map((b) => `<b>${supplyFmtDM(b.orderDate)}</b> — ${fmtVol(b.v)} (работы с ${supplyFmtDM(b.firstNeed)}${b.lastNeed !== b.firstNeed ? ` по ${supplyFmtDM(b.lastNeed)}` : ''}${b.projCount > 1 ? `, ${b.projCount} об.` : ''})`).join(' · ')}. Близкие даты уже слиты в одну партию.</div></div>`
       : '';
-    const secHtml = entries.map((dk) => {
-      const rows = m.days[dk].sort((a, b) => a.orderBy.localeCompare(b.orderBy)).map((r) => `
+    const secHtml = m.batches.map((b) => {
+      const rows = b.rows.sort((a, b2) => a._eff.localeCompare(b2._eff)).map((r) => `
         <div class="supply-row">
           <span class="supply-row-proj">${escapeHtml(r.project)}</span>
           <span class="supply-row-task">${escapeHtml(r.taskName)}</span>
           ${r.qty != null ? `<span class="supply-mat-qty">${r.qty} ${escapeHtml(r.unit || '')}</span>` : ''}
-          <span class="supply-row-date ${r.overdue ? 'is-late' : ''}">заказ до ${supplyFmtDM(r.orderBy)}</span>
+          <span class="supply-row-date">работа ${r.started ? 'уже идёт' : 'с ' + supplyFmtDM(r.needBy)}</span>
           <span class="supply-badge ${r.source === 'manual' ? 'supply-badge--manual' : ''}">${r.source === 'manual' ? 'ручное' : 'авто'}</span>
         </div>`).join('');
       return `<div class="supply-mat is-open">
-        <div class="supply-mat-head" style="cursor:default"><span class="supply-mat-name">${dk === 'overdue' ? '⚠️ уже пора' : 'заказать до ' + supplyFmtDM(dk)}</span>
-        <span class="supply-mat-meta">${fmtVol(volOf(m.days[dk]))}</span></div>
+        <div class="supply-mat-head" style="cursor:default"><span class="supply-mat-name">📦 Закупка ${supplyFmtDM(b.orderDate)}</span>
+        <span class="supply-mat-meta">${fmtVol(b.v)}</span></div>
         <div class="supply-mat-rows">${rows}</div></div>`;
     }).join('');
     detailHtml = `<h3 class="supply-detail-title">${escapeHtml(m.name)}</h3>${consol}${secHtml}`;
@@ -580,7 +629,7 @@ function renderSupplyBody(ov) {
     ${forecastHtml}
     <div class="supply-cal-card">
       <div class="supply-cal-head">
-        <div class="supply-cal-title">Каждый столб = закупка материала. Высота = объём. Тапни столб — подсвечу его во всех датах</div>
+        <div class="supply-cal-title">Каждый столб = закупка материала (партия). Наведи — подробности, тапни — раскладка</div>
         <button type="button" class="supply-cal-nav" data-nav="-1">‹</button>
         <button type="button" class="supply-cal-nav" data-nav="1">›</button>
       </div>
@@ -589,12 +638,22 @@ function renderSupplyBody(ov) {
       </div>
       <div class="supply-legend">
         ${legendCats.map((c) => `<span><i style="background:${c.color}"></i>${escapeHtml(c.cat)}</span>`).join('')}
+        <span style="opacity:.7">блеклые слева = прошлое (ретроспектива)</span>
       </div>
     </div>
-    ${detailHtml || '<div class="supply-empty">Тапни столб — подсвечу этот материал во всех датах и покажу сводку «заказать разом».</div>'}
+    <div class="supply-tip" id="supply-tip" hidden></div>
+    ${detailHtml || '<div class="supply-empty">Наведи на столб — подсказка. Тапни — подсвечу материал во всех закупках и покажу раскладку партий.</div>'}
   `;
 
   const sc = body.querySelector('#supply-cal-scroll');
+  // Первый показ: пролистываем ретроспективу, начинаем с сегодняшних/будущих закупок.
+  if (!_supplyScrolled && retroDays.length) {
+    _supplyScrolled = true;
+    requestAnimationFrame(() => {
+      const firstFuture = body.querySelector('.supply-bday:not(.supply-bday--retro)');
+      if (firstFuture && sc) { sc.style.scrollBehavior = 'auto'; sc.scrollLeft = Math.max(0, firstFuture.offsetLeft - 12); sc.style.scrollBehavior = ''; }
+    });
+  }
   const keepScroll = (fn) => {
     const keep = sc ? sc.scrollLeft : 0;
     fn();
@@ -607,10 +666,31 @@ function renderSupplyBody(ov) {
       sc2.style.scrollBehavior = prev;
     });
   };
-  body.querySelectorAll('[data-mkey]').forEach((el) => el.addEventListener('click', () => {
-    const key = el.getAttribute('data-mkey');
-    keepScroll(() => { _supplySel = (_supplySel === key) ? null : key; renderSupplyBody(ov); });
-  }));
+  // Ховер-подсказка (без кликов). На тач-устройствах остаётся тап.
+  const tip = body.querySelector('#supply-tip');
+  const showTip = (el) => {
+    if (!tip) return;
+    tip.textContent = el.getAttribute('data-tip') || '';
+    tip.hidden = false;
+    const r = el.getBoundingClientRect();
+    const w = Math.min(300, window.innerWidth - 24);
+    tip.style.maxWidth = w + 'px';
+    const tr = tip.getBoundingClientRect();
+    let x = r.left + r.width / 2 - tr.width / 2;
+    x = Math.max(12, Math.min(x, window.innerWidth - tr.width - 12));
+    let y = r.top - tr.height - 8;
+    if (y < 8) y = r.bottom + 8;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  };
+  body.querySelectorAll('[data-mkey]').forEach((el) => {
+    el.addEventListener('mouseenter', () => showTip(el));
+    el.addEventListener('mouseleave', () => { if (tip) tip.hidden = true; });
+    el.addEventListener('click', () => {
+      if (tip) tip.hidden = true;
+      const key = el.getAttribute('data-mkey');
+      keepScroll(() => { _supplySel = (_supplySel === key) ? null : key; renderSupplyBody(ov); });
+    });
+  });
   body.querySelectorAll('[data-nav]').forEach((el) => el.addEventListener('click', () => {
     if (sc) sc.scrollBy({ left: Number(el.getAttribute('data-nav')) * 300, behavior: 'smooth' });
   }));
